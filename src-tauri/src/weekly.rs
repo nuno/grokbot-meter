@@ -51,6 +51,7 @@ struct CacheEntry {
 }
 
 static CACHE: Mutex<Option<CacheEntry>> = Mutex::new(None);
+static CRYPT_KEY: Mutex<Option<[u8; 16]>> = Mutex::new(None);
 
 pub fn status() -> WeeklyStatus {
     {
@@ -615,8 +616,17 @@ fn aes128_cbc_decrypt(key: &[u8; 16], ciphertext: &[u8]) -> Option<Vec<u8>> {
 }
 
 fn crypt_key() -> Option<[u8; 16]> {
+    {
+        let cache = CRYPT_KEY.lock().unwrap_or_else(|e| e.into_inner());
+        if let Some(key) = *cache {
+            return Some(key);
+        }
+    }
     let secret = safe_storage_secret()?;
-    Some(derive_crypt_key(&secret))
+    let key = derive_crypt_key(&secret);
+    let mut cache = CRYPT_KEY.lock().unwrap_or_else(|e| e.into_inner());
+    *cache = Some(key);
+    Some(key)
 }
 
 fn derive_crypt_key(password: &[u8]) -> [u8; 16] {
