@@ -2,7 +2,7 @@ use chrono::DateTime;
 use serde::Serialize;
 use serde_json::Value;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
@@ -10,10 +10,18 @@ const CACHE_TTL: Duration = Duration::from_secs(60);
 const HTTP_TIMEOUT: Duration = Duration::from_secs(12);
 const USAGE_URL: &str =
     "https://api2.cursor.sh/aiserver.v1.DashboardService/GetSandUsageStatus";
+const ME_URL: &str = "https://api2.cursor.sh/aiserver.v1.DashboardService/GetMe";
 const TOKEN_URL: &str = "https://api2.cursor.sh/oauth/token";
 const OAUTH_CLIENT_ID: &str = "KbZUR41cY7W6zRSdpSUJ7I7mLYBKOCmB";
 const SECOND_MS_THRESHOLD: i64 = 100_000_000_000;
 const WEEK_MS: i64 = 7 * 24 * 60 * 60 * 1000;
+const PBKDF2_SALT: &[u8] = b"saltysalt";
+const PBKDF2_ITERS: u32 = 1003;
+const V10_PREFIX: &[u8] = b"v10";
+#[cfg(target_os = "macos")]
+const SAFE_STORAGE_SERVICE: &str = "Grok Bot Safe Storage";
+#[cfg(target_os = "macos")]
+const SAFE_STORAGE_ACCOUNT: &str = "Grok Bot Key";
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -28,6 +36,7 @@ pub struct WeeklyStatus {
     pub sand_trial_expires_at: Option<i64>,
     pub has_non_zero_included_limit: Option<bool>,
     pub has_available_usage: Option<bool>,
+    pub account_email: Option<String>,
     pub error: Option<String>,
 }
 
@@ -85,14 +94,14 @@ fn fetch_status() -> WeeklyStatus {
     };
 
     match call_usage(&access) {
-        UsageCall::Ok(value) => parse_usage(value),
+        UsageCall::Ok(value) => with_account_email(parse_usage(value), &access),
         UsageCall::Unauthorized => {
             let Some(refresh) = tokens.refresh.as_deref().filter(|r| !r.is_empty()) else {
                 return signed_out(None);
             };
             match refresh_access(refresh) {
                 RefreshOutcome::Access(new_access) => match call_usage(&new_access) {
-                    UsageCall::Ok(value) => parse_usage(value),
+                    UsageCall::Ok(value) => with_account_email(parse_usage(value), &new_access),
                     UsageCall::Unauthorized => signed_out(None),
                     UsageCall::Failed(err) => err_status(true, err),
                 },
@@ -116,6 +125,7 @@ fn empty_status() -> WeeklyStatus {
         sand_trial_expires_at: None,
         has_non_zero_included_limit: None,
         has_available_usage: None,
+        account_email: None,
         error: None,
     }
 }
@@ -131,6 +141,11 @@ fn err_status(signed_in: bool, error: String) -> WeeklyStatus {
     s.signed_in = signed_in;
     s.error = Some(sanitize_error(&error));
     s
+}
+
+fn with_account_email(mut status: WeeklyStatus, access: &str) -> WeeklyStatus {
+    status.account_email = fetch_account_email(access);
+    status
 }
 
 enum UsageCall {
@@ -182,6 +197,40 @@ fn read_json_response(resp: ureq::Response) -> UsageCall {
         },
         Err(_) => UsageCall::Failed("unexpected usage response".to_string()),
     }
+}
+
+fn fetch_account_email(access: &str) -> Option<String> {
+    let auth = format!("Bearer {access}");
+    let result = http_agent()
+        .post(ME_URL)
+        .set("Authorization", &auth)
+        .set("Content-Type", "application/json")
+        .set("Connect-Protocol-Version", "1")
+        .send_string("{}");
+    let resp = match result {
+        Ok(resp) => resp,
+        Err(_) => return None,
+    };
+    if !(200..300).contains(&resp.status()) {
+        return None;
+    }
+    let body = resp.into_string().ok()?;
+    let v: Value = serde_json::from_str(&body).ok()?;
+    extract_account_label(&v)
+}
+
+fn extract_account_label(v: &Value) -> Option<String> {
+    let from = |obj: &Value| {
+        json_str(obj, "email", "Email")
+            .or_else(|| json_str(obj, "userEmail", "user_email"))
+            .or_else(|| json_str(obj, "displayName", "display_name"))
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+            .map(str::to_string)
+    };
+    from(v)
+        .or_else(|| v.get("user").and_then(from))
+        .or_else(|| v.get("me").and_then(from))
 }
 
 fn refresh_access(refresh: &str) -> RefreshOutcome {
@@ -290,6 +339,7 @@ fn parse_usage(v: Value) -> WeeklyStatus {
         sand_trial_expires_at,
         has_non_zero_included_limit,
         has_available_usage,
+        account_email: None,
         error: None,
     }
 }
@@ -430,25 +480,7 @@ fn load_tokens() -> Tokens {
         access: None,
         refresh: None,
     };
-
-    for path in cursor_vscdb_paths() {
-        if !path.is_file() {
-            continue;
-        }
-        if let Some(access) = read_vscdb_item(&path, "cursorAuth/accessToken") {
-            accept_access(&mut tokens.access, access);
-        }
-        if tokens.refresh.is_none() {
-            if let Some(refresh) = read_vscdb_item(&path, "cursorAuth/refreshToken") {
-                if !refresh.is_empty() {
-                    tokens.refresh = Some(refresh);
-                }
-            }
-        }
-        if tokens.access.as_deref().is_some_and(looks_like_jwt) {
-            return tokens;
-        }
-    }
+    let crypt_key = crypt_key();
 
     for path in sand_secrets_paths() {
         if !path.is_file() {
@@ -458,14 +490,17 @@ fn load_tokens() -> Tokens {
         let Ok(value) = serde_json::from_slice::<Value>(&bytes) else {
             continue;
         };
-        if let Some(access) =
-            json_str(&value, "cursor-access-token", "cursorAccessToken").map(normalize_secret)
-        {
-            accept_access(&mut tokens.access, access);
+        if !tokens.access.as_deref().is_some_and(looks_like_jwt) {
+            if let Some(access) = json_str(&value, "cursor-access-token", "cursorAccessToken")
+                .and_then(|raw| unwrap_secret(raw, crypt_key.as_ref()))
+                .filter(|t| looks_like_jwt(t))
+            {
+                tokens.access = Some(access);
+            }
         }
         if tokens.refresh.is_none() {
             if let Some(refresh) = json_str(&value, "cursor-refresh-token", "cursorRefreshToken")
-                .map(normalize_secret)
+                .and_then(|raw| unwrap_secret(raw, crypt_key.as_ref()))
                 .filter(|s| !s.is_empty())
             {
                 tokens.refresh = Some(refresh);
@@ -479,11 +514,30 @@ fn load_tokens() -> Tokens {
     tokens
 }
 
-fn accept_access(slot: &mut Option<String>, candidate: String) {
-    let candidate = normalize_secret(&candidate);
-    if looks_like_jwt(&candidate) {
-        *slot = Some(candidate);
+fn unwrap_secret(raw: &str, key: Option<&[u8; 16]>) -> Option<String> {
+    let trimmed = normalize_secret(raw);
+    if trimmed.is_empty() {
+        return None;
     }
+    if let Some(plain) = trimmed.strip_prefix("plaintext:v1:") {
+        let plain = plain.trim();
+        return if plain.is_empty() {
+            None
+        } else {
+            Some(plain.to_string())
+        };
+    }
+    if let Some(rest) = trimmed.strip_prefix("scoped:v1:") {
+        let ciphertext = rest.split_once(':')?.1;
+        if ciphertext.is_empty() {
+            return None;
+        }
+        return decrypt_safe_storage(ciphertext, key);
+    }
+    if looks_like_jwt(&trimmed) {
+        return Some(trimmed);
+    }
+    decrypt_safe_storage(&trimmed, key)
 }
 
 fn normalize_secret(raw: &str) -> String {
@@ -503,21 +557,6 @@ fn normalize_secret(raw: &str) -> String {
     trimmed.to_string()
 }
 
-fn cursor_vscdb_paths() -> Vec<PathBuf> {
-    let home = home_dir();
-    let mut paths = vec![
-        home.join("Library/Application Support/Cursor/User/globalStorage/state.vscdb"),
-        home.join(".config/Cursor/User/globalStorage/state.vscdb"),
-    ];
-    if let Some(appdata) = std::env::var_os("APPDATA") {
-        paths.push(PathBuf::from(appdata).join("Cursor/User/globalStorage/state.vscdb"));
-    }
-    if let Some(xdg) = std::env::var_os("XDG_CONFIG_HOME") {
-        paths.push(PathBuf::from(xdg).join("Cursor/User/globalStorage/state.vscdb"));
-    }
-    paths
-}
-
 fn sand_secrets_paths() -> Vec<PathBuf> {
     let home = home_dir();
     vec![
@@ -531,29 +570,84 @@ fn sand_secrets_paths() -> Vec<PathBuf> {
     ]
 }
 
-fn read_vscdb_item(path: &Path, key: &str) -> Option<String> {
-    let conn = rusqlite::Connection::open_with_flags(
-        path,
-        rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
-    )
-    .ok()?;
-    let _ = conn.busy_timeout(Duration::from_millis(1_000));
-    let _ = conn.execute_batch("PRAGMA query_only = ON;");
-    // Cursor stores ItemTable.value as TEXT; some VS Code DBs use BLOB.
-    let raw: rusqlite::types::Value = conn
-        .query_row("SELECT value FROM ItemTable WHERE key = ?1", [key], |row| {
-            row.get(0)
-        })
-        .ok()?;
-    let s = match raw {
-        rusqlite::types::Value::Text(s) => s,
-        rusqlite::types::Value::Blob(b) => String::from_utf8(b).ok()?,
-        _ => return None,
-    };
-    let s = normalize_secret(&s);
+fn decrypt_safe_storage(ciphertext_b64: &str, key: Option<&[u8; 16]>) -> Option<String> {
+    let key = key?;
+    let mut data = decode_b64(ciphertext_b64)?;
+    if !data.starts_with(V10_PREFIX) {
+        return None;
+    }
+    data.drain(..V10_PREFIX.len());
+    if data.is_empty() || data.len() % 16 != 0 {
+        return None;
+    }
+    let plain = aes128_cbc_decrypt(key, &data)?;
+    let s = String::from_utf8(plain).ok()?;
+    let s = s.trim();
     if s.is_empty() {
         None
     } else {
-        Some(s)
+        Some(s.to_string())
+    }
+}
+
+fn decode_b64(s: &str) -> Option<Vec<u8>> {
+    use base64::Engine;
+    let s = s.trim();
+    base64::engine::general_purpose::STANDARD
+        .decode(s)
+        .ok()
+        .or_else(|| {
+            base64::engine::general_purpose::STANDARD_NO_PAD
+                .decode(s)
+                .ok()
+        })
+}
+
+fn aes128_cbc_decrypt(key: &[u8; 16], ciphertext: &[u8]) -> Option<Vec<u8>> {
+    use aes::cipher::{block_padding::Pkcs7, BlockDecryptMut, KeyIvInit};
+    type Aes128CbcDec = cbc::Decryptor<aes::Aes128>;
+    let iv = [b' '; 16];
+    let mut buf = ciphertext.to_vec();
+    Aes128CbcDec::new(key.into(), &iv.into())
+        .decrypt_padded_mut::<Pkcs7>(&mut buf)
+        .ok()
+        .map(|pt| pt.to_vec())
+}
+
+fn crypt_key() -> Option<[u8; 16]> {
+    let secret = safe_storage_secret()?;
+    Some(derive_crypt_key(&secret))
+}
+
+fn derive_crypt_key(password: &[u8]) -> [u8; 16] {
+    use pbkdf2::pbkdf2_hmac;
+    use sha1::Sha1;
+    let mut key = [0u8; 16];
+    pbkdf2_hmac::<Sha1>(password, PBKDF2_SALT, PBKDF2_ITERS, &mut key);
+    key
+}
+
+/// Chromium/Electron safeStorage secret.
+/// macOS: Keychain generic password via security-framework (no `security` CLI).
+/// Other OS: stub (no libsecret/DPAPI yet). Never falls back to Cursor IDE.
+fn safe_storage_secret() -> Option<Vec<u8>> {
+    #[cfg(target_os = "macos")]
+    {
+        macos_safe_storage_secret()
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        None
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn macos_safe_storage_secret() -> Option<Vec<u8>> {
+    use security_framework::passwords::get_generic_password;
+    let bytes = get_generic_password(SAFE_STORAGE_SERVICE, SAFE_STORAGE_ACCOUNT).ok()?;
+    if bytes.is_empty() {
+        None
+    } else {
+        Some(bytes)
     }
 }

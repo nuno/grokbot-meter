@@ -30,6 +30,7 @@ type WeeklyStatus = {
   sandTrialExpiresAt: number | null;
   hasNonZeroIncludedLimit: boolean | null;
   hasAvailableUsage: boolean | null;
+  accountEmail: string | null;
   error: string | null;
 };
 
@@ -177,6 +178,9 @@ function App() {
             {line}
           </p>
         ))}
+        {weekly?.accountEmail ? (
+          <p className="muted">{weekly.accountEmail}</p>
+        ) : null}
       </section>
 
       <section className="card card-today">
