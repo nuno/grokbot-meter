@@ -98,6 +98,45 @@ function weeklyLines(weekly: WeeklyStatus | null): string[] {
   return lines;
 }
 
+function WeeklyIcon() {
+  return (
+    <svg className="card-label-icon weekly" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+      <rect x="1.5" y="7.5" width="2.5" height="5" rx="0.75" fill="currentColor" opacity="0.9" />
+      <rect x="5.75" y="4.5" width="2.5" height="8" rx="0.75" fill="currentColor" />
+      <rect x="10" y="1.5" width="2.5" height="11" rx="0.75" fill="currentColor" opacity="0.55" />
+    </svg>
+  );
+}
+
+function TodayIcon() {
+  return (
+    <svg className="card-label-icon today" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+      <circle cx="7" cy="7" r="5.25" stroke="currentColor" strokeWidth="1.2" opacity="0.9" />
+      <path d="M7 4.2V7l2.2 1.3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="7" cy="7" r="1.15" fill="currentColor" opacity="0.9" />
+    </svg>
+  );
+}
+
+function GrokMark2Icon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 18 18"
+      width="18"
+      height="18"
+      fill="none"
+      aria-hidden="true"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        fill="currentColor"
+        d="M9 1.65 C4.94 1.65 1.65 4.94 1.65 9 C1.65 13.06 4.94 16.35 9 16.35 C13.06 16.35 16.35 13.06 16.35 9 C16.35 4.94 13.06 1.65 9 1.65Z M6.02 5.05 C6.43 4.86 6.79 5.08 6.97 5.52 L7.76 7.45 C7.94 7.89 7.75 8.28 7.35 8.37 C6.94 8.45 6.62 8.17 6.44 7.74 L5.67 5.84 C5.49 5.41 5.61 5.24 6.02 5.05Z M10.62 4.36 C11.03 4.21 11.38 4.46 11.55 4.89 L12.34 6.82 C12.52 7.27 12.33 7.63 11.93 7.72 C11.53 7.80 11.21 7.52 11.04 7.10 L10.28 5.20 C10.11 4.77 10.21 4.51 10.62 4.36Z"
+      />
+    </svg>
+  );
+}
+
 function App() {
   const [status, setStatus] = useState<GrokStatus | null>(null);
   const [weekly, setWeekly] = useState<WeeklyStatus | null>(null);
@@ -209,21 +248,37 @@ function App() {
       <div className="panel">
         <header className="header header-row">
           <button type="button" className="back" onClick={() => setAbout(false)}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <path d="M7.5 9L4.5 6 7.5 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
             Back
           </button>
         </header>
         <section className="card about">
-          <h2>GrokBar</h2>
-          <p className="tagline">Menu bar stats for Grok Bot.</p>
-          <p>
-            Unofficial companion app. Not affiliated with, endorsed by, or a
-            product of Cursor or xAI.
-          </p>
-          <p className="legal">
-            Grok Bot and Cursor are trademarks of their respective owners.
-          </p>
-          <p>Built by Grok Bot.</p>
-          <p className="legal">© 2026 Nuno Costa</p>
+          <div className="about-header">
+            <div className="about-icon" aria-hidden="true">
+              <GrokMark2Icon className="about-mark" />
+            </div>
+            <div className="about-titleblock">
+              <h2>GrokBar</h2>
+              <p className="tagline">Menu bar stats for Grok Bot.</p>
+            </div>
+          </div>
+          <div className="about-divider" role="separator" />
+          <div className="about-body">
+            <p>
+              Unofficial companion app. Not affiliated with, endorsed by, or a
+              product of Cursor or xAI.
+            </p>
+            <p className="legal">
+              Grok Bot and Cursor are trademarks of their respective owners.
+            </p>
+          </div>
+          <div className="about-divider" role="separator" />
+          <div className="about-footer">
+            <p>Built by Grok Bot.</p>
+            <p className="legal">© 2026 Nuno Costa</p>
+          </div>
         </section>
       </div>
     );
@@ -232,12 +287,17 @@ function App() {
   return (
     <div className="panel">
       <header className="header">
-        <h1 className="title">GrokBar</h1>
+        <h1 className="title">
+          <GrokMark2Icon className="title-icon" />
+          GrokBar
+        </h1>
       </header>
 
       <section className="card">
         <div className="card-head">
-          <span className="card-label">Weekly</span>
+          <span className="card-label">
+            <WeeklyIcon /> Weekly
+          </span>
           <span className="card-pct">{pctLabel}</span>
         </div>
         <div
@@ -261,7 +321,9 @@ function App() {
 
       <section className="card card-today">
         <div className="card-head">
-          <span className="card-label">Today</span>
+          <span className="card-label">
+            <TodayIcon /> Today
+          </span>
           {hasToday ? (
             <span className="card-pct">{todayMessageCount}</span>
           ) : null}
@@ -277,7 +339,8 @@ function App() {
         {agents.length > 0 ? (
           <ul className="agents">
             {agents.map((agent) => (
-              <li key={agent.id} className="agent">
+              <li key={agent.id} className={`agent${agent.todayMessages > 0 ? " has-activity" : ""}`}>
+                <span className="agent-dot" aria-hidden="true" />
                 <span className="agent-name" title={agentLabel(agent)}>
                   {agentLabel(agent)}
                 </span>
