@@ -537,14 +537,19 @@ fn read_vscdb_item(path: &Path, key: &str) -> Option<String> {
         rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
     )
     .ok()?;
-    let _ = conn.busy_timeout(Duration::from_millis(400));
+    let _ = conn.busy_timeout(Duration::from_millis(1_000));
     let _ = conn.execute_batch("PRAGMA query_only = ON;");
-    let raw: Vec<u8> = conn
+    // Cursor stores ItemTable.value as TEXT; some VS Code DBs use BLOB.
+    let raw: rusqlite::types::Value = conn
         .query_row("SELECT value FROM ItemTable WHERE key = ?1", [key], |row| {
             row.get(0)
         })
         .ok()?;
-    let s = String::from_utf8(raw).ok()?;
+    let s = match raw {
+        rusqlite::types::Value::Text(s) => s,
+        rusqlite::types::Value::Blob(b) => String::from_utf8(b).ok()?,
+        _ => return None,
+    };
     let s = normalize_secret(&s);
     if s.is_empty() {
         None
