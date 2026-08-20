@@ -3,7 +3,7 @@ mod weekly;
 
 use grok_source::GrokStatus;
 use std::sync::Mutex;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
@@ -11,6 +11,19 @@ use tauri::{
 };
 
 static LAST_TRAY_RECT: Mutex<Option<Rect>> = Mutex::new(None);
+static IGNORE_BLUR_UNTIL: Mutex<Option<Instant>> = Mutex::new(None);
+
+fn ignore_blur_briefly() {
+    *IGNORE_BLUR_UNTIL.lock().unwrap_or_else(|e| e.into_inner()) =
+        Some(Instant::now() + Duration::from_millis(400));
+}
+
+fn blur_should_hide() -> bool {
+    match *IGNORE_BLUR_UNTIL.lock().unwrap_or_else(|e| e.into_inner()) {
+        Some(until) if Instant::now() < until => false,
+        _ => true,
+    }
+}
 
 #[tauri::command]
 fn grok_status() -> GrokStatus {
@@ -93,6 +106,7 @@ fn toggle_panel(app: &AppHandle, tray_rect: Rect) {
             let _ = window.hide();
         }
         _ => {
+            ignore_blur_briefly();
             position_near_tray(&window, tray_rect);
             let _ = window.show();
             let _ = window.set_focus();
@@ -117,6 +131,7 @@ fn position_near_tray(window: &WebviewWindow, tray_rect: Rect) {
 
 fn show_about(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
+        ignore_blur_briefly();
         if let Some(rect) = last_tray_rect() {
             position_near_tray(&window, rect);
         }
@@ -175,22 +190,48 @@ fn setup_tray(app: &tauri::App) -> tauri::Result<()> {
     Ok(())
 }
 
+#[cfg(target_os = "macos")]
+fn apply_macos_panel_material(app: &tauri::App) {
+    use tauri::window::{Color, Effect, EffectState, EffectsBuilder};
+
+    let Some(window) = app.get_webview_window("main") else {
+        return;
+    };
+    let _ = window.set_effects(
+        EffectsBuilder::new()
+            .effect(Effect::Popover)
+            .state(EffectState::FollowsWindowActiveState)
+            .radius(12.)
+            .build(),
+    );
+    let _ = window.set_background_color(Some(Color(0, 0, 0, 0)));
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![grok_status, weekly_status])
         .setup(|app| {
             #[cfg(target_os = "macos")]
-            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+            {
+                app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+                apply_macos_panel_material(app);
+            }
 
             setup_tray(app)?;
             spawn_tray_refresh(app.handle().clone());
             Ok(())
         })
         .on_window_event(|window, event| {
-            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                api.prevent_close();
-                let _ = window.hide();
+            match event {
+                tauri::WindowEvent::CloseRequested { api, .. } => {
+                    api.prevent_close();
+                    let _ = window.hide();
+                }
+                tauri::WindowEvent::Focused(false) if blur_should_hide() => {
+                    let _ = window.hide();
+                }
+                _ => {}
             }
         })
         .run(tauri::generate_context!())

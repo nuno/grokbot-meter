@@ -26,3 +26,5 @@ dist-ssr
 # Rust / Tauri
 target
 src-tauri/target
+
+.grokbar-sync.tgz

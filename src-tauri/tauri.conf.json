@@ -10,7 +10,7 @@
     "frontendDist": "../dist"
   },
   "app": {
-    "macOSPrivateApi": false,
+    "macOSPrivateApi": true,
     "windows": [
       {
         "label": "main",
@@ -25,8 +25,20 @@
         "fullscreen": false,
         "shadow": true,
         "focus": false,
-        "theme": "Dark",
-        "transparent": false
+        "transparent": true,
+        "backgroundColor": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "windowEffects": {
+          "effects": [
+            "popover"
+          ],
+          "state": "followsWindowActiveState",
+          "radius": 12
+        }
       }
     ],
     "trayIcon": {
