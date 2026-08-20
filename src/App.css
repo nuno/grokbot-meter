@@ -9,8 +9,7 @@
   --system-red: #FF3B30;
   --meter-track: rgba(120, 120, 128, 0.28);
   --meter-empty: rgba(120, 120, 128, 0.22);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
-    system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
   font-size: 13px;
   line-height: 1.35;
   font-weight: 400;
@@ -39,6 +38,10 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+button {
+  font: inherit;
 }
 
 html,
@@ -71,9 +74,7 @@ body,
 }
 
 .title {
-  font-size: 13px;
   font-weight: 600;
-  letter-spacing: -0.02em;
   color: var(--label);
 }
 
@@ -98,10 +99,7 @@ body,
 }
 
 .card-label {
-  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
   color: var(--tertiary-label);
 }
 
@@ -133,7 +131,6 @@ body,
 .empty {
   margin-top: 6px;
   color: var(--secondary-label);
-  font-size: 12px;
 }
 
 .agents {
@@ -171,7 +168,6 @@ body,
   align-items: baseline;
   gap: 8px;
   flex-shrink: 0;
-  font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -187,13 +183,11 @@ body,
 .error {
   margin-top: 8px;
   color: var(--system-red);
-  font-size: 12px;
 }
 
 .footer {
   margin-top: auto;
   padding-top: 4px;
-  font-size: 11px;
   color: var(--secondary-label);
 }
 
@@ -216,7 +210,6 @@ body,
 
 .back {
   color: var(--secondary-label);
-  font-size: 12px;
   padding: 2px 0;
 }
 
@@ -232,9 +225,7 @@ body,
 }
 
 .about h2 {
-  font-size: 16px;
   font-weight: 600;
-  letter-spacing: -0.02em;
   color: var(--label);
 }
 
@@ -246,7 +237,6 @@ body,
 .about p {
   margin-top: 10px;
   color: var(--label);
-  font-size: 12px;
 }
 
 .about .legal {
