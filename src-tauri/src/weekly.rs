@@ -491,6 +491,7 @@ fn load_tokens() -> Tokens {
         let Ok(value) = serde_json::from_slice::<Value>(&bytes) else {
             continue;
         };
+        // 1) flat top-level tokens (legacy)
         if !tokens.access.as_deref().is_some_and(looks_like_jwt) {
             if let Some(access) = json_str(&value, "cursor-access-token", "cursorAccessToken")
                 .and_then(|raw| unwrap_secret(raw, crypt_key.as_ref()))
@@ -507,12 +508,79 @@ fn load_tokens() -> Tokens {
                 tokens.refresh = Some(refresh);
             }
         }
-        if tokens.access.as_deref().is_some_and(looks_like_jwt) {
+        // 2) Grok Bot post-update storage: `cursor-accounts` stringified JSON
+        //    {"active":"id","accounts":{"id":{"cursor-access-token":"djEw...","cursor-refresh-token":"..."}}}
+        if !tokens.access.as_deref().is_some_and(looks_like_jwt) || tokens.refresh.is_none() {
+            if let Some((acc, ref_tok)) = extract_from_cursor_accounts(&value, crypt_key.as_ref()) {
+                let has_nested_access = acc.as_deref().is_some_and(looks_like_jwt);
+                if !tokens.access.as_deref().is_some_and(looks_like_jwt) {
+                    if let Some(a) = acc {
+                        // acc already filtered by looks_like_jwt in extractor
+                        tokens.access = Some(a);
+                        // keep pair together: if access comes from nested store, prefer its refresh
+                        if let Some(r) = ref_tok.clone().filter(|s| !s.is_empty()) {
+                            tokens.refresh = Some(r);
+                        }
+                    }
+                } else if has_nested_access {
+                    // access already satisfied from flat, but nested refresh may still be needed
+                    // and should not overwrite a valid paired refresh with a stale one
+                    if tokens.refresh.is_none() {
+                        if let Some(r) = ref_tok.filter(|s| !s.is_empty()) {
+                            tokens.refresh = Some(r);
+                        }
+                    }
+                } else if tokens.refresh.is_none() {
+                    if let Some(r) = ref_tok.filter(|s| !s.is_empty()) {
+                        tokens.refresh = Some(r);
+                    }
+                }
+            }
+        }
+        if tokens.access.as_deref().is_some_and(looks_like_jwt) && tokens.refresh.is_some() {
             break;
         }
     }
 
     tokens
+}
+
+fn extract_from_cursor_accounts(value: &Value, key: Option<&[u8; 16]>) -> Option<(Option<String>, Option<String>)> {
+    let raw = value
+        .get("cursor-accounts")
+        .or_else(|| value.get("cursorAccounts"))
+        .or_else(|| value.get("cursor_accounts"))?;
+    // outer may be stringified JSON or already an object
+    // helper: parse stringified JSON (handles double-escaped outer string)
+    let inner: Value = match raw {
+        Value::String(s) => {
+            // normalize_secret handles double-quoted / escaped string
+            let normalized = normalize_secret(s);
+            serde_json::from_str::<Value>(&normalized)
+                .or_else(|_| serde_json::from_str::<Value>(s))
+                .ok()?
+        }
+        Value::Object(_) => raw.clone(),
+        _ => return None,
+    };
+    let active_raw = inner.get("active").and_then(Value::as_str).filter(|s| !s.is_empty())?;
+    let active = active_raw.trim();
+    if active.is_empty() {
+        return None;
+    }
+    let accounts = inner.get("accounts")?.as_object()?;
+    let acct = accounts.get(active)?;
+    let access = json_str(acct, "cursor-access-token", "cursorAccessToken")
+        .and_then(|raw| unwrap_secret(raw, key));
+    // filter in caller is redundant now; keep single check here
+    let access = access.filter(|t| looks_like_jwt(t));
+    let refresh = json_str(acct, "cursor-refresh-token", "cursorRefreshToken")
+        .and_then(|raw| unwrap_secret(raw, key))
+        .filter(|s| !s.is_empty());
+    if access.is_none() && refresh.is_none() {
+        return None;
+    }
+    Some((access, refresh))
 }
 
 fn unwrap_secret(raw: &str, key: Option<&[u8; 16]>) -> Option<String> {
