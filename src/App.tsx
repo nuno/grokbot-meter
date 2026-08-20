@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import "./App.css";
 
 type GrokAgent = {
@@ -34,13 +35,6 @@ type WeeklyStatus = {
   accountEmail: string | null;
   error: string | null;
 };
-
-function persistencePath(paths: string[] | undefined): string {
-  if (!paths?.length) return "—";
-  return (
-    paths.find((p) => p.includes("sand-client-persistence")) ?? paths[0] ?? "—"
-  );
-}
 
 function formatLastSeen(ms: number): string {
   if (!ms) return "—";
@@ -112,6 +106,10 @@ function App() {
 
   useEffect(() => {
     let cancelled = false;
+    let timer: number | undefined;
+    let polling = false;
+    const win = getCurrentWindow();
+
     const load = () => {
       invoke<GrokStatus>("grok_status")
         .then((next) => {
@@ -133,11 +131,53 @@ function App() {
           setWeekly(null);
         });
     };
+
+    const stopPolling = () => {
+      if (timer !== undefined) {
+        window.clearInterval(timer);
+        timer = undefined;
+      }
+      polling = false;
+    };
+
+    const startPolling = () => {
+      if (timer !== undefined) return;
+      timer = window.setInterval(load, 15_000);
+      polling = true;
+    };
+
+    const applyVisible = (visible: boolean) => {
+      if (cancelled) return;
+      if (visible) {
+        if (!polling) {
+          load();
+          startPolling();
+        }
+      } else {
+        stopPolling();
+      }
+    };
+
+    const syncVisible = () => {
+      win
+        .isVisible()
+        .then((visible) => applyVisible(visible))
+        .catch(() => {});
+    };
+
     load();
-    const timer = window.setInterval(load, 15_000);
+    syncVisible();
+
+    const unlistenFocus = win
+      .onFocusChanged(() => {
+        syncVisible();
+      })
+      .catch(() => undefined);
+
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
+      stopPolling();
+      void unlistenFocus.then((fn) => fn?.());
     };
   }, []);
 
@@ -153,8 +193,6 @@ function App() {
     };
   }, []);
 
-  const found = Boolean(status?.found);
-  const path = persistencePath(status?.paths);
   const todayMessageCount = status?.todayMessageCount ?? 0;
   const todayAgentCount = status?.todayAgentCount ?? 0;
   const hasToday = todayMessageCount > 0 || todayAgentCount > 0;
@@ -256,16 +294,6 @@ function App() {
             ))}
           </ul>
         ) : null}
-        <dl className="status">
-          <div>
-            <dt>found</dt>
-            <dd>{status ? (found ? "yes" : "no") : "…"}</dd>
-          </div>
-          <div>
-            <dt>path</dt>
-            <dd className="path">{path}</dd>
-          </div>
-        </dl>
         {error ? <p className="error">{error}</p> : null}
       </section>
 

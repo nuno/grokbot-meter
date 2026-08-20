@@ -2,11 +2,15 @@ mod grok_source;
 mod weekly;
 
 use grok_source::GrokStatus;
+use std::sync::Mutex;
+use std::time::Duration;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     AppHandle, Emitter, Manager, PhysicalPosition, Rect, WebviewWindow,
 };
+
+static LAST_TRAY_RECT: Mutex<Option<Rect>> = Mutex::new(None);
 
 #[tauri::command]
 fn grok_status() -> GrokStatus {
@@ -16,6 +20,68 @@ fn grok_status() -> GrokStatus {
 #[tauri::command]
 fn weekly_status() -> weekly::WeeklyStatus {
     weekly::status()
+}
+
+fn store_tray_rect(rect: Rect) {
+    *LAST_TRAY_RECT.lock().unwrap_or_else(|e| e.into_inner()) = Some(rect);
+}
+
+fn last_tray_rect() -> Option<Rect> {
+    *LAST_TRAY_RECT.lock().unwrap_or_else(|e| e.into_inner())
+}
+
+fn tray_rect_from_event(event: &TrayIconEvent) -> Option<Rect> {
+    match event {
+        TrayIconEvent::Click { rect, .. }
+        | TrayIconEvent::DoubleClick { rect, .. }
+        | TrayIconEvent::Enter { rect, .. }
+        | TrayIconEvent::Move { rect, .. }
+        | TrayIconEvent::Leave { rect, .. } => Some(*rect),
+        _ => None,
+    }
+}
+
+fn tray_title_and_tooltip(
+    weekly: &weekly::WeeklyStatus,
+    grok: &GrokStatus,
+) -> (Option<String>, String) {
+    if let Some(pct) = weekly.usage_percent.filter(|n| n.is_finite()) {
+        let rounded = pct.round() as i64;
+        return (
+            Some(format!("{rounded}%")),
+            format!("GrokBar · {rounded}% weekly"),
+        );
+    }
+    if grok.today_message_count > 0 {
+        let n = grok.today_message_count;
+        return (Some(n.to_string()), format!("GrokBar · {n} today"));
+    }
+    (None, "GrokBar".to_string())
+}
+
+fn refresh_tray(app: &AppHandle) {
+    let weekly = weekly::status();
+    let grok = grok_source::status();
+    let (title, tooltip) = tray_title_and_tooltip(&weekly, &grok);
+    let Some(tray) = app.tray_by_id("main") else {
+        return;
+    };
+    let _ = tray.set_tooltip(Some(tooltip));
+    #[cfg(target_os = "macos")]
+    {
+        let _ = tray.set_title(title);
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = title;
+    }
+}
+
+fn spawn_tray_refresh(app: AppHandle) {
+    std::thread::spawn(move || loop {
+        refresh_tray(&app);
+        std::thread::sleep(Duration::from_secs(30));
+    });
 }
 
 fn toggle_panel(app: &AppHandle, tray_rect: Rect) {
@@ -51,6 +117,9 @@ fn position_near_tray(window: &WebviewWindow, tray_rect: Rect) {
 
 fn show_about(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
+        if let Some(rect) = last_tray_rect() {
+            position_near_tray(&window, rect);
+        }
         let _ = window.show();
         let _ = window.set_focus();
     }
@@ -89,6 +158,9 @@ fn setup_tray(app: &tauri::App) -> tauri::Result<()> {
     });
 
     tray.on_tray_icon_event(|tray, event| {
+        if let Some(rect) = tray_rect_from_event(&event) {
+            store_tray_rect(rect);
+        }
         if let TrayIconEvent::Click {
             button: MouseButton::Left,
             button_state: MouseButtonState::Up,
@@ -112,6 +184,7 @@ pub fn run() {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             setup_tray(app)?;
+            spawn_tray_refresh(app.handle().clone());
             Ok(())
         })
         .on_window_event(|window, event| {

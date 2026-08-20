@@ -150,31 +150,6 @@ body,
   color: #8e8e93;
 }
 
-.status {
-  margin-top: 8px;
-  display: grid;
-  gap: 4px;
-}
-
-.status div {
-  display: grid;
-  grid-template-columns: 86px 1fr;
-  gap: 8px;
-  font-size: 12px;
-}
-
-.status dt {
-  color: #8e8e93;
-}
-
-.status dd {
-  color: #f2f2f7;
-}
-
-.path {
-  word-break: break-all;
-}
-
 .error {
   margin-top: 8px;
   color: #ff453a;
