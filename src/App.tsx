@@ -260,7 +260,7 @@ function App() {
               <GrokMark2Icon className="about-mark" />
             </div>
             <div className="about-titleblock">
-              <h2>GrokBar</h2>
+              <h2>Grok Bot Bar</h2>
               <p className="tagline">Menu bar stats for Grok Bot.</p>
             </div>
           </div>
@@ -289,7 +289,7 @@ function App() {
       <header className="header">
         <h1 className="title">
           <GrokMark2Icon className="title-icon" />
-          GrokBar
+          Grok Bot Bar
         </h1>
       </header>
 
