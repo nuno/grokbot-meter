@@ -95,6 +95,10 @@ body,
   background: #5e5ce6;
 }
 
+.meter.is-empty .meter-fill {
+  background: #48484a;
+}
+
 .muted,
 .empty {
   margin-top: 6px;

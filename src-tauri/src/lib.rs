@@ -1,4 +1,5 @@
 mod grok_source;
+mod weekly;
 
 use grok_source::GrokStatus;
 use tauri::{
@@ -10,6 +11,11 @@ use tauri::{
 #[tauri::command]
 fn grok_status() -> GrokStatus {
     grok_source::status()
+}
+
+#[tauri::command]
+fn weekly_status() -> weekly::WeeklyStatus {
+    weekly::status()
 }
 
 fn toggle_panel(app: &AppHandle, tray_rect: Rect) {
@@ -89,7 +95,7 @@ fn setup_tray(app: &tauri::App) -> tauri::Result<()> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![grok_status])
+        .invoke_handler(tauri::generate_handler![grok_status, weekly_status])
         .setup(|app| {
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);

@@ -19,6 +19,20 @@ type GrokStatus = {
   agents: GrokAgent[];
 };
 
+type WeeklyStatus = {
+  signedIn: boolean;
+  includedLimitZero: boolean;
+  usagePercent: number | null;
+  nextResetAt: number | null;
+  currentPeriodStart: string | null;
+  upgradeLabel: string | null;
+  sandTrial: boolean;
+  sandTrialExpiresAt: number | null;
+  hasNonZeroIncludedLimit: boolean | null;
+  hasAvailableUsage: boolean | null;
+  error: string | null;
+};
+
 function persistencePath(paths: string[] | undefined): string {
   if (!paths?.length) return "—";
   return (
@@ -51,8 +65,46 @@ function agentLabel(agent: GrokAgent): string {
   return name || agent.id;
 }
 
+function clampPercent(n: number): number {
+  if (!Number.isFinite(n)) return 0;
+  return Math.min(100, Math.max(0, n));
+}
+
+function formatResetsIn(nextResetAt: number | null | undefined): string {
+  if (nextResetAt == null || !Number.isFinite(nextResetAt)) return "Resets in —";
+  const ms = nextResetAt - Date.now();
+  if (ms <= 0) return "Resets soon";
+  const totalMinutes = Math.max(1, Math.round(ms / 60_000));
+  const hours = Math.floor(totalMinutes / 60);
+  if (hours >= 24) {
+    const days = Math.floor(hours / 24);
+    const remH = hours % 24;
+    return remH > 0 ? `Resets in ${days}d ${remH}h` : `Resets in ${days}d`;
+  }
+  if (hours >= 1) return `Resets in ${hours}h`;
+  return `Resets in ${totalMinutes}m`;
+}
+
+function weeklyLines(weekly: WeeklyStatus | null): string[] {
+  if (!weekly) return ["Resets in —"];
+  const hasPercent = typeof weekly.usagePercent === "number";
+  if (hasPercent) {
+    return [formatResetsIn(weekly.nextResetAt)];
+  }
+  if (!weekly.signedIn) {
+    return ["Connect usage"];
+  }
+  if (weekly.error) {
+    return [weekly.error];
+  }
+  const lines = ["No included weekly quota"];
+  if (weekly.upgradeLabel) lines.push(weekly.upgradeLabel);
+  return lines;
+}
+
 function App() {
   const [status, setStatus] = useState<GrokStatus | null>(null);
+  const [weekly, setWeekly] = useState<WeeklyStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -67,6 +119,15 @@ function App() {
         .catch((err: unknown) => {
           if (cancelled) return;
           setError(err instanceof Error ? err.message : String(err));
+        });
+      invoke<WeeklyStatus>("weekly_status")
+        .then((next) => {
+          if (cancelled) return;
+          setWeekly(next);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setWeekly(null);
         });
     };
     load();
@@ -84,6 +145,11 @@ function App() {
   const hasToday = todayMessageCount > 0 || todayAgentCount > 0;
   const agents = status?.agents ?? [];
 
+  const hasPercent = typeof weekly?.usagePercent === "number";
+  const meterPct = hasPercent ? clampPercent(weekly!.usagePercent as number) : 0;
+  const pctLabel = hasPercent ? `${Math.round(meterPct)}%` : "—";
+  const lines = weeklyLines(weekly);
+
   return (
     <div className="panel">
       <header className="header" data-tauri-drag-region>
@@ -95,12 +161,22 @@ function App() {
       <section className="card">
         <div className="card-head">
           <span className="card-label">Weekly</span>
-          <span className="card-pct">—</span>
+          <span className="card-pct">{pctLabel}</span>
         </div>
-        <div className="meter" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={0}>
-          <div className="meter-fill" />
+        <div
+          className={`meter${hasPercent ? "" : " is-empty"}`}
+          role="meter"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={hasPercent ? meterPct : 0}
+        >
+          <div className="meter-fill" style={{ width: `${meterPct}%` }} />
         </div>
-        <p className="muted">Resets in —</p>
+        {lines.map((line) => (
+          <p key={line} className="muted">
+            {line}
+          </p>
+        ))}
       </section>
 
       <section className="card card-today">
