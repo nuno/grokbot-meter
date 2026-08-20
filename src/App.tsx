@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import "./App.css";
 
 type GrokAgent = {
@@ -107,6 +108,7 @@ function App() {
   const [status, setStatus] = useState<GrokStatus | null>(null);
   const [weekly, setWeekly] = useState<WeeklyStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [about, setAbout] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -139,6 +141,18 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    listen("show-about", () => setAbout(true))
+      .then((fn) => {
+        unlisten = fn;
+      })
+      .catch(() => {});
+    return () => {
+      unlisten?.();
+    };
+  }, []);
+
   const found = Boolean(status?.found);
   const path = persistencePath(status?.paths);
   const todayMessageCount = status?.todayMessageCount ?? 0;
@@ -150,6 +164,31 @@ function App() {
   const meterPct = hasPercent ? clampPercent(weekly!.usagePercent as number) : 0;
   const pctLabel = hasPercent ? `${Math.round(meterPct)}%` : "—";
   const lines = weeklyLines(weekly);
+
+  if (about) {
+    return (
+      <div className="panel">
+        <header className="header header-row">
+          <button type="button" className="back" onClick={() => setAbout(false)}>
+            Back
+          </button>
+        </header>
+        <section className="card about">
+          <h2>GrokBar</h2>
+          <p className="tagline">Menu bar stats for Grok Bot.</p>
+          <p>
+            Unofficial companion app. Not affiliated with, endorsed by, or a
+            product of Cursor or xAI.
+          </p>
+          <p className="legal">
+            Grok Bot and Cursor are trademarks of their respective owners.
+          </p>
+          <p>Built by Grok Bot.</p>
+          <p className="legal">© 2026 Nuno Costa</p>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="panel">
@@ -230,7 +269,12 @@ function App() {
         {error ? <p className="error">{error}</p> : null}
       </section>
 
-      <footer className="footer">Local Grok Bot activity</footer>
+      <footer className="footer footer-row">
+        <span>Local Grok Bot activity</span>
+        <button type="button" className="footer-btn" onClick={() => setAbout(true)}>
+          About
+        </button>
+      </footer>
     </div>
   );
 }

@@ -5,7 +5,7 @@ use grok_source::GrokStatus;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Manager, PhysicalPosition, Rect, WebviewWindow,
+    AppHandle, Emitter, Manager, PhysicalPosition, Rect, WebviewWindow,
 };
 
 #[tauri::command]
@@ -49,9 +49,18 @@ fn position_near_tray(window: &WebviewWindow, tray_rect: Rect) {
     let _ = window.set_position(PhysicalPosition::new(x, y));
 }
 
+fn show_about(app: &AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
+    let _ = app.emit("show-about", ());
+}
+
 fn setup_tray(app: &tauri::App) -> tauri::Result<()> {
+    let about = MenuItem::with_id(app, "about", "About GrokBar", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "Quit GrokBar", true, None::<&str>)?;
-    let menu = Menu::with_items(app, &[&quit])?;
+    let menu = Menu::with_items(app, &[&about, &quit])?;
 
     let tray = match app.tray_by_id("main") {
         Some(existing) => {
@@ -72,8 +81,10 @@ fn setup_tray(app: &tauri::App) -> tauri::Result<()> {
     };
 
     tray.on_menu_event(|app, event| {
-        if event.id.as_ref() == "quit" {
-            app.exit(0);
+        match event.id.as_ref() {
+            "quit" => app.exit(0),
+            "about" => show_about(app),
+            _ => {}
         }
     });
 
