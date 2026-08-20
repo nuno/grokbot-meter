@@ -54,6 +54,13 @@ body,
   padding: 10px 12px;
 }
 
+.card-today {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .card-head {
   display: flex;
   align-items: baseline;
@@ -93,6 +100,50 @@ body,
   margin-top: 6px;
   color: #8e8e93;
   font-size: 12px;
+}
+
+.agents {
+  list-style: none;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1;
+}
+
+.agent {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 0;
+}
+
+.agent-name {
+  color: #f2f2f7;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.agent-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.agent-count {
+  color: #d0d0d6;
+}
+
+.agent-time {
+  color: #8e8e93;
 }
 
 .status {
