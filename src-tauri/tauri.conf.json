@@ -21,7 +21,8 @@
         "decorations": false,
         "visible": false,
         "skipTaskbar": true,
-        "alwaysOnTop": false,
+        "visibleOnAllWorkspaces": true,
+        "alwaysOnTop": true,
         "fullscreen": false,
         "shadow": true,
         "focus": false,
@@ -36,7 +37,7 @@
           "effects": [
             "popover"
           ],
-          "state": "followsWindowActiveState",
+          "state": "active",
           "radius": 12
         }
       }

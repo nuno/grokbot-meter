@@ -155,6 +155,7 @@ function App() {
         }
       } else {
         stopPolling();
+        setAbout(false);
       }
     };
 
@@ -230,10 +231,8 @@ function App() {
 
   return (
     <div className="panel">
-      <header className="header" data-tauri-drag-region>
-        <h1 className="title" data-tauri-drag-region>
-          GrokBar
-        </h1>
+      <header className="header">
+        <h1 className="title">GrokBar</h1>
       </header>
 
       <section className="card">

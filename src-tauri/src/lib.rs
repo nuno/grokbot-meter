@@ -12,16 +12,28 @@ use tauri::{
 
 static LAST_TRAY_RECT: Mutex<Option<Rect>> = Mutex::new(None);
 static IGNORE_BLUR_UNTIL: Mutex<Option<Instant>> = Mutex::new(None);
+static LAST_BLUR_HIDE: Mutex<Option<Instant>> = Mutex::new(None);
 
 fn ignore_blur_briefly() {
     *IGNORE_BLUR_UNTIL.lock().unwrap_or_else(|e| e.into_inner()) =
-        Some(Instant::now() + Duration::from_millis(400));
+        Some(Instant::now() + Duration::from_millis(200));
 }
 
 fn blur_should_hide() -> bool {
     match *IGNORE_BLUR_UNTIL.lock().unwrap_or_else(|e| e.into_inner()) {
         Some(until) if Instant::now() < until => false,
         _ => true,
+    }
+}
+
+fn mark_blur_hide() {
+    *LAST_BLUR_HIDE.lock().unwrap_or_else(|e| e.into_inner()) = Some(Instant::now());
+}
+
+fn recently_hidden_by_blur() -> bool {
+    match *LAST_BLUR_HIDE.lock().unwrap_or_else(|e| e.into_inner()) {
+        Some(at) if at.elapsed() < Duration::from_millis(250) => true,
+        _ => false,
     }
 }
 
@@ -101,31 +113,60 @@ fn toggle_panel(app: &AppHandle, tray_rect: Rect) {
     let Some(window) = app.get_webview_window("main") else {
         return;
     };
-    match window.is_visible() {
-        Ok(true) => {
-            let _ = window.hide();
-        }
-        _ => {
-            ignore_blur_briefly();
-            position_near_tray(&window, tray_rect);
-            let _ = window.show();
-            let _ = window.set_focus();
-        }
+    ignore_blur_briefly();
+    let visible = window.is_visible().unwrap_or(false);
+    if visible || recently_hidden_by_blur() {
+        let _ = window.hide();
+        return;
     }
+    position_near_tray(&window, tray_rect);
+    let _ = window.show();
+    let _ = window.set_focus();
 }
 
 fn position_near_tray(window: &WebviewWindow, tray_rect: Rect) {
-    let scale = window.scale_factor().unwrap_or(1.0);
+    let scale_guess = window.scale_factor().unwrap_or(1.0);
+    let pos = tray_rect.position.to_physical::<f64>(scale_guess);
+    let icon = tray_rect.size.to_physical::<f64>(scale_guess);
+    let cx = pos.x + icon.width / 2.0;
+    let cy = pos.y + icon.height / 2.0;
+
+    let monitors = window.available_monitors().unwrap_or_default();
+    let monitor = monitors.iter().find(|m| {
+        let p = m.position();
+        let s = m.size();
+        let x0 = f64::from(p.x);
+        let y0 = f64::from(p.y);
+        let x1 = x0 + f64::from(s.width);
+        let y1 = y0 + f64::from(s.height);
+        cx >= x0 && cx < x1 && cy >= y0 && cy < y1
+    });
+    let scale = monitor
+        .map(|m| m.scale_factor())
+        .unwrap_or(scale_guess);
     let pos = tray_rect.position.to_physical::<f64>(scale);
     let icon = tray_rect.size.to_physical::<f64>(scale);
     let win_size = window.outer_size().unwrap_or_default();
+    let w = f64::from(win_size.width);
+    let h = f64::from(win_size.height);
 
-    let x = pos.x + (icon.width / 2.0) - (f64::from(win_size.width) / 2.0);
-    let y = if pos.y < 220.0 {
-        pos.y + icon.height + 8.0
-    } else {
-        pos.y - f64::from(win_size.height) - 8.0
-    };
+    let mut x = pos.x + (icon.width / 2.0) - (w / 2.0);
+    let mut y = pos.y + icon.height + 6.0;
+    if let Some(m) = monitor {
+        let p = m.position();
+        let s = m.size();
+        let mx = f64::from(p.x);
+        let my = f64::from(p.y);
+        let mw = f64::from(s.width);
+        let mh = f64::from(s.height);
+        if pos.y > my + mh - 80.0 {
+            y = pos.y - h - 6.0;
+        }
+        let max_x = (mx + mw - w - 8.0).max(mx + 8.0);
+        let max_y = (my + mh - h - 8.0).max(my + 8.0);
+        x = x.clamp(mx + 8.0, max_x);
+        y = y.clamp(my + 8.0, max_y);
+    }
     let _ = window.set_position(PhysicalPosition::new(x, y));
 }
 
@@ -197,13 +238,17 @@ fn apply_macos_panel_material(app: &tauri::App) {
     let Some(window) = app.get_webview_window("main") else {
         return;
     };
-    let _ = window.set_effects(
+    let applied = window.set_effects(
         EffectsBuilder::new()
             .effect(Effect::Popover)
-            .state(EffectState::FollowsWindowActiveState)
+            .state(EffectState::Active)
             .radius(12.)
             .build(),
     );
+    if applied.is_err() {
+        let _ = window.set_background_color(Some(Color(242, 242, 247, 255)));
+        return;
+    }
     let _ = window.set_background_color(Some(Color(0, 0, 0, 0)));
 }
 
@@ -230,6 +275,7 @@ pub fn run() {
                 }
                 tauri::WindowEvent::Focused(false) if blur_should_hide() => {
                     let _ = window.hide();
+                    mark_blur_hide();
                 }
                 _ => {}
             }

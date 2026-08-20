@@ -40,6 +40,8 @@
   padding: 0;
 }
 
+h1,
+h2,
 button {
   font: inherit;
 }
@@ -204,7 +206,7 @@ body,
   border: 0;
   background: transparent;
   font: inherit;
-  cursor: pointer;
+  cursor: default;
   padding: 0;
 }
 
