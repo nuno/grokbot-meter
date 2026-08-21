@@ -111,9 +111,9 @@ function weeklyLines(weekly: WeeklyStatus | null): string[] {
 function WeeklyIcon() {
   return (
     <svg className="card-label-icon weekly" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-      <rect x="1.5" y="7.5" width="2.5" height="5" rx="0.75" fill="currentColor" opacity="0.9" />
-      <rect x="5.75" y="4.5" width="2.5" height="8" rx="0.75" fill="currentColor" />
-      <rect x="10" y="1.5" width="2.5" height="11" rx="0.75" fill="currentColor" opacity="0.55" />
+      <rect x="2.5" y="3" width="9" height="8.5" rx="1.4" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M2.5 6 H11.5" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M4.8 2.3 V4 M9.2 2.3 V4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
     </svg>
   );
 }
@@ -248,6 +248,9 @@ function App() {
   const todayAgentCount = status?.todayAgentCount ?? 0;
   const hasToday = todayMessageCount > 0 || todayAgentCount > 0;
   const agents = status?.agents ?? [];
+  const isLoading = status === null && !error;
+  const isEmpty = !isLoading && !hasToday;
+  const hasRecent = isEmpty && agents.length > 0;
 
   const hasPercent = typeof weekly?.usagePercent === "number";
   const meterPct = hasPercent ? clampPercent(weekly!.usagePercent as number) : 0;
@@ -330,7 +333,7 @@ function App() {
         ) : null}
       </section>
 
-      <section className="card card-today">
+      <section className={`card card-today${hasRecent ? " has-recent" : ""}`}>
         <div className="card-head">
           <span className="card-label">
             <TodayIcon /> Today
@@ -339,16 +342,26 @@ function App() {
             <span className="card-pct">{todayMessageCount}</span>
           ) : null}
         </div>
-        {hasToday ? (
+        {isLoading ? (
+          <div className="empty-state is-loading" aria-busy="true">
+            <p className="empty-state-title">Loading…</p>
+          </div>
+        ) : isEmpty ? (
+          <div className="empty-state">
+            <p className="empty-state-title">No activity today</p>
+            <p className="empty-state-caption">
+              {hasRecent ? "No messages today — recent below" : "Messages will appear here"}
+            </p>
+          </div>
+        ) : (
           <p className="muted">
             {todayMessageCount} message{todayMessageCount === 1 ? "" : "s"} ·{" "}
             {todayAgentCount} agent{todayAgentCount === 1 ? "" : "s"}
           </p>
-        ) : (
-          <p className="empty">No Grok Bot activity yet</p>
         )}
+        {hasRecent ? <div className="empty-separator" role="separator" /> : null}
         {agents.length > 0 ? (
-          <ul className="agents">
+          <ul className="agents" aria-label={hasRecent ? "Recent sessions" : undefined}>
             {agents.map((agent) => (
               <li key={agent.id} className={`agent${agent.todayMessages > 0 ? " has-activity" : ""}`}>
                 <span className="agent-dot" aria-hidden="true" />
