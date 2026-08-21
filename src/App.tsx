@@ -132,17 +132,18 @@ function GrokMark2Icon({ className }: { className?: string }) {
   return (
     <svg
       className={className}
-      viewBox="0 0 18 18"
-      width="18"
-      height="18"
+      viewBox="0 0 24 24"
+      width="24"
+      height="24"
       fill="none"
       aria-hidden="true"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <path
-        fill="currentColor"
-        d="M9 1.65 C4.94 1.65 1.65 4.94 1.65 9 C1.65 13.06 4.94 16.35 9 16.35 C13.06 16.35 16.35 13.06 16.35 9 C16.35 4.94 13.06 1.65 9 1.65Z M6.02 5.05 C6.43 4.86 6.79 5.08 6.97 5.52 L7.76 7.45 C7.94 7.89 7.75 8.28 7.35 8.37 C6.94 8.45 6.62 8.17 6.44 7.74 L5.67 5.84 C5.49 5.41 5.61 5.24 6.02 5.05Z M10.62 4.36 C11.03 4.21 11.38 4.46 11.55 4.89 L12.34 6.82 C12.52 7.27 12.33 7.63 11.93 7.72 C11.53 7.80 11.21 7.52 11.04 7.10 L10.28 5.20 C10.11 4.77 10.21 4.51 10.62 4.36Z"
-      />
+      <circle cx="10.5" cy="13.5" r="8" fill="currentColor" />
+      <line x1="16" y1="6.5" x2="21" y2="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="21" cy="2" r="2" fill="currentColor" />
+      <rect x="7.5" y="11" width="2.2" height="5" rx="1.1" fill="var(--panel-bg, #fff)" transform="rotate(8 8.6 13.5)" />
+      <rect x="11.5" y="11" width="2.2" height="5" rx="1.1" fill="var(--panel-bg, #fff)" transform="rotate(-8 12.6 13.5)" />
     </svg>
   );
 }

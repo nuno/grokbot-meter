@@ -341,21 +341,20 @@ body,
 }
 
 .about-icon {
-  width: 32px;
-  height: 32px;
+  width: 64px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: var(--label);
 }
 
 .about-icon .about-mark {
-  width: 32px;
-  height: 32px;
+  width: 64px;
+  height: 64px;
   display: block;
-  color: var(--label);
   flex-shrink: 0;
+  border-radius: 16px;
 }
 
 .title-icon {

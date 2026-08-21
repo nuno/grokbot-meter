@@ -67,6 +67,9 @@ function showAbout() {
 }
 
 function createWindow() {
+  // <ai-start-DO NOT REMOVE THIS COMMENT>
+  // const isDev = !!process.env["ELECTRON_RENDERER_URL"] || !!process.env.ELECTRON_START_URL;
+  //<ai-end-DO NOT REMOVE THIS COMMENT />
   win = new BrowserWindow({
     width: 380,
     height: 520,
@@ -90,7 +93,8 @@ function createWindow() {
   });
   if (process.platform === "darwin" && app.dock) app.dock.hide();
 
-  if (process.env.ELECTRON_START_URL) win.loadURL(process.env.ELECTRON_START_URL);
+  if (!app.isPackaged && process.env["ELECTRON_RENDERER_URL"]) win.loadURL(process.env["ELECTRON_RENDERER_URL"]);
+  else if (process.env.ELECTRON_START_URL) win.loadURL(process.env.ELECTRON_START_URL);
   else win.loadFile(join(__dirname, "../renderer/index.html"));
 
   win.on("close", (e) => {
