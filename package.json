@@ -57,7 +57,7 @@
       "target": [
         "AppImage"
       ],
-      "icon": "build/icons/32x32.png"
+      "icon": "build/icons/grok-256.png"
     }
   }
 }

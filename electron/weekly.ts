@@ -460,16 +460,6 @@ function safeStorageSecret(): Buffer | null {
   return null;
 }
 function macosSafeStorageSecret(): Buffer | null {
-  // Try keytar if available, fallback to security CLI
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const keytar = require("keytar");
-    const pw = keytar.getPasswordSync("Grok Bot Safe Storage", "Grok Bot Key");
-    if (pw) return Buffer.from(pw, "utf8");
-    // Some installs use binary password
-    const raw = keytar.getPasswordSync("Grok Bot Safe Storage", "Grok Bot Key");
-    if (raw) return Buffer.from(raw);
-  } catch {}
   try {
     const { execSync } = require("node:child_process");
     const out = execSync(`security find-generic-password -s "Grok Bot Safe Storage" -a "Grok Bot Key" -w 2>/dev/null`, { encoding: "utf8" }).trim();
