@@ -504,7 +504,7 @@ body,
 }
 
 .footer-btn {
-  color: var(--secondary-label);
+  color: var(--label);
   background: var(--control-bg);
   border-radius: 6px;
   padding: 3px 8px;
@@ -512,11 +512,16 @@ body,
   font-weight: 500;
   text-align: center;
   transition: background 120ms ease, color 120ms ease;
+  border: 1px solid var(--separator);
 }
 
 .footer-btn:hover {
   background: var(--control-bg-hover);
   color: var(--label);
+}
+
+.footer-btn:active {
+  background: var(--control-bg-active);
 }
 
 .footer-row {

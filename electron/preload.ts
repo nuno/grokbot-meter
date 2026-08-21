@@ -36,6 +36,7 @@ const api = {
   grokStatus: (): Promise<GrokStatus> => ipcRenderer.invoke("grok:status"),
   weeklyStatus: (): Promise<WeeklyStatus> => ipcRenderer.invoke("weekly:status"),
   isVisible: (): Promise<boolean> => ipcRenderer.invoke("window:isVisible"),
+  showAbout: () => ipcRenderer.invoke("show-about"),
   onShowAbout: (cb: () => void) => {
     const h = () => cb();
     ipcRenderer.on("show-about", h);
@@ -46,12 +47,25 @@ const api = {
     ipcRenderer.on("window:focusChanged", h);
     return () => ipcRenderer.removeListener("window:focusChanged", h);
   },
+  quit: () => ipcRenderer.invoke("app:quit"),
 };
 
-contextBridge.exposeInMainWorld("api", api);
+type ApiType = typeof api & {
+  quit: () => Promise<void>;
+};
+
+contextBridge.exposeInMainWorld("api", api as typeof window.api);
 
 declare global {
   interface Window {
-    api: typeof api;
+    api: {
+      grokStatus: () => Promise<GrokStatus>;
+      weeklyStatus: () => Promise<WeeklyStatus>;
+      isVisible: () => Promise<boolean>;
+      showAbout: () => Promise<void>;
+      onShowAbout: (cb: () => void) => () => void;
+      onFocusChanged: (cb: (visible: boolean) => void) => () => void;
+      quit: () => Promise<void>;
+    };
   }
 }

@@ -10,7 +10,7 @@ import { useAboutController } from "./hooks/useAbout";
 import { selectAgents, selectIsLoading, selectTodayStats } from "./lib/grok";
 
 export default function App() {
-  const { about, open, close, resetOnHide } = useAboutController();
+  const { about, open, close, resetOnHide, quit } = useAboutController();
   const { status, weekly, error } = useGrokPolling(resetOnHide);
 
   const agents = selectAgents(status);
@@ -33,7 +33,7 @@ export default function App() {
             isLoading={isLoading}
             error={error}
           />
-          <AppFooter onAbout={open} />
+          <AppFooter onAbout={open} onQuit={quit} />
         </div>
       </Activity>
       <Activity mode={about ? "visible" : "hidden"}>

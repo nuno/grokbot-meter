@@ -139,6 +139,7 @@ app.whenReady().then(() => {
   createTray();
   ipcMain.handle("grok:status", () => getGrokStatus());
   ipcMain.handle("weekly:status", () => getWeeklyStatusAsync());
+  ipcMain.handle("app:quit", () => app.quit());
   ipcMain.handle("window:isVisible", () => win?.isVisible() ?? false);
   setInterval(() => void refreshTray(), 30_000);
   void refreshTray();

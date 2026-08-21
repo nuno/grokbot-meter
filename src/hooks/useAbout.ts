@@ -12,6 +12,10 @@ export function useAboutController() {
   const open = useCallback(() => setAbout(true), []);
   const close = useCallback(() => setAbout(false), []);
   const resetOnHide = useCallback(() => setAbout(false), []);
+  const quit = useCallback(async () => {
+    setAbout(false);
+    ;(window.api as unknown as { quit: () => Promise<void> }).quit();
+  }, []);
 
-  return { about, open, close, resetOnHide };
+  return { about, open, close, resetOnHide, quit };
 }
