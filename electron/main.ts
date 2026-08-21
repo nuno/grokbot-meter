@@ -124,11 +124,11 @@ function createWindow() {
 }
 
 function createTray() {
-  const iconPath = join(__dirname, "../../src-tauri/icons/tray.png");
+  const iconPath = join(__dirname, "../../build/icons/tray.png");
   let img = nativeImage.createFromPath(iconPath);
   if (process.platform === "darwin") img.setTemplateImage(true);
   if (img.isEmpty()) {
-    const fallback = join(__dirname, "../../src-tauri/icons/icon.png");
+    const fallback = join(__dirname, "../../build/icons/icon.png");
     img = nativeImage.createFromPath(fallback);
     if (process.platform === "darwin") img.setTemplateImage(true);
   }

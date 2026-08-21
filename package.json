@@ -3,11 +3,11 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "main": "out/main/index.js",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri",
     "electron:dev": "electron-vite dev --watch",
     "electron:build": "tsc && electron-vite build && electron-builder",
     "electron:preview": "electron-vite preview",
@@ -16,12 +16,10 @@
     "perf:compare": "node scripts/perf/report.mjs perf-results/tauri-baseline.json perf-results/electron.json"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.6.0",
@@ -35,7 +33,7 @@
     "appId": "app.grokbar.desktop",
     "productName": "GrokBar",
     "directories": {
-      "buildResources": "src-tauri/icons"
+      "buildResources": "build"
     },
     "files": [
       "dist/**",
@@ -46,20 +44,20 @@
         "dmg",
         "zip"
       ],
-      "icon": "src-tauri/icons/icon.icns",
+      "icon": "build/icons/icon.icns",
       "minimumSystemVersion": "10.15"
     },
     "win": {
       "target": [
         "nsis"
       ],
-      "icon": "src-tauri/icons/icon.ico"
+      "icon": "build/icons/icon.ico"
     },
     "linux": {
       "target": [
         "AppImage"
       ],
-      "icon": "src-tauri/icons/32x32.png"
+      "icon": "build/icons/32x32.png"
     }
   }
 }
