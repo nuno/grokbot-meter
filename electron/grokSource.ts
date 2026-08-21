@@ -48,7 +48,7 @@ export function getGrokStatus(): GrokStatus {
     paths.push(dir);
     ingestDir(dir, agents, isToday);
   }
-  const list = [...agents.values()].sort((a, b) => {
+  const list = Array.from(agents.values()).sort((a, b) => {
     if (b.lastActivityAt !== a.lastActivityAt) return b.lastActivityAt - a.lastActivityAt;
     if (a.name !== b.name) return a.name.localeCompare(b.name);
     return a.id.localeCompare(b.id);

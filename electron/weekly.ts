@@ -70,9 +70,11 @@ function errStatus(signedIn: boolean, error: string): WeeklyStatus {
 
 async function fetchStatusAsync(): Promise<WeeklyStatus> {
   let tokens = loadTokens();
+  console.log(`[weekly] loadTokens access=${tokens.access ? tokens.access.slice(0,10)+"…" : "none"} refresh=${tokens.refresh ? "yes" : "none"}`);
   if (!tokens.access || !looksLikeJwt(tokens.access)) {
     if (tokens.refresh) {
       const r = await refreshAccess(tokens.refresh);
+      console.log(`[weekly] refreshAccess ${r.kind}`);
       if (r.kind === "access") tokens.access = r.token;
       else if (r.kind === "signedOut") return signedOut(null);
       else return errStatus(true, "network error");
@@ -82,6 +84,7 @@ async function fetchStatusAsync(): Promise<WeeklyStatus> {
   if (!access || !looksLikeJwt(access)) return signedOut(null);
 
   const usage = await callUsage(access);
+  console.log(`[weekly] callUsage ${usage.kind}`);
   if (usage.kind === "ok") return withAccountEmail(parseUsage(usage.value), access);
   if (usage.kind === "unauthorized") {
     if (!tokens.refresh) return signedOut(null);
@@ -308,7 +311,7 @@ function sanitizeError(msg: string): string {
     else out.push(raw);
   }
   let s = out.join(" ");
-  if ([...s].length > 160) s = [...s].slice(0, 160).join("") + "…";
+  if (s.length > 160) s = s.slice(0, 160) + "…";
   return s || "usage request failed";
 }
 

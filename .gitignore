@@ -37,3 +37,4 @@ perf-results/*.json
 # Electron
 out
 release
+tsconfig.node.tsbuildinfo
