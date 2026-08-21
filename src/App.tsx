@@ -1,8 +1,18 @@
 import { useEffect, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import "./App.css";
+
+// Tauri API replaced by Electron preload — window.api
+declare global {
+  interface Window {
+    api?: {
+      grokStatus: () => Promise<GrokStatus>;
+      weeklyStatus: () => Promise<WeeklyStatus>;
+      isVisible: () => Promise<boolean>;
+      onShowAbout: (cb: () => void) => () => void;
+      onFocusChanged: (cb: (visible: boolean) => void) => () => void;
+    };
+  }
+}
 
 type GrokAgent = {
   id: string;
@@ -147,10 +157,12 @@ function App() {
     let cancelled = false;
     let timer: number | undefined;
     let polling = false;
-    const win = getCurrentWindow();
+
+    const api = window.api;
 
     const load = () => {
-      invoke<GrokStatus>("grok_status")
+      const grokPromise = api ? api.grokStatus() : Promise.reject(new Error("API unavailable"));
+      grokPromise
         .then((next) => {
           if (cancelled) return;
           setStatus(next);
@@ -160,7 +172,8 @@ function App() {
           if (cancelled) return;
           setError(err instanceof Error ? err.message : String(err));
         });
-      invoke<WeeklyStatus>("weekly_status")
+      const weeklyPromise = api ? api.weeklyStatus() : Promise.reject(new Error("API unavailable"));
+      weeklyPromise
         .then((next) => {
           if (cancelled) return;
           setWeekly(next);
@@ -199,35 +212,32 @@ function App() {
     };
 
     const syncVisible = () => {
-      win
-        .isVisible()
-        .then((visible) => applyVisible(visible))
-        .catch(() => {});
+      if (api?.isVisible) {
+        api
+          .isVisible()
+          .then((visible) => applyVisible(visible))
+          .catch(() => {});
+      } else {
+        applyVisible(true);
+      }
     };
 
     load();
     syncVisible();
 
-    const unlistenFocus = win
-      .onFocusChanged(() => {
-        syncVisible();
-      })
-      .catch(() => undefined);
+    const unlistenFocus = api?.onFocusChanged
+      ? api.onFocusChanged(() => syncVisible())
+      : undefined;
 
     return () => {
       cancelled = true;
       stopPolling();
-      void unlistenFocus.then((fn) => fn?.());
+      unlistenFocus?.();
     };
   }, []);
 
   useEffect(() => {
-    let unlisten: (() => void) | undefined;
-    listen("show-about", () => setAbout(true))
-      .then((fn) => {
-        unlisten = fn;
-      })
-      .catch(() => {});
+    const unlisten = window.api?.onShowAbout(() => setAbout(true));
     return () => {
       unlisten?.();
     };

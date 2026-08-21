@@ -32,4 +32,8 @@ src-tauri/target
 # Perf results (keep baselines)
 perf-results/*.json
 !perf-results/tauri-baseline.json
-perf-results/report.md
+!perf-results/electron.json
+!perf-results/report.md
+# Electron
+out
+release
