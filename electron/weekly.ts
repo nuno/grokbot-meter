@@ -15,6 +15,11 @@ const PBKDF2_SALT = Buffer.from("saltysalt");
 const PBKDF2_ITERS = 1003;
 const V10_PREFIX = Buffer.from("v10");
 
+const JWT_CHAR_RE = /^[A-Za-z0-9._\-+/=]+$/;
+const LONG_TOKEN_RE = /^[A-Za-z0-9\-_\.+/=]+$/;
+const SANITIZE_SPLIT_RE = /\s+/;
+const QUOTE_TRIM_RE = /^["',]+|["',]+$/;
+
 export type WeeklyStatus = {
   signedIn: boolean;
   includedLimitZero: boolean;
@@ -105,8 +110,6 @@ async function withAccountEmail(status: WeeklyStatus, access: string): Promise<W
 
 async function callUsage(access: string): Promise<{ kind: "ok"; value: unknown } | { kind: "unauthorized" } | { kind: "failed"; error: string }> {
   try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), HTTP_TIMEOUT);
     const res = await fetch(USAGE_URL, {
       method: "POST",
       headers: {
@@ -115,9 +118,8 @@ async function callUsage(access: string): Promise<{ kind: "ok"; value: unknown }
         "Connect-Protocol-Version": "1",
       },
       body: "{}",
-      signal: ctrl.signal,
+      signal: AbortSignal.timeout(HTTP_TIMEOUT),
     });
-    clearTimeout(t);
     if (res.status === 401) return { kind: "unauthorized" };
     if (!res.ok) return { kind: "failed", error: `usage request failed (HTTP ${res.status})` };
     const body = await res.text();
@@ -133,8 +135,6 @@ async function callUsage(access: string): Promise<{ kind: "ok"; value: unknown }
 
 async function fetchAccountEmail(access: string): Promise<string | null> {
   try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), HTTP_TIMEOUT);
     const res = await fetch(ME_URL, {
       method: "POST",
       headers: {
@@ -143,9 +143,8 @@ async function fetchAccountEmail(access: string): Promise<string | null> {
         "Connect-Protocol-Version": "1",
       },
       body: "{}",
-      signal: ctrl.signal,
+      signal: AbortSignal.timeout(HTTP_TIMEOUT),
     });
-    clearTimeout(t);
     if (!res.ok) return null;
     const v = JSON.parse(await res.text());
     return extractAccountLabel(v);
@@ -169,15 +168,12 @@ function extractAccountLabel(v: unknown): string | null {
 
 async function refreshAccess(refresh: string): Promise<{ kind: "access"; token: string } | { kind: "signedOut" } | { kind: "failed" }> {
   try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), HTTP_TIMEOUT);
     const res = await fetch(TOKEN_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ grant_type: "refresh_token", client_id: OAUTH_CLIENT_ID, refresh_token: refresh }),
-      signal: ctrl.signal,
+      signal: AbortSignal.timeout(HTTP_TIMEOUT),
     });
-    clearTimeout(t);
     const body = await res.text();
     let v: unknown;
     try {
@@ -291,18 +287,18 @@ function looksLikeJwt(token: string): boolean {
   if (t.length < 24) return false;
   const parts = t.split(".");
   if (parts.length !== 3 || parts.some((p) => !p)) return false;
-  return /^[A-Za-z0-9._\-+/=]+$/.test(t);
+  return JWT_CHAR_RE.test(t);
 }
 function sanitizeError(msg: string): string {
   const out: string[] = [];
-  for (const raw of msg.split(/\s+/)) {
-    const cleaned = raw.replace(/^["',]+|["',]+$/g, "");
+  for (const raw of msg.split(SANITIZE_SPLIT_RE)) {
+    const cleaned = raw.replace(QUOTE_TRIM_RE, "");
     const lower = cleaned.toLowerCase();
     if (
       looksLikeJwt(cleaned) ||
       lower.includes("bearer") ||
       lower.includes("authorization") ||
-      (cleaned.length > 40 && /^[A-Za-z0-9\-_\.+/=]+$/.test(cleaned))
+      (cleaned.length > 40 && LONG_TOKEN_RE.test(cleaned))
     )
       out.push("[redacted]");
     else out.push(raw);

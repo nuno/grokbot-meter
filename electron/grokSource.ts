@@ -33,11 +33,8 @@ export function getGrokStatus(): GrokStatus {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const todayStart = today.getTime();
-  const isToday = (ms: number) => {
-    const d = new Date(ms);
-    d.setHours(0, 0, 0, 0);
-    return d.getTime() === todayStart;
-  };
+  const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).getTime();
+  const isToday = (ms: number) => ms >= todayStart && ms < todayEnd;
   for (const dir of candidateDirs()) {
     try {
       if (!statSync(dir).isDirectory()) continue;
@@ -53,8 +50,15 @@ export function getGrokStatus(): GrokStatus {
     if (a.name !== b.name) return a.name.localeCompare(b.name);
     return a.id.localeCompare(b.id);
   });
-  const todayMessageCount = list.reduce((s, a) => s + a.todayMessages, 0);
-  const todayAgentCount = list.filter((a) => a.todayMessages > 0).length;
+  // `js-combine-iterations` + `js-cache-property-access`: single loop vs reduce+filter
+  let todayMessageCount = 0;
+  let todayAgentCount = 0;
+  for (let i = 0; i < list.length; i++) {
+    const a = list[i]!;
+    const n = a.todayMessages;
+    todayMessageCount += n;
+    if (n > 0) todayAgentCount++;
+  }
   return {
     found: persistenceExists || list.length > 0,
     paths,

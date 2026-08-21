@@ -282,6 +282,8 @@ body,
   padding: 6px 6px;
   border-radius: 6px;
   transition: background 120ms ease;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 32px;
 }
 
 .agent:hover {
