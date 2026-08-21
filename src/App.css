@@ -1,7 +1,7 @@
 :root {
   color-scheme: light dark;
   --label: rgba(0, 0, 0, 0.88);
-  --secondary-label: rgba(60, 60, 67, 0.60);
+  --secondary-label: rgba(60, 60, 67, 0.88);
   --tertiary-label: rgba(60, 60, 67, 0.42);
   --card-fill: rgba(255, 255, 255, 0.82);
   --card-stroke: rgba(0, 0, 0, 0.06);
@@ -90,6 +90,9 @@ body,
 }
 
 .title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   font-weight: 700;
   font-size: 14px;
   letter-spacing: -0.01em;
@@ -361,12 +364,6 @@ body,
   display: block;
   flex-shrink: 0;
   color: var(--label);
-}
-
-.title {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
 }
 
 .about-titleblock {
