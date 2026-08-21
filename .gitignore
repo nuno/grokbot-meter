@@ -28,3 +28,8 @@ target
 src-tauri/target
 
 .grokbar-sync.tgz
+
+# Perf results (keep baselines)
+perf-results/*.json
+!perf-results/tauri-baseline.json
+perf-results/report.md
