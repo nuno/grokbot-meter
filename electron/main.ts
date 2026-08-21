@@ -10,6 +10,7 @@ let tray: Tray | null = null;
 let lastTrayBounds: Electron.Rectangle | null = null;
 let ignoreBlurUntil = 0;
 let lastBlurHide = 0;
+let isQuitting = false;
 
 function ignoreBlurBriefly() {
   ignoreBlurUntil = Date.now() + 200;
@@ -35,7 +36,7 @@ function trayTitleAndTooltip(weekly: ReturnType<typeof getWeeklyStatus>, grok: R
 
 async function refreshTray() {
   if (!tray) return;
-  const weekly = await getWeeklyStatusAsync().catch(() => getWeeklyStatus());
+  const weekly = await getWeeklyStatusAsync();
   const grok = getGrokStatus();
   const { title, tooltip } = trayTitleAndTooltip(weekly, grok);
   tray.setToolTip(tooltip);
@@ -110,6 +111,7 @@ function createWindow() {
   else win.loadFile(join(__dirname, "../renderer/index.html"));
 
   win.on("close", (e) => {
+    if (isQuitting) return;
     e.preventDefault();
     win?.hide();
   });
@@ -159,6 +161,10 @@ app.whenReady().then(() => {
   ipcMain.handle("window:isVisible", () => win?.isVisible() ?? false);
   setInterval(() => void refreshTray(), 30_000);
   void refreshTray();
+});
+
+app.on("before-quit", () => {
+  isQuitting = true;
 });
 
 app.on("window-all-closed", () => {});

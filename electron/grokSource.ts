@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync, statSync } from "fs";
-import { join } from "path";
+import { join, basename } from "path";
 import { homedir } from "os";
 
 const MAX_BLOB_BYTES = 8 * 1024 * 1024;
@@ -84,7 +84,7 @@ function ingestBlob(path: string, agents: Map<string, GrokAgent>, isToday: (ms: 
     return;
   }
   if (!st.isFile() || st.size > MAX_BLOB_BYTES) return;
-  const stem = path.split("/").pop()!.replace(/\.blob$/, "");
+  const stem = basename(path, ".blob");
   const key = decodeBase32Utf8(stem);
   if (!key) return;
   const isRoster = key.includes(".roster.last-roster");

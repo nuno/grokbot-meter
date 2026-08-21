@@ -35,20 +35,7 @@ let cryptKeyCache: Buffer | null = null;
 
 export function getWeeklyStatus(): WeeklyStatus {
   if (cache && Date.now() - cache.fetchedAt < CACHE_TTL) return cache.status;
-  const fresh = fetchStatus();
-  // fetchStatus is sync for cache parity? we need async but keep sync for IPCCall — do sync fallback
-  // For now do blocking fetch via deasync? Simpler: return cached async promise resolution synchronously not possible.
-  // So we make fetchStatus synchronous by using sync fetch emulation via child exec? Instead make getWeeklyStatus sync by doing blocking https.
-  // Actually we implemented fetchStatus as sync using curl-like sync via execSync is not ideal. For simplicity, make weekly fetch async but ipc will await.
-  // This function will be called as sync in main; we change to handle promise elsewhere.
-  // Here we return empty if cache miss to avoid blocking; main's ipc handler will await async version.
-  // To keep API, we return cached or empty and trigger background refresh.
-  if (fresh instanceof Promise) {
-    // This branch for TS type — real implementation is async version below
-    return emptyStatus();
-  }
-  cache = { fetchedAt: Date.now(), status: fresh as WeeklyStatus };
-  return fresh as WeeklyStatus;
+  return emptyStatus();
 }
 
 export async function getWeeklyStatusAsync(): Promise<WeeklyStatus> {
@@ -57,11 +44,6 @@ export async function getWeeklyStatusAsync(): Promise<WeeklyStatus> {
   cache = { fetchedAt: Date.now(), status: fresh };
   return fresh;
 }
-
-// Override getWeeklyStatus to use async internally via deasync-like blocking is not needed
-// We monkey-patch the sync export to call async version and block — easiest: make ipc handler call getWeeklyStatusAsync directly.
-// main.ts should call getWeeklyStatusAsync. Provide alias for compatibility:
-(getWeeklyStatus as unknown as { async: typeof getWeeklyStatusAsync }).async = getWeeklyStatusAsync;
 
 function emptyStatus(): WeeklyStatus {
   return {
@@ -93,7 +75,7 @@ async function fetchStatusAsync(): Promise<WeeklyStatus> {
       const r = await refreshAccess(tokens.refresh);
       if (r.kind === "access") tokens.access = r.token;
       else if (r.kind === "signedOut") return signedOut(null);
-      else return signedOut(null);
+      else return errStatus(true, "network error");
     } else return signedOut(null);
   }
   const access = tokens.access?.trim();
@@ -110,14 +92,10 @@ async function fetchStatusAsync(): Promise<WeeklyStatus> {
       if (retry.kind === "unauthorized") return signedOut(null);
       return errStatus(true, retry.error);
     }
+    if (r.kind === "failed") return errStatus(true, "network error");
     return signedOut(null);
   }
   return errStatus(true, usage.error);
-}
-
-function fetchStatus(): WeeklyStatus | Promise<WeeklyStatus> {
-  // Synchronous shim not used — return promise for async handling in main
-  return fetchStatusAsync() as unknown as WeeklyStatus;
 }
 
 async function withAccountEmail(status: WeeklyStatus, access: string): Promise<WeeklyStatus> {
@@ -362,9 +340,15 @@ function loadTokens(): { access?: string; refresh?: string } {
       if ((!tokens.access || !looksLikeJwt(tokens.access)) || !tokens.refresh) {
         const pair = extractFromCursorAccounts(val, key);
         if (pair) {
-          if ((!tokens.access || !looksLikeJwt(tokens.access)) && pair.access) tokens.access = pair.access;
-          else if (!tokens.refresh && pair.refresh) tokens.refresh = pair.refresh;
-          if (pair.access && pair.refresh && tokens.access === pair.access) tokens.refresh = pair.refresh;
+          const hasValidAccess = tokens.access != null && looksLikeJwt(tokens.access);
+          // Use pair atomically to avoid mixing access from file A with refresh from file B
+          if (!hasValidAccess && pair.access) {
+            tokens.access = pair.access;
+            if (pair.refresh) tokens.refresh = pair.refresh;
+          } else if (!hasValidAccess && !pair.access && pair.refresh && !tokens.refresh) {
+            tokens.refresh = pair.refresh;
+          }
+          // if hasValidAccess, ignore pair.refresh from different account
         }
       }
       if (tokens.access && looksLikeJwt(tokens.access) && tokens.refresh) break;
