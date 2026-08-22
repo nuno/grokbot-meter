@@ -33,14 +33,25 @@ function positionNearTray(bounds: Electron.Rectangle) {
   const display = screen.getDisplayNearestPoint({ x: bounds.x, y: bounds.y });
   const w = win.getBounds().width;
   const h = win.getBounds().height;
+  const isMac = process.platform === "darwin";
+  // macOS: tray is in the menubar — keep gap minimal so window sits flush under the menubar
+  // Windows/Linux: taskbar gap can be larger
+  const GAP = isMac ? 0 : 6;
+  const SIDE_MARGIN = 8;
+  const TOP_MARGIN = isMac ? 0 : 8;
+  const BOTTOM_MARGIN = 8;
   let x = bounds.x + bounds.width / 2 - w / 2;
-  let y = bounds.y + bounds.height + 6;
-  if (bounds.y > display.workArea.y + display.workArea.height - 80) y = bounds.y - h - 6;
+  let y = bounds.y + bounds.height + GAP;
+  if (bounds.y > display.workArea.y + display.workArea.height - 80) y = bounds.y - h - GAP;
   const area = display.workArea;
-  const maxX = Math.max(area.x + 8, area.x + area.width - w - 8);
-  const maxY = Math.max(area.y + 8, area.y + area.height - h - 8);
-  x = Math.max(area.x + 8, Math.min(maxX, x));
-  y = Math.max(area.y + 8, Math.min(maxY, y));
+  const maxX = Math.max(area.x + SIDE_MARGIN, area.x + area.width - w - SIDE_MARGIN);
+  const maxY = Math.max(area.y + TOP_MARGIN, area.y + area.height - h - BOTTOM_MARGIN);
+  x = Math.max(area.x + SIDE_MARGIN, Math.min(maxX, x));
+  y = Math.max(area.y + TOP_MARGIN, Math.min(maxY, y));
+  // On macOS ensure we never push the popover down away from the menubar when the tray is at the top
+  if (isMac && bounds.y < area.y) {
+    y = Math.min(y, bounds.y + bounds.height + GAP);
+  }
   win.setPosition(Math.round(x), Math.round(y));
 }
 
