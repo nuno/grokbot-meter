@@ -8,3 +8,8 @@
 **/coverage
 **/pycache
 */.pyc
+
+# Electron
+out
+release
+tsconfig.node.tsbuildinfo
