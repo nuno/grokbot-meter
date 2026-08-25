@@ -376,6 +376,7 @@ body,
 }
 
 .back {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -388,6 +389,21 @@ body,
   transition: background 120ms ease, color 120ms ease;
 }
 
+/* HIG 44×44 minimum hit target — invisible slop preserves visual size */
+.back::after,
+.close-btn::after {
+  content: "";
+  position: absolute;
+  inset: -10px;
+}
+
+/* Footer buttons are side-by-side with 8px gap — limit horizontal slop to avoid overlap */
+.footer-btn::after {
+  content: "";
+  position: absolute;
+  inset: -8px -4px;
+}
+
 .back:hover {
   background: var(--control-bg-hover);
   color: var(--label);
@@ -396,6 +412,20 @@ body,
 .back:active,
 .footer-btn:active {
   background: var(--control-bg-active);
+}
+
+.back:focus-visible,
+.footer-btn:focus-visible,
+.close-btn:focus-visible {
+  outline: 2px solid var(--system-blue);
+  outline-offset: 2px;
+}
+
+.back:disabled,
+.footer-btn:disabled,
+.close-btn:disabled {
+  opacity: 0.45;
+  pointer-events: none;
 }
 
 .about {
@@ -504,6 +534,7 @@ body,
 }
 
 .footer-btn {
+  position: relative;
   color: var(--label);
   background: var(--control-bg);
   border-radius: 999px;
@@ -524,11 +555,27 @@ body,
   background: var(--control-bg-active);
 }
 
+/* HIG prominence: Quit (quiet) less prominent than About (pill) — single prominent per footer */
+.footer-btn--quiet {
+  background: transparent;
+  color: var(--secondary-label);
+}
+
+.footer-btn--quiet:hover {
+  background: var(--control-bg);
+  color: var(--label);
+}
+
+.footer-btn--quiet:active {
+  background: var(--control-bg-active);
+}
+
 .close-btn {
   appearance: none;
   border: 0;
   font: inherit;
   cursor: default;
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;

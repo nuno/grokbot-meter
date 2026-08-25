@@ -135,7 +135,7 @@ function createTray() {
   const menu = Menu.buildFromTemplate([
     { label: "About GrokBar", click: () => showAbout() },
     { type: "separator" },
-    { label: "Quit GrokBar", click: () => app.quit() },
+    { label: "Quit GrokBar", role: "quit" },
   ]);
   t.on("right-click", () => t.popUpContextMenu(menu));
   t.on("click", (_e, bounds) => {

@@ -9,7 +9,7 @@ export const AboutPanel = memo(function AboutPanel({ onBack }: Props) {
   return (
     <div className="panel">
       <header className="header header-row">
-        <button type="button" className="back" onClick={onBack}>
+        <button type="button" className="back" onClick={onBack} title="Back (Esc)">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
             <path d="M7.5 9L4.5 6 7.5 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
