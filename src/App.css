@@ -381,7 +381,7 @@ body,
   gap: 4px;
   color: var(--secondary-label);
   background: var(--control-bg);
-  border-radius: 7px;
+  border-radius: 999px;
   padding: 4px 9px;
   font-size: 12.5px;
   font-weight: 500;
@@ -506,13 +506,13 @@ body,
 .footer-btn {
   color: var(--label);
   background: var(--control-bg);
-  border-radius: 6px;
+  border-radius: 999px;
   padding: 3px 8px;
   font-size: 11.5px;
   font-weight: 500;
   text-align: center;
   transition: background 120ms ease, color 120ms ease;
-  border: 1px solid var(--separator);
+  border: none;
 }
 
 .footer-btn:hover {
@@ -521,6 +521,32 @@ body,
 }
 
 .footer-btn:active {
+  background: var(--control-bg-active);
+}
+
+.close-btn {
+  appearance: none;
+  border: 0;
+  font: inherit;
+  cursor: default;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  color: var(--secondary-label);
+  background: var(--control-bg);
+  padding: 0;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.close-btn:hover {
+  background: var(--control-bg-hover);
+  color: var(--label);
+}
+
+.close-btn:active {
   background: var(--control-bg-active);
 }
 

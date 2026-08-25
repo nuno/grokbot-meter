@@ -1,36 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
-
-export type GrokAgent = {
-  id: string;
-  name: string;
-  title: string;
-  lastActivityAt: number;
-  todayMessages: number;
-};
-
-export type GrokStatus = {
-  found: boolean;
-  paths: string[];
-  agentCount: number;
-  todayAgentCount: number;
-  todayMessageCount: number;
-  agents: GrokAgent[];
-};
-
-export type WeeklyStatus = {
-  signedIn: boolean;
-  includedLimitZero: boolean;
-  usagePercent: number | null;
-  nextResetAt: number | null;
-  currentPeriodStart: string | null;
-  upgradeLabel: string | null;
-  sandTrial: boolean;
-  sandTrialExpiresAt: number | null;
-  hasNonZeroIncludedLimit: boolean | null;
-  hasAvailableUsage: boolean | null;
-  accountEmail: string | null;
-  error: string | null;
-};
+import type { GrokStatus, WeeklyStatus } from "../shared/types";
 
 const api = {
   grokStatus: (): Promise<GrokStatus> => ipcRenderer.invoke("grok:status"),
@@ -48,10 +17,7 @@ const api = {
     return () => ipcRenderer.removeListener("window:focusChanged", h);
   },
   quit: () => ipcRenderer.invoke("app:quit"),
-};
-
-type ApiType = typeof api & {
-  quit: () => Promise<void>;
+  hideWindow: () => ipcRenderer.invoke("window:hide"),
 };
 
 contextBridge.exposeInMainWorld("api", api as typeof window.api);
@@ -66,6 +32,7 @@ declare global {
       onShowAbout: (cb: () => void) => () => void;
       onFocusChanged: (cb: (visible: boolean) => void) => () => void;
       quit: () => Promise<void>;
+      hideWindow: () => Promise<void>;
     };
   }
 }

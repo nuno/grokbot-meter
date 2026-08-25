@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { subscribeShowAbout } from "../lib/api";
+import { subscribeShowAbout, quit as apiQuit } from "../lib/api";
 
 export function useAboutController() {
   const [about, setAbout] = useState(false);
@@ -12,9 +12,9 @@ export function useAboutController() {
   const open = useCallback(() => setAbout(true), []);
   const close = useCallback(() => setAbout(false), []);
   const resetOnHide = useCallback(() => setAbout(false), []);
-  const quit = useCallback(async () => {
+  const quit = useCallback(() => {
     setAbout(false);
-    ;(window.api as unknown as { quit: () => Promise<void> }).quit();
+    apiQuit();
   }, []);
 
   return { about, open, close, resetOnHide, quit };

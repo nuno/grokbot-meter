@@ -1,43 +1,18 @@
-export type GrokAgent = {
-  id: string;
-  name: string;
-  title: string;
-  lastActivityAt: number;
-  todayMessages: number;
-};
+import type { GrokStatus, WeeklyStatus } from "../../shared/types";
 
-export type GrokStatus = {
-  found: boolean;
-  paths: string[];
-  agentCount: number;
-  todayAgentCount: number;
-  todayMessageCount: number;
-  agents: GrokAgent[];
-};
-
-export type WeeklyStatus = {
-  signedIn: boolean;
-  includedLimitZero: boolean;
-  usagePercent: number | null;
-  nextResetAt: number | null;
-  currentPeriodStart: string | null;
-  upgradeLabel: string | null;
-  sandTrial: boolean;
-  sandTrialExpiresAt: number | null;
-  hasNonZeroIncludedLimit: boolean | null;
-  hasAvailableUsage: boolean | null;
-  accountEmail: string | null;
-  error: string | null;
-};
+export type { GrokAgent, GrokStatus, WeeklyStatus } from "../../shared/types";
 
 declare global {
   interface Window {
-    api?: {
+    api: {
       grokStatus: () => Promise<GrokStatus>;
       weeklyStatus: () => Promise<WeeklyStatus>;
       isVisible: () => Promise<boolean>;
+      showAbout: () => Promise<void>;
       onShowAbout: (cb: () => void) => () => void;
       onFocusChanged: (cb: (visible: boolean) => void) => () => void;
+      quit: () => Promise<void>;
+      hideWindow: () => Promise<void>;
     };
   }
 }

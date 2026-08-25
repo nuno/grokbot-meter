@@ -7,6 +7,7 @@ import { TodayCard } from "./components/TodayCard";
 import { AboutPanel } from "./components/AboutPanel";
 import { useGrokPolling } from "./hooks/useGrokPolling";
 import { useAboutController } from "./hooks/useAbout";
+import { hideWindow } from "./lib/api";
 import { selectAgents, selectIsLoading, selectTodayStats } from "./lib/grok";
 
 export default function App() {
@@ -24,7 +25,7 @@ export default function App() {
     <>
       <Activity mode={about ? "hidden" : "visible"}>
         <div className="panel">
-          <AppHeader />
+          <AppHeader onClose={hideWindow} />
           <WeeklyCard weekly={weekly} />
           <TodayCard
             agents={agents}

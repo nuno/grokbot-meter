@@ -152,6 +152,7 @@ app.whenReady().then(() => {
   ipcMain.handle("weekly:status", () => getWeeklyStatusAsync());
   ipcMain.handle("app:quit", () => app.quit());
   ipcMain.handle("window:isVisible", () => win?.isVisible() ?? false);
+  ipcMain.handle("window:hide", () => { win?.hide(); });
   setInterval(() => void refreshTray(), 30_000);
   void refreshTray();
 });

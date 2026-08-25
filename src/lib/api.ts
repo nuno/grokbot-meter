@@ -40,6 +40,14 @@ export function subscribeFocusChanged(cb: (visible: boolean) => void): Unsubscri
   return getApi()?.onFocusChanged(cb);
 }
 
+export function hideWindow(): void {
+  void getApi()?.hideWindow();
+}
+
+export function quit(): void {
+  void getApi()?.quit();
+}
+
 /** `bundle-analyzable-paths` friendly: static interval constant, not magic number in hooks. */
 export function getPollInterval(): number {
   return POLL_INTERVAL_MS;
