@@ -11,6 +11,7 @@ declare global {
       showAbout: () => Promise<void>;
       onShowAbout: (cb: () => void) => () => void;
       onFocusChanged: (cb: (visible: boolean) => void) => () => void;
+      onEscapePressed: (cb: () => void) => () => void;
       quit: () => Promise<void>;
       hideWindow: () => Promise<void>;
     };

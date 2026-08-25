@@ -40,6 +40,10 @@ export function subscribeFocusChanged(cb: (visible: boolean) => void): Unsubscri
   return getApi()?.onFocusChanged(cb);
 }
 
+export function subscribeEscapePressed(cb: () => void): Unsubscribe | undefined {
+  return getApi()?.onEscapePressed(cb);
+}
+
 export function hideWindow(): void {
   void getApi()?.hideWindow();
 }

@@ -16,6 +16,11 @@ const api = {
     ipcRenderer.on("window:focusChanged", h);
     return () => ipcRenderer.removeListener("window:focusChanged", h);
   },
+  onEscapePressed: (cb: () => void) => {
+    const h = () => cb();
+    ipcRenderer.on("escape-pressed", h);
+    return () => ipcRenderer.removeListener("escape-pressed", h);
+  },
   quit: () => ipcRenderer.invoke("app:quit"),
   hideWindow: () => ipcRenderer.invoke("window:hide"),
 };
@@ -31,6 +36,7 @@ declare global {
       showAbout: () => Promise<void>;
       onShowAbout: (cb: () => void) => () => void;
       onFocusChanged: (cb: (visible: boolean) => void) => () => void;
+      onEscapePressed: (cb: () => void) => () => void;
       quit: () => Promise<void>;
       hideWindow: () => Promise<void>;
     };

@@ -117,6 +117,18 @@ function createWindow() {
   win.on("show", () => win?.webContents.send("window:focusChanged", true));
   win.on("hide", () => win?.webContents.send("window:focusChanged", false));
   win.on("focus", () => win?.webContents.send("window:focusChanged", true));
+
+  // Electron doesn't hide frameless popovers on Esc out-of-the-box — handle in main so it works
+  // even when webContents isn't focused. Forward to renderer so About can close first.
+  // Note: before-input-event has no DOM target info, so input-field guard is done in renderer
+  // via document.activeElement check. Main only filters modifier combos to avoid hijacking
+  // system shortcuts (Cmd+Esc etc.).
+  win.webContents.on("before-input-event", (event, input) => {
+    if (input.type !== "keyDown" || input.key !== "Escape") return;
+    if (input.control || input.meta || input.alt) return;
+    win?.webContents.send("escape-pressed");
+    event.preventDefault();
+  });
 }
 
 function createTray() {
