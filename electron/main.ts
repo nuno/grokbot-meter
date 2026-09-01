@@ -9,6 +9,8 @@ let win: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let lastTrayBounds: Electron.Rectangle | null = null;
 let isQuitting = false;
+/** Swallow the tray click that caused a blur-hide, so the extra doesn't immediately reopen. */
+let ignoreTrayClickUntil = 0;
 
 function trayTitleAndTooltip(weekly: Awaited<ReturnType<typeof getWeeklyStatusAsync>>, grok: ReturnType<typeof getGrokStatus>) {
   if (weekly.usagePercent != null && Number.isFinite(weekly.usagePercent)) {
@@ -55,9 +57,18 @@ function positionNearTray(bounds: Electron.Rectangle) {
   win.setPosition(Math.round(x), Math.round(y));
 }
 
+function cursorOverTray(): boolean {
+  if (!tray) return false;
+  const p = screen.getCursorScreenPoint();
+  const b = tray.getBounds();
+  return p.x >= b.x && p.x < b.x + b.width && p.y >= b.y && p.y < b.y + b.height;
+}
+
 function togglePanel(bounds: Electron.Rectangle) {
   if (!win) return;
   lastTrayBounds = bounds;
+  // Do not clear: a double-click's second mouse-up must stay swallowed until the window expires.
+  if (Date.now() < ignoreTrayClickUntil) return;
   if (win.isVisible()) {
     win.hide();
     return;
@@ -113,7 +124,14 @@ function createWindow() {
     e.preventDefault();
     win?.hide();
   });
-  win.on("blur", () => win?.hide());
+  win.on("blur", () => {
+    if (!win?.isVisible()) return;
+    win.hide();
+    // Only arm when the extra itself caused the blur (mousedown on tray).
+    // Click-away / Esc / Cmd-Tab must not eat the next tray open.
+    // 1s covers mouse-up and a double-click; do not clear on consume.
+    if (cursorOverTray()) ignoreTrayClickUntil = Date.now() + 1000;
+  });
   win.on("show", () => win?.webContents.send("window:focusChanged", true));
   win.on("hide", () => win?.webContents.send("window:focusChanged", false));
   win.on("focus", () => win?.webContents.send("window:focusChanged", true));
