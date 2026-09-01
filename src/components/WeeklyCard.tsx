@@ -1,12 +1,14 @@
-import { memo, useMemo } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import type { WeeklyStatus } from "../types";
-import { clampPercent } from "../lib/format";
+import { clampPercent, redactEmail } from "../lib/format";
 import { weeklyLines } from "../lib/weekly";
-import { WeeklyIcon } from "./icons";
+import { EyeIcon, EyeOffIcon, WeeklyIcon } from "./icons";
 
 type Props = {
   weekly: WeeklyStatus | null;
 };
+
+const REDACT_STORAGE_KEY = "grokbar:redactEmail";
 
 export const WeeklyCard = memo(function WeeklyCard({ weekly }: Props) {
   const hasPercent = typeof weekly?.usagePercent === "number";
@@ -14,6 +16,22 @@ export const WeeklyCard = memo(function WeeklyCard({ weekly }: Props) {
   const pctLabel = hasPercent ? `${Math.round(meterPct)}%` : "—";
   const lines = useMemo(() => weeklyLines(weekly), [weekly]);
   const meterFillStyle = useMemo(() => ({ width: `${meterPct}%` }), [meterPct]);
+  const [isRedacted, setIsRedacted] = useState(() => {
+    try {
+      return typeof window !== "undefined" && window.localStorage.getItem(REDACT_STORAGE_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const toggleRedacted = useCallback(() => {
+    setIsRedacted((prev) => {
+      const next = !prev;
+      try {
+        window.localStorage.setItem(REDACT_STORAGE_KEY, next ? "1" : "0");
+      } catch {}
+      return next;
+    });
+  }, []);
 
   return (
     <section className="card">
@@ -37,7 +55,21 @@ export const WeeklyCard = memo(function WeeklyCard({ weekly }: Props) {
           {line}
         </p>
       ))}
-      {weekly?.accountEmail ? <p className="muted">{weekly.accountEmail}</p> : null}
+      {weekly?.accountEmail ? (
+        <p className="muted weekly-email">
+          <span className="weekly-email-text">{isRedacted ? redactEmail(weekly.accountEmail) : weekly.accountEmail}</span>
+          <button
+            type="button"
+            className="weekly-email-toggle"
+            aria-label={isRedacted ? "Show email" : "Hide email"}
+            aria-pressed={isRedacted}
+            title={isRedacted ? "Show email" : "Hide email"}
+            onClick={toggleRedacted}
+          >
+            {isRedacted ? <EyeOffIcon /> : <EyeIcon />}
+          </button>
+        </p>
+      ) : null}
     </section>
   );
 });

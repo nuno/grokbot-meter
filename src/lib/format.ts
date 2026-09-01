@@ -52,3 +52,16 @@ export function formatResetsIn(nextResetAt: number | null | undefined): string {
   if (hours >= 1) return `Resets in ${hours}h`;
   return `Resets in ${totalMinutes}m`;
 }
+
+export function redactEmail(email: string): string {
+  const trimmed = email.trim();
+  const at = trimmed.indexOf("@");
+  if (at <= 0) return "***";
+  const local = trimmed.slice(0, at);
+  const domain = trimmed.slice(at + 1).trim();
+  if (!domain) return `${local[0] ?? "*"}***@***`;
+  const dot = domain.lastIndexOf(".");
+  const maskedLocal = (local[0] ?? "*") + "***";
+  const maskedDomain = (domain[0] ?? "*") + "***" + (dot > 0 ? domain.slice(dot) : "");
+  return `${maskedLocal}@${maskedDomain}`;
+}

@@ -181,6 +181,57 @@ body,
   font-weight: 450;
 }
 
+.weekly-email {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.weekly-email-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.weekly-email-toggle {
+  appearance: none;
+  border: 0;
+  cursor: default;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  color: var(--secondary-label);
+  background: var(--control-bg);
+  flex-shrink: 0;
+  position: relative;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.weekly-email-toggle:hover {
+  background: var(--control-bg-hover);
+  color: var(--label);
+}
+
+.weekly-email-toggle:active {
+  background: var(--control-bg-active);
+}
+
+.weekly-email-toggle:focus-visible {
+  outline: 2px solid var(--system-blue);
+  outline-offset: 2px;
+}
+
+.redact-icon {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
 .empty {
   margin-top: 6px;
   color: var(--secondary-label);
