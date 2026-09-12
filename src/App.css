@@ -589,19 +589,20 @@ body,
 }
 
 .about-icon .about-mark {
-  width: 64px;
-  height: 64px;
+  width: 52px;
+  height: 52px;
   display: block;
   flex-shrink: 0;
-  border-radius: 16px;
+  border-radius: 0;
+  overflow: visible;
 }
 
 .title-icon {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   display: block;
   flex-shrink: 0;
-  color: var(--label);
+  overflow: visible;
 }
 
 .about-titleblock {
@@ -705,20 +706,7 @@ body,
   background: var(--control-bg-active);
 }
 
-/* HIG prominence: Quit (quiet) less prominent than About (pill) — single prominent per footer */
-.footer-btn--quiet {
-  background: transparent;
-  color: var(--secondary-label);
-}
-
-.footer-btn--quiet:hover {
-  background: var(--control-bg);
-  color: var(--label);
-}
-
-.footer-btn--quiet:active {
-  background: var(--control-bg-active);
-}
+/* Equal filled pills (About | Refresh | Quit) — matches demo mock; all use .footer-btn */
 
 .close-btn {
   appearance: none;
@@ -759,8 +747,8 @@ body,
   opacity: 0.7;
 }
 
-/* About | Refresh | Quit — ends + quiet middle */
+/* About | Refresh | Quit — equal flex pills */
 .footer-row > .footer-btn {
-  flex: 0 0 auto;
-  min-width: 4.5rem;
+  flex: 1;
+  min-width: 0;
 }

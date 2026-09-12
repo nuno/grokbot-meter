@@ -10,7 +10,7 @@ export const AppHeader = memo(function AppHeader({ onClose }: Props) {
     <header className="header header-row">
       <h1 className="title">
         <GrokMark2Icon className="title-icon" />
-        Grok Bot Bar
+        GrokBar
       </h1>
       <button
         type="button"

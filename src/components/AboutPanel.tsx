@@ -55,7 +55,7 @@ export const AboutPanel = memo(function AboutPanel({ onBack }: Props) {
             <GrokMark2Icon className="about-mark" />
           </div>
           <div className="about-titleblock">
-            <h2>Grok Bot Bar</h2>
+            <h2>GrokBar</h2>
             <p className="tagline">Menu bar stats for Grok Bot.</p>
             <p className="about-version">Version {APP_VERSION}</p>
             {grokBotLine ? <p className="about-version">{grokBotLine}</p> : null}
