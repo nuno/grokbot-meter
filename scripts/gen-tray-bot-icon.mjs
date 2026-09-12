@@ -45,20 +45,38 @@ function encodePng(size, rgba) {
   ]);
 }
 
-/** Coverage 0..1 of Bot face silhouette (disc+head opaque, eye slits clear). Matches GrokMark2Icon 24 viewBox. */
-function coverageAt(px, py, size) {
-  // map pixel center into viewBox 0..24
-  const x = ((px + 0.5) / size) * 24;
-  const y = ((py + 0.5) / size) * 24;
+/**
+ * Menu-bar template Bot face.
+ * Tuned vs header SVG: optically zoomed, fatter eye punches, slightly less tilt —
+ * soft AA on the outer disc only; eyes bias toward fully clear so they don't mud into gray.
+ */
+function sampleAt(px, py, size) {
+  // Zoom ~12% so the face fills the 18px tile (less empty ring).
+  const zoom = 1.12;
+  const mid = size / 2;
+  const sx = mid + (px + 0.5 - mid) / zoom;
+  const sy = mid + (py + 0.5 - mid) / zoom;
+  const x = (sx / size) * 24;
+  const y = (sy / size) * 24;
 
-  const inCircle = (cx, cy, r) => {
+  const dist2 = (cx, cy) => {
     const dx = x - cx;
     const dy = y - cy;
-    return dx * dx + dy * dy <= r * r;
+    return dx * dx + dy * dy;
   };
 
-  // Eye slit: rounded rect in local space after inverse rotate
-  const inEye = (ecx, ecy, rotDeg) => {
+  // Soft disc edge (r≈10.6 in zoomed space reads larger)
+  const discR = 10.6;
+  const dDisc = Math.sqrt(dist2(12, 12));
+  if (dDisc > discR + 0.55) return 0;
+  let discCov = 1;
+  if (dDisc > discR - 0.55) {
+    discCov = 1 - (dDisc - (discR - 0.55)) / 1.1;
+    discCov = Math.max(0, Math.min(1, discCov));
+  }
+
+  // Eye: rounded capsule, fatter + clearer than header SVG for 18px
+  const eyeCov = (ecx, ecy, rotDeg) => {
     const rad = (-rotDeg * Math.PI) / 180;
     const cos = Math.cos(rad);
     const sin = Math.sin(rad);
@@ -66,27 +84,35 @@ function coverageAt(px, py, size) {
     const dy = y - ecy;
     const lx = dx * cos - dy * sin;
     const ly = dx * sin + dy * cos;
-    // rect: width 2.35, height 5.1, rx 1.175 — slightly fattened for menu-bar readability
-    const hw = 1.35; // half-width (~2.7 vs 2.35)
-    const hh = 2.7; // half-height (~5.4 vs 5.1)
-    const rr = 1.25;
+    const hw = 1.7; // was ~1.35 — punch wider
+    const hh = 3.05; // slightly taller
+    const rr = 1.55;
     const ax = Math.abs(lx);
     const ay = Math.abs(ly);
-    if (ax <= hw - rr && ay <= hh) return true;
-    if (ay <= hh - rr && ax <= hw) return true;
-    const cx = Math.max(ax - (hw - rr), 0);
-    const cy = Math.max(ay - (hh - rr), 0);
-    return cx * cx + cy * cy <= rr * rr;
+    // distance outside rounded rect (0 = inside)
+    let od = 0;
+    if (ax <= hw - rr && ay <= hh) od = 0;
+    else if (ay <= hh - rr && ax <= hw) od = 0;
+    else {
+      const cx = Math.max(ax - (hw - rr), 0);
+      const cy = Math.max(ay - (hh - rr), 0);
+      od = Math.sqrt(cx * cx + cy * cy) - rr;
+    }
+    // Bias: fully clear inside + 0.35px fringe, hard cut — avoids muddy gray eyes
+    if (od <= 0) return 1;
+    if (od >= 0.45) return 0;
+    return 1 - od / 0.45;
   };
 
-  const disc = inCircle(12, 12, 11);
-  if (!disc) return 0;
-  // Eyes punch through (transparent)
-  if (inEye(9.325, 13.45, 14) || inEye(14.675, 13.45, -14)) return 0;
-  return 1;
+  // Optical center a touch high; milder tilt so slits read at tiny size
+  const eL = eyeCov(9.15, 12.85, 11);
+  const eR = eyeCov(14.85, 12.85, -11);
+  const eye = Math.max(eL, eR);
+  // Punch eyes out of disc
+  return discCov * (1 - eye);
 }
 
-function renderTemplate(size, samples = 4) {
+function renderTemplate(size, samples = 6) {
   const rgba = Buffer.alloc(size * size * 4);
   const step = 1 / samples;
   for (let y = 0; y < size; y++) {
@@ -94,7 +120,7 @@ function renderTemplate(size, samples = 4) {
       let sum = 0;
       for (let sy = 0; sy < samples; sy++) {
         for (let sx = 0; sx < samples; sx++) {
-          sum += coverageAt(x + (sx + 0.5) * step - 0.5, y + (sy + 0.5) * step - 0.5, size);
+          sum += sampleAt(x + (sx + 0.5) * step - 0.5, y + (sy + 0.5) * step - 0.5, size);
         }
       }
       const a = Math.round((sum / (samples * samples)) * 255);
@@ -108,17 +134,29 @@ function renderTemplate(size, samples = 4) {
   return rgba;
 }
 
-/** Preview: black mark on light gray so eyes show in screenshots. */
-function renderPreview(size) {
-  const tmpl = renderTemplate(size, 4);
+function renderPreview(size, bg = [230, 230, 230]) {
+  const tmpl = renderTemplate(size, 6);
   const rgba = Buffer.alloc(size * size * 4);
   for (let i = 0; i < size * size; i++) {
     const a = tmpl[i * 4 + 3] / 255;
-    const bg = 230;
-    const v = Math.round(bg * (1 - a));
-    rgba[i * 4] = v;
-    rgba[i * 4 + 1] = v;
-    rgba[i * 4 + 2] = v;
+    rgba[i * 4] = Math.round(bg[0] * (1 - a));
+    rgba[i * 4 + 1] = Math.round(bg[1] * (1 - a));
+    rgba[i * 4 + 2] = Math.round(bg[2] * (1 - a));
+    rgba[i * 4 + 3] = 255;
+  }
+  return rgba;
+}
+
+/** Menu-bar style preview: white template on navy (like Focus/status tint). */
+function renderNavyPreview(size) {
+  const tmpl = renderTemplate(size, 6);
+  const rgba = Buffer.alloc(size * size * 4);
+  const navy = [28, 56, 120];
+  for (let i = 0; i < size * size; i++) {
+    const a = tmpl[i * 4 + 3] / 255;
+    rgba[i * 4] = Math.round(navy[0] * (1 - a) + 255 * a);
+    rgba[i * 4 + 1] = Math.round(navy[1] * (1 - a) + 255 * a);
+    rgba[i * 4 + 2] = Math.round(navy[2] * (1 - a) + 255 * a);
     rgba[i * 4 + 3] = 255;
   }
   return rgba;
@@ -126,8 +164,9 @@ function renderPreview(size) {
 
 for (const size of [18, 36]) {
   const name = size === 18 ? "tray.png" : "tray@2x.png";
-  writeFileSync(join(outDir, name), encodePng(size, renderTemplate(size, 5)));
+  writeFileSync(join(outDir, name), encodePng(size, renderTemplate(size, 7)));
   console.log("wrote", name);
 }
 writeFileSync(join(outDir, "tray-preview@2x.png"), encodePng(72, renderPreview(72)));
-console.log("wrote tray-preview@2x.png");
+writeFileSync(join(outDir, "tray-preview-navy.png"), encodePng(72, renderNavyPreview(72)));
+console.log("wrote previews");
