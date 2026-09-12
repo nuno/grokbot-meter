@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { hideWindow, quit as apiQuit, subscribeEscapePressed, subscribeShowAbout } from "../lib/api";
+import { hideWindow, quit as apiQuit, setContentHeight, subscribeEscapePressed, subscribeShowAbout } from "../lib/api";
+import { cachedMainHeight } from "../lib/panelHeights";
 
 export function useAboutController() {
   const [about, setAbout] = useState(false);
@@ -9,13 +10,11 @@ export function useAboutController() {
     return () => unlisten?.();
   }, []);
 
-  // Esc is handled in Electron main (before-input-event) and forwarded as "escape-pressed"
-  // so it works even when the frameless popover isn't focused. Renderer decides
-  // whether to close About or hide the window.
   const aboutRef = useRef(about);
   useEffect(() => {
     aboutRef.current = about;
   }, [about]);
+
   useEffect(() => {
     const unlisten = subscribeEscapePressed(() => {
       const active = document.activeElement as HTMLElement | null;
@@ -28,14 +27,19 @@ export function useAboutController() {
           active.closest('[contenteditable="true"]'))
       )
         return;
-      if (aboutRef.current) setAbout(false);
-      else hideWindow();
+      if (aboutRef.current) {
+        setContentHeight(cachedMainHeight, "main");
+        setAbout(false);
+      } else hideWindow();
     });
     return () => unlisten?.();
   }, []);
 
   const open = useCallback(() => setAbout(true), []);
-  const close = useCallback(() => setAbout(false), []);
+  const close = useCallback(() => {
+    setContentHeight(cachedMainHeight, "main");
+    setAbout(false);
+  }, []);
   const resetOnHide = useCallback(() => setAbout(false), []);
   const quit = useCallback(() => {
     setAbout(false);

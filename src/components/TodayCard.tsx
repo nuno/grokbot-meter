@@ -55,8 +55,10 @@ export const TodayCard = memo(function TodayCard({
         {hasToday ? <span className="card-pct">{todayMessageCount}</span> : null}
       </div>
       {isLoading ? (
-        <div className="empty-state is-loading" aria-busy="true">
-          <p className="empty-state-title">Loading…</p>
+        <div className="today-skeleton" aria-busy="true" aria-label="Loading today">
+          <div className="today-skeleton-row" />
+          <div className="today-skeleton-row" />
+          <div className="today-skeleton-row" />
         </div>
       ) : isEmpty ? (
         <div className="empty-state">

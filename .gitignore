@@ -43,3 +43,9 @@ tsconfig.node.tsbuildinfo
 .qa-artifacts/
 verify-*/
 .ui-review/
+
+# QA flash retest scratch
+.qa-flash*/
+.retest-shots/
+grokbar-flash*.png
+grokbar-flashtest*

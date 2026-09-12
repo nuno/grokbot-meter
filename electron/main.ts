@@ -12,6 +12,10 @@ let lastTrayBounds: Electron.Rectangle | null = null;
 let isQuitting = false;
 /** Swallow the tray click that caused a blur-hide, so the extra doesn't immediately reopen. */
 let ignoreTrayClickUntil = 0;
+/** When set, next setPanelContentHeight reveals the window (avoids About height flash). */
+let pendingReveal: "about" | null = null;
+let lastMainHeight = 260;
+let lastAboutHeight = 372;
 /** Last official weekly snapshot — tray paint interval never fetches; only this + local grok. */
 let lastWeekly: WeeklyStatus | null = null;
 let weeklyRefreshTimer: ReturnType<typeof setTimeout> | null = null;
@@ -24,13 +28,31 @@ const PANEL_WIDTH = 380;
 const PANEL_MIN_HEIGHT = 260;
 const PANEL_MAX_HEIGHT = 520;
 
-function setPanelContentHeight(contentHeight: number) {
+function setPanelContentHeight(contentHeight: number, mode: "main" | "about" = "main") {
   if (!win || !Number.isFinite(contentHeight)) return;
   const nextH = Math.round(Math.min(PANEL_MAX_HEIGHT, Math.max(PANEL_MIN_HEIGHT, contentHeight)));
-  const [curW, curH] = win.getContentSize();
-  if (curW === PANEL_WIDTH && curH === nextH) return;
-  win.setContentSize(PANEL_WIDTH, nextH);
-  if (lastTrayBounds) positionNearTray(lastTrayBounds);
+  if (mode === "about") lastAboutHeight = nextH;
+  else lastMainHeight = nextH;
+  const { width: curW, height: curH } = win.getContentBounds();
+  const visible = win.isVisible();
+  // Footer About: never shrink a visible window (content swap at main height).
+  const skipShrink = mode === "about" && visible && curH > nextH + 1;
+  // Tray About pending: apply final height once, then show — one visible size.
+  if (pendingReveal === "about" && mode === "about") {
+    if (!(curW === PANEL_WIDTH && curH === nextH)) {
+      win.setContentSize(PANEL_WIDTH, nextH);
+    }
+    pendingReveal = null;
+    if (lastTrayBounds) positionNearTray(lastTrayBounds);
+    if (!win.isVisible()) {
+      win.show();
+      win.focus();
+    }
+    return;
+  }
+  if (!skipShrink && !(curW === PANEL_WIDTH && curH === nextH)) {
+    win.setContentSize(PANEL_WIDTH, nextH);
+  }
 }
 
 function trayTitleAndTooltip(weekly: WeeklyStatus, grok: ReturnType<typeof getGrokStatus>) {
@@ -137,19 +159,34 @@ function togglePanel(bounds: Electron.Rectangle) {
     win.hide();
     return;
   }
+  // Reopen at last measured height so first paint doesn't jump from PANEL_MIN_HEIGHT.
+  win.setContentSize(PANEL_WIDTH, lastMainHeight);
   positionNearTray(bounds);
   win.show();
   win.focus();
 }
 
 function showAbout() {
-  if (win && lastTrayBounds) {
-    positionNearTray(lastTrayBounds);
+  if (!win) return;
+  if (lastTrayBounds) positionNearTray(lastTrayBounds);
+  // Already open (footer): just flip content — do NOT hide/fade/shrink (bad UX).
+  if (win.isVisible()) {
+    win.webContents.send("show-about");
+    win.focus();
+    return;
+  }
+  // From tray (hidden): flip to About while still hidden; show only after
+  // about-mode measure so the first visible frame is the final height (no jump).
+  pendingReveal = "about";
+  win.webContents.send("show-about");
+  setTimeout(() => {
+    if (pendingReveal !== "about" || !win) return;
+    pendingReveal = null;
+    win.setContentSize(PANEL_WIDTH, lastAboutHeight);
+    if (lastTrayBounds) positionNearTray(lastTrayBounds);
     win.show();
     win.focus();
-  } else win?.show();
-  win?.focus();
-  win?.webContents.send("show-about");
+  }, 500);
 }
 
 function createWindow() {
@@ -254,11 +291,16 @@ app.whenReady().then(() => {
     applyWeeklyToTray(weekly);
     return weekly;
   });
+  ipcMain.handle("show-about", () => { showAbout(); });
   ipcMain.handle("app:quit", () => app.quit());
   ipcMain.handle("window:isVisible", () => win?.isVisible() ?? false);
   ipcMain.handle("window:hide", () => { win?.hide(); });
-  ipcMain.handle("window:setContentHeight", (_e, height: number) => {
-    setPanelContentHeight(Number(height));
+  ipcMain.on("window:setContentHeight-sync", (event, height: number, mode?: "main" | "about") => {
+    setPanelContentHeight(Number(height), mode === "about" ? "about" : "main");
+    event.returnValue = true;
+  });
+  ipcMain.handle("window:setContentHeight", (_e, height: number, mode?: "main" | "about") => {
+    setPanelContentHeight(Number(height), mode === "about" ? "about" : "main");
   });
   setInterval(() => void refreshTray(false), TRAY_PAINT_MS);
   void refreshTray(true);

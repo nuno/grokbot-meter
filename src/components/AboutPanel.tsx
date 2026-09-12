@@ -33,8 +33,9 @@ export const AboutPanel = memo(function AboutPanel({ onBack }: Props) {
     };
   }, []);
 
+  // Always reserve the same second version line so About height doesn't jump after open.
   const grokBotLine = !grokBotVersionLoaded
-    ? null
+    ? "Grok Bot …"
     : grokBotVersion
       ? `Grok Bot ${grokBotVersion}`
       : "Grok Bot — not installed";
@@ -58,7 +59,7 @@ export const AboutPanel = memo(function AboutPanel({ onBack }: Props) {
             <h2>GrokBar</h2>
             <p className="tagline">Menu bar stats for Grok Bot.</p>
             <p className="about-version">Version {APP_VERSION}</p>
-            {grokBotLine ? <p className="about-version">{grokBotLine}</p> : null}
+            <p className={`about-version${!grokBotVersionLoaded ? " is-pending" : ""}`}>{grokBotLine}</p>
           </div>
         </div>
         <div className="about-divider" role="separator" />

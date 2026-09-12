@@ -27,11 +27,11 @@ export const AppFooter = memo(function AppFooter({
         aria-label={refreshing ? "Refreshing" : "Refresh status"}
         title={refreshing ? "Refreshing…" : "Refresh"}
       >
-        {refreshing ? "Refreshing…" : "Refresh"}
+        {refreshing ? "…" : "Refresh"}
       </button>
       <button
         type="button"
-        className="footer-btn"
+        className="footer-btn footer-btn--quiet"
         onClick={onQuit}
         aria-label="Quit GrokBar"
         title="Quit GrokBar (⌘Q)"

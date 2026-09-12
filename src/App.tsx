@@ -23,7 +23,7 @@ export default function App() {
   const todayMessageCount = preview?.todayMessageCount ?? liveStats.todayMessageCount;
   const todayAgentCount = preview?.todayAgentCount ?? liveStats.todayAgentCount;
   const isLoading = selectIsLoading(status, error);
-  usePanelHeight([about, agents.length, todayMessageCount, todayAgentCount, Boolean(weekly), Boolean(error)]);
+  usePanelHeight(about, [agents.length, todayMessageCount, todayAgentCount, Boolean(weekly), Boolean(error)]);
 
   // Activity keeps both trees mounted and preserves WeeklyCard/TodayCard state
   // when toggling About. AboutPanel is stateless, but this avoids remount

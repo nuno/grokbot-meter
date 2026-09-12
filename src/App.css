@@ -706,7 +706,60 @@ body,
   background: var(--control-bg-active);
 }
 
-/* Equal filled pills (About | Refresh | Quit) — matches demo mock; all use .footer-btn */
+/* About | Refresh filled; Quit quieter (Mac extra: destructive secondary) */
+
+.about-version.is-pending {
+  color: var(--tertiary-label);
+}
+
+.today-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 0 8px;
+}
+
+.today-skeleton-row {
+  height: 12px;
+  border-radius: 6px;
+  background: var(--control-bg);
+  opacity: 0.85;
+  animation: grokbar-pulse 1.1s ease-in-out infinite;
+}
+
+.today-skeleton-row:nth-child(1) { width: 72%; }
+.today-skeleton-row:nth-child(2) { width: 88%; }
+.today-skeleton-row:nth-child(3) { width: 64%; }
+
+@keyframes grokbar-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.95; }
+}
+
+
+/* About opened from main keeps window height — fill leftover glass */
+.panel:has(> .card.about) {
+  /* Keep footer About at main window height — fill leftover vibrancy, no shrink flash */
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+.panel:has(> .card.about) .card.about {
+  flex: 1 1 auto;
+}
+.footer-btn--quiet {
+  background: transparent;
+  color: var(--secondary-label);
+}
+
+.footer-btn--quiet:hover {
+  background: var(--control-bg);
+  color: var(--label);
+}
+
+.footer-btn--quiet:active {
+  background: var(--control-bg-active);
+}
+
 
 .close-btn {
   appearance: none;

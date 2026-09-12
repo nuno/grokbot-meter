@@ -28,7 +28,10 @@ const api = {
   },
   quit: () => ipcRenderer.invoke("app:quit"),
   hideWindow: () => ipcRenderer.invoke("window:hide"),
-  setContentHeight: (height: number) => ipcRenderer.invoke("window:setContentHeight", height),
+  setContentHeight: (height: number, mode: "main" | "about" = "main") => {
+    // sendSync so useLayoutEffect can resize before paint (footer About flash).
+    ipcRenderer.sendSync("window:setContentHeight-sync", height, mode);
+  },
   grokBotVersion: (): Promise<string | null> => ipcRenderer.invoke("app:grokBotVersion"),
 };
 
@@ -47,7 +50,7 @@ declare global {
       onWeeklyUpdated: (cb: (weekly: WeeklyStatus) => void) => () => void;
       quit: () => Promise<void>;
       hideWindow: () => Promise<void>;
-      setContentHeight: (height: number) => Promise<void>;
+      setContentHeight: (height: number, mode?: "main" | "about") => void;
       grokBotVersion: () => Promise<string | null>;
     };
   }
