@@ -28,6 +28,7 @@ const api = {
   },
   quit: () => ipcRenderer.invoke("app:quit"),
   hideWindow: () => ipcRenderer.invoke("window:hide"),
+  setContentHeight: (height: number) => ipcRenderer.invoke("window:setContentHeight", height),
 };
 
 contextBridge.exposeInMainWorld("api", api as typeof window.api);
@@ -45,6 +46,7 @@ declare global {
       onWeeklyUpdated: (cb: (weekly: WeeklyStatus) => void) => () => void;
       quit: () => Promise<void>;
       hideWindow: () => Promise<void>;
+      setContentHeight: (height: number) => Promise<void>;
     };
   }
 }

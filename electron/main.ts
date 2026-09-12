@@ -12,6 +12,19 @@ let isQuitting = false;
 /** Swallow the tray click that caused a blur-hide, so the extra doesn't immediately reopen. */
 let ignoreTrayClickUntil = 0;
 
+const PANEL_WIDTH = 380;
+const PANEL_MIN_HEIGHT = 260;
+const PANEL_MAX_HEIGHT = 520;
+
+function setPanelContentHeight(contentHeight: number) {
+  if (!win || !Number.isFinite(contentHeight)) return;
+  const nextH = Math.round(Math.min(PANEL_MAX_HEIGHT, Math.max(PANEL_MIN_HEIGHT, contentHeight)));
+  const [curW, curH] = win.getContentSize();
+  if (curW === PANEL_WIDTH && curH === nextH) return;
+  win.setContentSize(PANEL_WIDTH, nextH);
+  if (lastTrayBounds) positionNearTray(lastTrayBounds);
+}
+
 function trayTitleAndTooltip(weekly: Awaited<ReturnType<typeof getWeeklyStatusAsync>>, grok: ReturnType<typeof getGrokStatus>) {
   if (weekly.usagePercent != null && Number.isFinite(weekly.usagePercent)) {
     const r = Math.round(weekly.usagePercent);
@@ -100,8 +113,9 @@ function createWindow() {
   // const isDev = !!process.env["ELECTRON_RENDERER_URL"] || !!process.env.ELECTRON_START_URL;
   //<ai-end-DO NOT REMOVE THIS COMMENT />
   win = new BrowserWindow({
-    width: 380,
-    height: 520,
+    width: PANEL_WIDTH,
+    height: PANEL_MIN_HEIGHT,
+    useContentSize: true,
     show: false,
     frame: false,
     transparent: true,
@@ -194,6 +208,9 @@ app.whenReady().then(() => {
   ipcMain.handle("app:quit", () => app.quit());
   ipcMain.handle("window:isVisible", () => win?.isVisible() ?? false);
   ipcMain.handle("window:hide", () => { win?.hide(); });
+  ipcMain.handle("window:setContentHeight", (_e, height: number) => {
+    setPanelContentHeight(Number(height));
+  });
   setInterval(() => void refreshTray(), 30_000);
   void refreshTray();
 });

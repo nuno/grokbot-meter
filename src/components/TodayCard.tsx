@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useCallback, useEffect, useRef } from "react";
 import type { GrokAgent } from "../types";
 import { TodayIcon } from "./icons";
 import { AgentRow } from "./AgentRow";
@@ -22,6 +22,20 @@ export const TodayCard = memo(function TodayCard({
   const hasToday = todayMessageCount > 0 || todayAgentCount > 0;
   const isEmpty = !isLoading && !hasToday;
   const hasRecent = isEmpty && agents.length > 0;
+  const listRef = useRef<HTMLUListElement>(null);
+  const scrollTimer = useRef(0);
+
+  const onAgentsScroll = useCallback(() => {
+    const el = listRef.current;
+    if (!el) return;
+    el.classList.add("is-scrolling");
+    window.clearTimeout(scrollTimer.current);
+    scrollTimer.current = window.setTimeout(() => {
+      el.classList.remove("is-scrolling");
+    }, 700);
+  }, []);
+
+  useEffect(() => () => window.clearTimeout(scrollTimer.current), []);
 
   return (
     <section className={`card card-today${hasRecent ? " has-recent" : ""}`}>
@@ -49,7 +63,12 @@ export const TodayCard = memo(function TodayCard({
       )}
       {hasRecent ? <div className="empty-separator" role="separator" /> : null}
       {agents.length > 0 ? (
-        <ul className="agents" aria-label={hasRecent ? "Recent sessions" : undefined}>
+        <ul
+          ref={listRef}
+          className="agents"
+          aria-label={hasRecent ? "Recent sessions" : undefined}
+          onScroll={onAgentsScroll}
+        >
           {agents.map((agent) => (
             <AgentRow key={agent.id} agent={agent} />
           ))}

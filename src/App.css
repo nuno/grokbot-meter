@@ -70,14 +70,14 @@ body,
 html,
 body,
 #root {
-  height: 100%;
+  height: auto;
   overflow: hidden;
 }
 
 .panel {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: auto;
   padding: 10px 12px 8px;
   gap: 10px;
 }
@@ -109,7 +109,8 @@ body,
 }
 
 .card-today {
-  flex: 1;
+  /* Hug content when few agents; do not stretch into a sparse tall card. */
+  flex: 0 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -240,7 +241,7 @@ body,
 }
 
 .empty-state {
-  flex: 1;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -321,8 +322,47 @@ body,
   flex-direction: column;
   overflow-y: auto;
   min-height: 0;
-  flex: 1;
-  scrollbar-width: thin;
+  flex: 0 1 auto;
+  /* Long lists scroll inside the card; short lists stay compact. */
+  max-height: min(280px, 48vh);
+  padding-right: 2px;
+}
+
+/*
+  Electron + vibrancy paints a white native scrollbar track.
+  Keep scrollbar WIDTH constant (no hover reflow). Track stays transparent so
+  there is no white strip; only the thumb fades in on hover / while scrolling.
+*/
+.agents::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+  background: transparent;
+}
+
+.agents::-webkit-scrollbar-track,
+.agents::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.agents::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.agents:hover::-webkit-scrollbar-thumb,
+.agents.is-scrolling::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--secondary-label) 42%, transparent);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.agents:hover::-webkit-scrollbar-thumb:hover,
+.agents.is-scrolling::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--secondary-label) 58%, transparent);
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 .agent {
@@ -330,7 +370,7 @@ body,
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 6px 6px;
+  padding: 6px 8px 6px 6px;
   border-radius: 6px;
   transition: background 120ms ease;
   content-visibility: auto;
@@ -403,7 +443,6 @@ body,
 }
 
 .footer {
-  margin-top: auto;
   padding-top: 4px;
   color: var(--secondary-label);
   font-size: 11px;
@@ -442,7 +481,8 @@ body,
 
 /* HIG 44×44 minimum hit target — invisible slop preserves visual size */
 .back::after,
-.close-btn::after {
+.close-btn::after,
+.weekly-email-toggle::after {
   content: "";
   position: absolute;
   inset: -10px;
@@ -480,7 +520,7 @@ body,
 }
 
 .about {
-  flex: 1;
+  flex: 0 1 auto;
   min-height: 0;
   overflow-y: auto;
   display: flex;

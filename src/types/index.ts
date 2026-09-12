@@ -15,6 +15,7 @@ declare global {
       onWeeklyUpdated: (cb: (weekly: WeeklyStatus) => void) => () => void;
       quit: () => Promise<void>;
       hideWindow: () => Promise<void>;
+      setContentHeight: (height: number) => Promise<void>;
     };
   }
 }

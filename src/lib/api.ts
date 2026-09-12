@@ -52,6 +52,10 @@ export function hideWindow(): void {
   void getApi()?.hideWindow();
 }
 
+export function setContentHeight(height: number): void {
+  void getApi()?.setContentHeight?.(height);
+}
+
 export function quit(): void {
   void getApi()?.quit();
 }
