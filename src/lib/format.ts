@@ -65,3 +65,11 @@ export function redactEmail(email: string): string {
   const maskedDomain = (domain[0] ?? "*") + "***" + (dot > 0 ? domain.slice(dot) : "");
   return `${maskedLocal}@${maskedDomain}`;
 }
+
+export function formatUpdatedAt(ms: number | null | undefined): string {
+  if (ms == null || !Number.isFinite(ms)) return "Updated —";
+  const d = new Date(ms);
+  if (Number.isNaN(d.getTime())) return "Updated —";
+  const time = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  return `Updated ${time}`;
+}

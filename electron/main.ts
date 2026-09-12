@@ -1,6 +1,7 @@
 import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, screen } from "electron";
 import { join } from "path";
 import { getGrokStatus } from "./grokSource";
+import { getGrokBotVersion } from "./grokBotApp";
 import { getWeeklyStatusAsync, type WeeklyStatus } from "./weekly";
 
 if (!app.requestSingleInstanceLock()) app.quit();
@@ -239,6 +240,7 @@ app.whenReady().then(() => {
   createWindow();
   createTray();
   ipcMain.handle("grok:status", () => getGrokStatus());
+  ipcMain.handle("app:grokBotVersion", () => getGrokBotVersion());
   ipcMain.handle("weekly:status", async () => {
     const weekly = await getWeeklyStatusAsync();
     applyWeeklyToTray(weekly);

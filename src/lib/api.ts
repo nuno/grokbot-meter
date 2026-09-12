@@ -26,6 +26,12 @@ export function fetchWeeklyStatus(): Promise<WeeklyStatus> {
   return api.weeklyStatus();
 }
 
+export function fetchGrokBotVersion(): Promise<string | null> {
+  const api = getApi();
+  if (!api?.grokBotVersion) return Promise.resolve(null);
+  return api.grokBotVersion();
+}
+
 export function fetchIsVisible(): Promise<boolean> {
   const api = getApi();
   if (!api?.isVisible) return Promise.resolve(true);

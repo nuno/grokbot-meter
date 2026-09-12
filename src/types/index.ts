@@ -16,6 +16,7 @@ declare global {
       quit: () => Promise<void>;
       hideWindow: () => Promise<void>;
       setContentHeight: (height: number) => Promise<void>;
+      grokBotVersion: () => Promise<string | null>;
     };
   }
 }

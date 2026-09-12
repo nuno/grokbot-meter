@@ -10,6 +10,8 @@
   --system-blue: #007AFF;
   --system-blue-2: #0051D5;
   --system-red: #FF3B30;
+  --system-orange: #FF9500;
+  --system-orange-2: #C93400;
   --meter-track: rgba(120, 120, 128, 0.14);
   --meter-empty: rgba(120, 120, 128, 0.09);
   --badge-bg: rgba(0, 122, 255, 0.12);
@@ -39,6 +41,8 @@
     --system-blue: #0A84FF;
     --system-blue-2: #409CFF;
     --system-red: #FF453A;
+    --system-orange: #FF9F0A;
+    --system-orange-2: #FFB340;
     --meter-track: rgba(120, 120, 128, 0.30);
     --meter-empty: rgba(120, 120, 128, 0.20);
     --badge-bg: rgba(10, 132, 255, 0.26);
@@ -154,6 +158,14 @@ body,
   line-height: 1;
 }
 
+.card-pct.is-warn {
+  color: var(--system-orange);
+}
+
+.card-pct.is-critical {
+  color: var(--system-red);
+}
+
 .meter {
   margin-top: 8px;
   height: 6px;
@@ -174,12 +186,33 @@ body,
   background: var(--meter-empty);
 }
 
+.meter.is-warn .meter-fill {
+  background: linear-gradient(180deg, var(--system-orange) 0%, var(--system-orange-2) 100%);
+}
+
+.meter.is-critical .meter-fill {
+  background: linear-gradient(180deg, var(--system-red) 0%, color-mix(in srgb, var(--system-red) 72%, #000) 100%);
+}
+
+@media (prefers-color-scheme: dark) {
+  .meter.is-critical .meter-fill {
+    background: linear-gradient(180deg, var(--system-red) 0%, color-mix(in srgb, var(--system-red) 78%, #fff) 100%);
+  }
+}
+
 .muted {
   margin-top: 6px;
   color: var(--secondary-label);
   font-size: 12.5px;
   line-height: 1.45;
   font-weight: 450;
+}
+
+.updated-line {
+  margin-top: 4px;
+  color: var(--tertiary-label);
+  font-size: 11.5px;
+  font-weight: 400;
 }
 
 .weekly-email {
@@ -591,6 +624,21 @@ body,
   font-weight: 450;
 }
 
+.about-version {
+  margin-top: 4px;
+  color: var(--tertiary-label);
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 450;
+}
+
+.about-trust {
+  color: var(--secondary-label);
+  font-size: 12.5px;
+  line-height: 1.5;
+  font-weight: 450;
+}
+
 .about-divider {
   height: 0.5px;
   background: var(--separator);
@@ -706,7 +754,12 @@ body,
   gap: 8px;
 }
 
-/* About + Quit only — keep both ends balanced without middle caption */
+
+.footer-btn.is-busy {
+  opacity: 0.7;
+}
+
+/* About | Refresh | Quit — ends + quiet middle */
 .footer-row > .footer-btn {
   flex: 0 0 auto;
   min-width: 4.5rem;

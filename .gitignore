@@ -42,3 +42,4 @@ tsconfig.node.tsbuildinfo
 # QA scratch (screenshots / helper bins)
 .qa-artifacts/
 verify-*/
+.ui-review/

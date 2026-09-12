@@ -14,7 +14,7 @@ import { PREVIEW_LONG_AGENT_LIST, previewPadAgents } from "./lib/previewMocks";
 
 export default function App() {
   const { about, open, close, resetOnHide, quit } = useAboutController();
-  const { status, weekly, error } = useGrokPolling(resetOnHide);
+  const { status, weekly, weeklyUpdatedAt, error, refreshing, refresh } = useGrokPolling(resetOnHide);
 
   const liveAgents = selectAgents(status);
   const liveStats = selectTodayStats(status);
@@ -33,7 +33,7 @@ export default function App() {
       <Activity mode={about ? "hidden" : "visible"}>
         <div className="panel">
           <AppHeader onClose={hideWindow} />
-          <WeeklyCard weekly={weekly} />
+          <WeeklyCard weekly={weekly} updatedAt={weeklyUpdatedAt} />
           <TodayCard
             agents={agents}
             todayMessageCount={todayMessageCount}
@@ -41,7 +41,7 @@ export default function App() {
             isLoading={isLoading}
             error={error}
           />
-          <AppFooter onAbout={open} onQuit={quit} />
+          <AppFooter onAbout={open} onRefresh={() => void refresh()} onQuit={quit} refreshing={refreshing} />
         </div>
       </Activity>
       <Activity mode={about ? "visible" : "hidden"}>

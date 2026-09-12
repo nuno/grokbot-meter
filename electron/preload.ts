@@ -29,6 +29,7 @@ const api = {
   quit: () => ipcRenderer.invoke("app:quit"),
   hideWindow: () => ipcRenderer.invoke("window:hide"),
   setContentHeight: (height: number) => ipcRenderer.invoke("window:setContentHeight", height),
+  grokBotVersion: (): Promise<string | null> => ipcRenderer.invoke("app:grokBotVersion"),
 };
 
 contextBridge.exposeInMainWorld("api", api as typeof window.api);
@@ -47,6 +48,7 @@ declare global {
       quit: () => Promise<void>;
       hideWindow: () => Promise<void>;
       setContentHeight: (height: number) => Promise<void>;
+      grokBotVersion: () => Promise<string | null>;
     };
   }
 }
