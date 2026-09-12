@@ -2,7 +2,12 @@ import { memo, useCallback, useEffect, useRef } from "react";
 import type { GrokAgent } from "../types";
 import { TodayIcon } from "./icons";
 import { AgentRow } from "./AgentRow";
-import { EMPTY_AGENTS } from "../lib/grok";
+import {
+  EMPTY_AGENTS,
+  calmTodayError,
+  selectRecentAgents,
+  selectTodayAgents,
+} from "../lib/grok";
 
 type Props = {
   agents?: readonly GrokAgent[];
@@ -19,14 +24,18 @@ export const TodayCard = memo(function TodayCard({
   isLoading,
   error,
 }: Props) {
+  const todayAgents = selectTodayAgents(agents);
+  const recentAgents = selectRecentAgents(agents);
   const hasToday = todayMessageCount > 0 || todayAgentCount > 0;
   const isEmpty = !isLoading && !hasToday;
-  const hasRecent = isEmpty && agents.length > 0;
-  const listRef = useRef<HTMLUListElement>(null);
+  // Show Recent whenever older agents exist — including under an active Today list.
+  const hasRecent = recentAgents.length > 0;
+  const calmError = calmTodayError(error);
+  const stackRef = useRef<HTMLDivElement>(null);
   const scrollTimer = useRef(0);
 
-  const onAgentsScroll = useCallback(() => {
-    const el = listRef.current;
+  const onStackScroll = useCallback(() => {
+    const el = stackRef.current;
     if (!el) return;
     el.classList.add("is-scrolling");
     window.clearTimeout(scrollTimer.current);
@@ -52,29 +61,44 @@ export const TodayCard = memo(function TodayCard({
       ) : isEmpty ? (
         <div className="empty-state">
           <p className="empty-state-title">No activity today</p>
-          <p className="empty-state-caption">
-            {hasRecent ? "No messages today — recent below" : "Messages will appear here"}
-          </p>
+          {!hasRecent ? (
+            <p className="empty-state-caption">Messages will appear here</p>
+          ) : null}
         </div>
       ) : (
         <p className="muted">
-          {todayMessageCount} message{todayMessageCount === 1 ? "" : "s"} · {todayAgentCount} agent{todayAgentCount === 1 ? "" : "s"}
+          {todayMessageCount} message{todayMessageCount === 1 ? "" : "s"} · {todayAgentCount} agent
+          {todayAgentCount === 1 ? "" : "s"}
         </p>
       )}
-      {hasRecent ? <div className="empty-separator" role="separator" /> : null}
-      {agents.length > 0 ? (
-        <ul
-          ref={listRef}
-          className="agents"
-          aria-label={hasRecent ? "Recent sessions" : undefined}
-          onScroll={onAgentsScroll}
+      {hasToday || hasRecent ? (
+        <div
+          ref={stackRef}
+          className="agent-stack"
+          onScroll={onStackScroll}
         >
-          {agents.map((agent) => (
-            <AgentRow key={agent.id} agent={agent} />
-          ))}
-        </ul>
+          {hasToday && todayAgents.length > 0 ? (
+            <ul className="agents" aria-label="Today activity">
+              {todayAgents.map((agent) => (
+                <AgentRow key={agent.id} agent={agent} />
+              ))}
+            </ul>
+          ) : null}
+          {hasRecent ? (
+            <>
+              {hasToday ? <div className="empty-separator" role="separator" /> : null}
+              {!hasToday ? <div className="empty-separator" role="separator" /> : null}
+              <p className="recent-label">Recent</p>
+              <ul className="agents" aria-label="Recent sessions">
+                {recentAgents.map((agent) => (
+                  <AgentRow key={agent.id} agent={agent} />
+                ))}
+              </ul>
+            </>
+          ) : null}
+        </div>
       ) : null}
-      {error ? <p className="error">{error}</p> : null}
+      {calmError ? <p className="error">{calmError}</p> : null}
     </section>
   );
 });

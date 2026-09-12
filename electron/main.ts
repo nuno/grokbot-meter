@@ -1,7 +1,7 @@
 import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, screen } from "electron";
 import { join } from "path";
 import { getGrokStatus } from "./grokSource";
-import { getWeeklyStatusAsync } from "./weekly";
+import { getWeeklyStatusAsync, type WeeklyStatus } from "./weekly";
 
 if (!app.requestSingleInstanceLock()) app.quit();
 
@@ -11,6 +11,13 @@ let lastTrayBounds: Electron.Rectangle | null = null;
 let isQuitting = false;
 /** Swallow the tray click that caused a blur-hide, so the extra doesn't immediately reopen. */
 let ignoreTrayClickUntil = 0;
+/** Last official weekly snapshot — tray paint interval never fetches; only this + local grok. */
+let lastWeekly: WeeklyStatus | null = null;
+let weeklyRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+
+const TRAY_PAINT_MS = 30_000;
+const WEEKLY_IDLE_MS = 3 * 60_000;
+const WEEKLY_HIGH_USAGE_MS = 10 * 60_000;
 
 const PANEL_WIDTH = 380;
 const PANEL_MIN_HEIGHT = 260;
@@ -25,7 +32,7 @@ function setPanelContentHeight(contentHeight: number) {
   if (lastTrayBounds) positionNearTray(lastTrayBounds);
 }
 
-function trayTitleAndTooltip(weekly: Awaited<ReturnType<typeof getWeeklyStatusAsync>>, grok: ReturnType<typeof getGrokStatus>) {
+function trayTitleAndTooltip(weekly: WeeklyStatus, grok: ReturnType<typeof getGrokStatus>) {
   if (weekly.usagePercent != null && Number.isFinite(weekly.usagePercent)) {
     const r = Math.round(weekly.usagePercent);
     return { title: `${r}%`, tooltip: `GrokBar · ${r}% weekly` };
@@ -34,8 +41,23 @@ function trayTitleAndTooltip(weekly: Awaited<ReturnType<typeof getWeeklyStatusAs
   return { title: undefined as string | undefined, tooltip: "GrokBar" };
 }
 
-function applyWeeklyToTray(weekly: Awaited<ReturnType<typeof getWeeklyStatusAsync>>) {
+function weeklyRefreshIntervalMs(weekly: WeeklyStatus | null): number {
+  const pct = weekly?.usagePercent;
+  if (pct != null && Number.isFinite(pct) && pct >= 80) return WEEKLY_HIGH_USAGE_MS;
+  return WEEKLY_IDLE_MS;
+}
+
+function paintTrayFromCache() {
+  if (!tray || !lastWeekly) return;
+  const grok = getGrokStatus();
+  const { title, tooltip } = trayTitleAndTooltip(lastWeekly, grok);
+  tray.setToolTip(tooltip);
+  if (process.platform === "darwin") tray.setTitle(title ?? "");
+}
+
+function applyWeeklyToTray(weekly: WeeklyStatus) {
   if (!tray) return;
+  lastWeekly = weekly;
   const grok = getGrokStatus();
   const { title, tooltip } = trayTitleAndTooltip(weekly, grok);
   tray.setToolTip(tooltip);
@@ -44,10 +66,24 @@ function applyWeeklyToTray(weekly: Awaited<ReturnType<typeof getWeeklyStatusAsyn
   win?.webContents.send("weekly:updated", weekly);
 }
 
-async function refreshTray() {
+function scheduleWeeklyRefresh() {
+  if (weeklyRefreshTimer) clearTimeout(weeklyRefreshTimer);
+  weeklyRefreshTimer = setTimeout(() => {
+    void refreshTray(true);
+  }, weeklyRefreshIntervalMs(lastWeekly));
+}
+
+/** forceWeekly=true hits GetSandUsageStatus (via getWeeklyStatusAsync; cache still applies).
+ *  forceWeekly=false only repaints from lastWeekly + local getGrokStatus. */
+async function refreshTray(forceWeekly = false) {
   if (!tray) return;
-  const weekly = await getWeeklyStatusAsync();
-  applyWeeklyToTray(weekly);
+  if (forceWeekly || !lastWeekly) {
+    const weekly = await getWeeklyStatusAsync();
+    applyWeeklyToTray(weekly);
+    scheduleWeeklyRefresh();
+    return;
+  }
+  paintTrayFromCache();
 }
 
 function positionNearTray(bounds: Electron.Rectangle) {
@@ -153,7 +189,10 @@ function createWindow() {
     // 1s covers mouse-up and a double-click; do not clear on consume.
     if (cursorOverTray()) ignoreTrayClickUntil = Date.now() + 1000;
   });
-  win.on("show", () => win?.webContents.send("window:focusChanged", true));
+  win.on("show", () => {
+    win?.webContents.send("window:focusChanged", true);
+    void refreshTray(true);
+  });
   win.on("hide", () => win?.webContents.send("window:focusChanged", false));
   win.on("focus", () => win?.webContents.send("window:focusChanged", true));
 
@@ -211,8 +250,8 @@ app.whenReady().then(() => {
   ipcMain.handle("window:setContentHeight", (_e, height: number) => {
     setPanelContentHeight(Number(height));
   });
-  setInterval(() => void refreshTray(), 30_000);
-  void refreshTray();
+  setInterval(() => void refreshTray(false), TRAY_PAINT_MS);
+  void refreshTray(true);
 });
 
 app.on("before-quit", () => {

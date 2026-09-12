@@ -23,9 +23,7 @@ export function useGrokPolling(onWindowHide?: () => void): Result {
     let timer: number | undefined;
     let polling = false;
 
-    const load = () => {
-      // Start both IPC calls in parallel and update independently as each resolves
-      // (avoids gating grok UI on slow weekly 12s timeout — see review #1)
+    const loadGrok = () => {
       void fetchGrokStatus()
         .then((next) => {
           if (cancelled) return;
@@ -36,7 +34,9 @@ export function useGrokPolling(onWindowHide?: () => void): Result {
           if (cancelled) return;
           setError(err instanceof Error ? err.message : String(err));
         });
+    };
 
+    const loadWeekly = () => {
       void fetchWeeklyStatus()
         .then((next) => {
           if (cancelled) return;
@@ -46,6 +46,12 @@ export function useGrokPolling(onWindowHide?: () => void): Result {
           if (cancelled) return;
           setWeekly(null);
         });
+    };
+
+    // Initial + on-open: both. Interval while open: local grok only.
+    const loadBoth = () => {
+      loadGrok();
+      loadWeekly();
     };
 
     const stopPolling = () => {
@@ -58,7 +64,7 @@ export function useGrokPolling(onWindowHide?: () => void): Result {
 
     const startPolling = () => {
       if (timer !== undefined) return;
-      timer = window.setInterval(load, getPollInterval());
+      timer = window.setInterval(loadGrok, getPollInterval());
       polling = true;
     };
 
@@ -66,7 +72,7 @@ export function useGrokPolling(onWindowHide?: () => void): Result {
       if (cancelled) return;
       if (visible) {
         if (!polling) {
-          load();
+          loadBoth();
           startPolling();
         }
       } else {
@@ -81,7 +87,7 @@ export function useGrokPolling(onWindowHide?: () => void): Result {
         .catch(() => {});
     };
 
-    load();
+    loadBoth();
     syncVisible();
 
     const unlistenFocus = subscribeFocusChanged(() => syncVisible());
@@ -100,5 +106,3 @@ export function useGrokPolling(onWindowHide?: () => void): Result {
 
   return { status, weekly, error };
 }
-
-

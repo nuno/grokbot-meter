@@ -18,9 +18,10 @@ export const WeeklyCard = memo(function WeeklyCard({ weekly }: Props) {
   const meterFillStyle = useMemo(() => ({ width: `${meterPct}%` }), [meterPct]);
   const [isRedacted, setIsRedacted] = useState(() => {
     try {
-      return typeof window !== "undefined" && window.localStorage.getItem(REDACT_STORAGE_KEY) === "1";
+      // Default ON: missing key => redacted; only show email when explicitly "0".
+      return typeof window === "undefined" || window.localStorage.getItem(REDACT_STORAGE_KEY) !== "0";
     } catch {
-      return false;
+      return true;
     }
   });
   const toggleRedacted = useCallback(() => {

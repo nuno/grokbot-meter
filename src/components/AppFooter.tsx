@@ -11,7 +11,6 @@ export const AppFooter = memo(function AppFooter({ onAbout, onQuit }: Props) {
       <button type="button" className="footer-btn" onClick={onAbout} title="About GrokBar">
         About
       </button>
-      <span>Local Grok Bot activity</span>
       <button
         type="button"
         className="footer-btn footer-btn--quiet"

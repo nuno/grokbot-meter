@@ -280,17 +280,17 @@ body,
   flex-shrink: 0;
 }
 
-.card-today:has(.empty-state) .agents {
+.card-today:has(.empty-state) .agent-stack {
   margin-top: 6px;
 }
 
-/* compact when recent list is present — don't steal space from the list */
+/* compact when recent list is present — title only, no caption */
 .card-today.has-recent .empty-state,
 .card-today:has(.empty-separator) .empty-state {
   flex: 0 0 auto;
   padding: 10px 12px 8px;
   min-height: 0;
-  gap: 2px;
+  gap: 0;
 }
 
 .card-today.has-recent .empty-state-title,
@@ -298,34 +298,45 @@ body,
   font-size: 12px;
 }
 
-.card-today.has-recent .empty-state-caption,
-.card-today:has(.empty-separator) .empty-state-caption {
-  font-size: 11px;
-  line-height: 1.35;
-  max-width: none;
-}
-
 .card-today.has-recent .empty-separator,
 .card-today:has(.empty-separator) .empty-separator {
   margin: 8px 2px 4px;
 }
 
-.card-today.has-recent .agents,
-.card-today:has(.empty-separator) .agents {
+.recent-label {
+  margin: 2px 2px 0;
+  padding: 0 2px;
+  font-size: 11px;
+  font-weight: 510;
+  letter-spacing: -0.01em;
+  color: var(--tertiary-label);
+  line-height: 1.3;
+}
+
+.card-today.has-recent .agent-stack,
+.card-today:has(.empty-separator) .agent-stack {
   margin-top: 4px;
 }
 
-.agents {
-  list-style: none;
+/* One scroll region for Today + Recent lists together. */
+.agent-stack {
   margin-top: 8px;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   min-height: 0;
   flex: 0 1 auto;
-  /* Long lists scroll inside the card; short lists stay compact. */
   max-height: min(280px, 48vh);
   padding-right: 2px;
+}
+
+.agents {
+  list-style: none;
+  margin-top: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 0 0 auto;
 }
 
 /*
@@ -333,33 +344,33 @@ body,
   Keep scrollbar WIDTH constant (no hover reflow). Track stays transparent so
   there is no white strip; only the thumb fades in on hover / while scrolling.
 */
-.agents::-webkit-scrollbar {
+.agent-stack::-webkit-scrollbar {
   width: 9px;
   height: 9px;
   background: transparent;
 }
 
-.agents::-webkit-scrollbar-track,
-.agents::-webkit-scrollbar-corner {
+.agent-stack::-webkit-scrollbar-track,
+.agent-stack::-webkit-scrollbar-corner {
   background: transparent;
 }
 
-.agents::-webkit-scrollbar-thumb {
+.agent-stack::-webkit-scrollbar-thumb {
   background: transparent;
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
-.agents:hover::-webkit-scrollbar-thumb,
-.agents.is-scrolling::-webkit-scrollbar-thumb {
+.agent-stack:hover::-webkit-scrollbar-thumb,
+.agent-stack.is-scrolling::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--secondary-label) 42%, transparent);
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
-.agents:hover::-webkit-scrollbar-thumb:hover,
-.agents.is-scrolling::-webkit-scrollbar-thumb:hover {
+.agent-stack:hover::-webkit-scrollbar-thumb:hover,
+.agent-stack.is-scrolling::-webkit-scrollbar-thumb:hover {
   background: color-mix(in srgb, var(--secondary-label) 58%, transparent);
   border: 2px solid transparent;
   background-clip: padding-box;
@@ -693,4 +704,10 @@ body,
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+/* About + Quit only — keep both ends balanced without middle caption */
+.footer-row > .footer-btn {
+  flex: 0 0 auto;
+  min-width: 4.5rem;
 }
