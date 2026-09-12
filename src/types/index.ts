@@ -12,6 +12,7 @@ declare global {
       onShowAbout: (cb: () => void) => () => void;
       onFocusChanged: (cb: (visible: boolean) => void) => () => void;
       onEscapePressed: (cb: () => void) => () => void;
+      onWeeklyUpdated: (cb: (weekly: WeeklyStatus) => void) => () => void;
       quit: () => Promise<void>;
       hideWindow: () => Promise<void>;
     };

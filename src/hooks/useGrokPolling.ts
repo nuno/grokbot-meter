@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import type { GrokStatus, WeeklyStatus } from "../types";
-import { fetchGrokStatus, fetchWeeklyStatus, fetchIsVisible, getPollInterval, subscribeFocusChanged } from "../lib/api";
+import { fetchGrokStatus, fetchWeeklyStatus, fetchIsVisible, getPollInterval, subscribeFocusChanged, subscribeWeeklyUpdated } from "../lib/api";
 
 type Result = {
   status: GrokStatus | null;
@@ -85,11 +85,16 @@ export function useGrokPolling(onWindowHide?: () => void): Result {
     syncVisible();
 
     const unlistenFocus = subscribeFocusChanged(() => syncVisible());
+    const unlistenWeekly = subscribeWeeklyUpdated((next) => {
+      if (cancelled) return;
+      setWeekly(next);
+    });
 
     return () => {
       cancelled = true;
       stopPolling();
       unlistenFocus?.();
+      unlistenWeekly?.();
     };
   }, [handleHide]);
 

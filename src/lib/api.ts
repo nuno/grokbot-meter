@@ -44,6 +44,10 @@ export function subscribeEscapePressed(cb: () => void): Unsubscribe | undefined 
   return getApi()?.onEscapePressed(cb);
 }
 
+export function subscribeWeeklyUpdated(cb: (weekly: WeeklyStatus) => void): Unsubscribe | undefined {
+  return getApi()?.onWeeklyUpdated?.(cb);
+}
+
 export function hideWindow(): void {
   void getApi()?.hideWindow();
 }

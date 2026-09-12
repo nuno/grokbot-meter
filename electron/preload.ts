@@ -21,6 +21,11 @@ const api = {
     ipcRenderer.on("escape-pressed", h);
     return () => ipcRenderer.removeListener("escape-pressed", h);
   },
+  onWeeklyUpdated: (cb: (weekly: WeeklyStatus) => void) => {
+    const h = (_: unknown, weekly: WeeklyStatus) => cb(weekly);
+    ipcRenderer.on("weekly:updated", h);
+    return () => ipcRenderer.removeListener("weekly:updated", h);
+  },
   quit: () => ipcRenderer.invoke("app:quit"),
   hideWindow: () => ipcRenderer.invoke("window:hide"),
 };
@@ -37,6 +42,7 @@ declare global {
       onShowAbout: (cb: () => void) => () => void;
       onFocusChanged: (cb: (visible: boolean) => void) => () => void;
       onEscapePressed: (cb: () => void) => () => void;
+      onWeeklyUpdated: (cb: (weekly: WeeklyStatus) => void) => () => void;
       quit: () => Promise<void>;
       hideWindow: () => Promise<void>;
     };

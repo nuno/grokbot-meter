@@ -21,13 +21,20 @@ function trayTitleAndTooltip(weekly: Awaited<ReturnType<typeof getWeeklyStatusAs
   return { title: undefined as string | undefined, tooltip: "GrokBar" };
 }
 
-async function refreshTray() {
+function applyWeeklyToTray(weekly: Awaited<ReturnType<typeof getWeeklyStatusAsync>>) {
   if (!tray) return;
-  const weekly = await getWeeklyStatusAsync();
   const grok = getGrokStatus();
   const { title, tooltip } = trayTitleAndTooltip(weekly, grok);
   tray.setToolTip(tooltip);
   if (process.platform === "darwin") tray.setTitle(title ?? "");
+  // Keep an open popover on the same official snapshot as the tray.
+  win?.webContents.send("weekly:updated", weekly);
+}
+
+async function refreshTray() {
+  if (!tray) return;
+  const weekly = await getWeeklyStatusAsync();
+  applyWeeklyToTray(weekly);
 }
 
 function positionNearTray(bounds: Electron.Rectangle) {
@@ -179,7 +186,11 @@ app.whenReady().then(() => {
   createWindow();
   createTray();
   ipcMain.handle("grok:status", () => getGrokStatus());
-  ipcMain.handle("weekly:status", () => getWeeklyStatusAsync());
+  ipcMain.handle("weekly:status", async () => {
+    const weekly = await getWeeklyStatusAsync();
+    applyWeeklyToTray(weekly);
+    return weekly;
+  });
   ipcMain.handle("app:quit", () => app.quit());
   ipcMain.handle("window:isVisible", () => win?.isVisible() ?? false);
   ipcMain.handle("window:hide", () => { win?.hide(); });
