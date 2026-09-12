@@ -14,7 +14,7 @@ let isQuitting = false;
 /** Swallow the tray click that caused a blur-hide, so the extra doesn't immediately reopen. */
 let ignoreTrayClickUntil = 0;
 /** When set, next setPanelContentHeight reveals the window (avoids About height flash). */
-let pendingReveal: "about" | null = null;
+let pendingReveal: "about" | "settings" | null = null;
 let lastMainHeight = 260;
 let lastAboutHeight = 372;
 /** Last official weekly snapshot — tray paint interval never fetches; only this + local grok. */
@@ -29,17 +29,26 @@ const PANEL_WIDTH = 380;
 const PANEL_MIN_HEIGHT = 260;
 const PANEL_MAX_HEIGHT = 520;
 
+function isOverlayMode(mode: PanelHeightMode): boolean {
+  return mode === "about" || mode === "settings";
+}
+
+function normalizeHeightMode(mode?: PanelHeightMode): PanelHeightMode {
+  if (mode === "about" || mode === "settings") return mode;
+  return "main";
+}
+
 function setPanelContentHeight(contentHeight: number, mode: PanelHeightMode = "main") {
   if (!win || !Number.isFinite(contentHeight)) return;
   const nextH = Math.round(Math.min(PANEL_MAX_HEIGHT, Math.max(PANEL_MIN_HEIGHT, contentHeight)));
-  if (mode === "about") lastAboutHeight = nextH;
+  if (isOverlayMode(mode)) lastAboutHeight = nextH;
   else lastMainHeight = nextH;
   const { width: curW, height: curH } = win.getContentBounds();
   const visible = win.isVisible();
-  // Footer About: never shrink a visible window (content swap at main height).
-  const skipShrink = mode === "about" && visible && curH > nextH + 1;
+  // Footer/header About/Settings: never shrink a visible window (content swap at main height).
+  const skipShrink = isOverlayMode(mode) && visible && curH > nextH + 1;
   // Tray About pending: apply final height once, then show — one visible size.
-  if (pendingReveal === "about" && mode === "about") {
+  if ((pendingReveal === "about" || pendingReveal === "settings") && mode === pendingReveal) {
     if (!(curW === PANEL_WIDTH && curH === nextH)) {
       win.setContentSize(PANEL_WIDTH, nextH);
     }
@@ -190,6 +199,27 @@ function showAbout() {
   }, 500);
 }
 
+function showSettings() {
+  if (!win) return;
+  if (lastTrayBounds) positionNearTray(lastTrayBounds);
+  if (win.isVisible()) {
+    win.webContents.send("show-settings");
+    win.focus();
+    return;
+  }
+  // Hidden tray open: reveal after settings-mode measure (same as About).
+  pendingReveal = "settings";
+  win.webContents.send("show-settings");
+  setTimeout(() => {
+    if (pendingReveal !== "settings" || !win) return;
+    pendingReveal = null;
+    win.setContentSize(PANEL_WIDTH, lastMainHeight);
+    if (lastTrayBounds) positionNearTray(lastTrayBounds);
+    win.show();
+    win.focus();
+  }, 500);
+}
+
 function createWindow() {
   // <ai-start-DO NOT REMOVE THIS COMMENT>
   // const isDev = !!process.env["ELECTRON_RENDERER_URL"] || !!process.env.ELECTRON_START_URL;
@@ -271,6 +301,7 @@ function createTray() {
   // No item icons — macOS status menus are text-only; role:"quit" added a bogus glyph.
   const menu = Menu.buildFromTemplate([
     { label: "About GrokBar", click: () => showAbout() },
+    { label: "Settings…", click: () => showSettings() },
     { type: "separator" },
     { label: "Quit GrokBar", accelerator: "Command+Q", click: () => app.quit() },
   ]);
@@ -297,11 +328,22 @@ app.whenReady().then(() => {
   ipcMain.handle("window:isVisible", () => win?.isVisible() ?? false);
   ipcMain.handle("window:hide", () => { win?.hide(); });
   ipcMain.on("window:setContentHeight-sync", (event, height: number, mode?: PanelHeightMode) => {
-    setPanelContentHeight(Number(height), mode === "about" ? "about" : "main");
+    setPanelContentHeight(Number(height), normalizeHeightMode(mode));
     event.returnValue = true;
   });
   ipcMain.handle("window:setContentHeight", (_e, height: number, mode?: PanelHeightMode) => {
-    setPanelContentHeight(Number(height), mode === "about" ? "about" : "main");
+    setPanelContentHeight(Number(height), normalizeHeightMode(mode));
+  });
+  ipcMain.handle("settings:getLoginItem", () => {
+    if (process.platform !== "darwin") return { openAtLogin: false, supported: false };
+    const s = app.getLoginItemSettings();
+    return { openAtLogin: Boolean(s.openAtLogin), supported: true };
+  });
+  ipcMain.handle("settings:setLoginItem", (_e, openAtLogin: boolean) => {
+    if (process.platform !== "darwin") return { openAtLogin: false, supported: false };
+    app.setLoginItemSettings({ openAtLogin: Boolean(openAtLogin) });
+    const s = app.getLoginItemSettings();
+    return { openAtLogin: Boolean(s.openAtLogin), supported: true };
   });
   setInterval(() => void refreshTray(false), TRAY_PAINT_MS);
   void refreshTray(true);

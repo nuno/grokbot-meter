@@ -1,7 +1,7 @@
-import type { GrokStatus, WeeklyStatus, PanelHeightMode } from "../types";
+import type { GrokStatus, WeeklyStatus, PanelHeightMode, LoginItemSettings } from "../types";
 
 // Re-export types for convenience — single import surface
-export type { GrokStatus, WeeklyStatus, GrokAgent, PanelHeightMode } from "../types";
+export type { GrokStatus, WeeklyStatus, OnDemandSpend, GrokAgent, PanelHeightMode, LoginItemSettings } from "../types";
 
 export type Api = NonNullable<Window["api"]>;
 export type Unsubscribe = () => void;
@@ -38,8 +38,24 @@ export function fetchIsVisible(): Promise<boolean> {
   return api.isVisible();
 }
 
+export function fetchLoginItem(): Promise<LoginItemSettings> {
+  const api = getApi();
+  if (!api?.getLoginItem) return Promise.resolve({ openAtLogin: false, supported: false });
+  return api.getLoginItem();
+}
+
+export function setLoginItem(openAtLogin: boolean): Promise<LoginItemSettings> {
+  const api = getApi();
+  if (!api?.setLoginItem) return Promise.resolve({ openAtLogin: false, supported: false });
+  return api.setLoginItem(openAtLogin);
+}
+
 export function subscribeShowAbout(cb: () => void): Unsubscribe | undefined {
   return getApi()?.onShowAbout(cb);
+}
+
+export function subscribeShowSettings(cb: () => void): Unsubscribe | undefined {
+  return getApi()?.onShowSettings?.(cb);
 }
 
 export function subscribeFocusChanged(cb: (visible: boolean) => void): Unsubscribe | undefined {

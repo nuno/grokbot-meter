@@ -5,15 +5,16 @@ import { AppFooter } from "./components/AppFooter";
 import { WeeklyCard } from "./components/WeeklyCard";
 import { TodayCard } from "./components/TodayCard";
 import { AboutPanel } from "./components/AboutPanel";
+import { SettingsPanel } from "./components/SettingsPanel";
 import { useGrokPolling } from "./hooks/useGrokPolling";
-import { useAboutController } from "./hooks/useAbout";
+import { usePanelController } from "./hooks/useAbout";
 import { usePanelHeight } from "./hooks/usePanelHeight";
 import { hideWindow } from "./lib/api";
 import { selectAgents, selectIsLoading, selectTodayStats } from "./lib/grok";
-import { PREVIEW_LONG_AGENT_LIST, previewPadAgents } from "./lib/previewMocks";
+import { PREVIEW_LONG_AGENT_LIST, previewPadAgents, previewWeeklyWithOnDemand } from "./lib/previewMocks";
 
 export default function App() {
-  const { about, open, close, resetOnHide, quit } = useAboutController();
+  const { mode, openAbout, openSettings, close, resetOnHide, quit } = usePanelController();
   const { status, weekly, weeklyUpdatedAt, error, refreshing, refresh } = useGrokPolling(resetOnHide);
 
   const liveAgents = selectAgents(status);
@@ -22,18 +23,19 @@ export default function App() {
   const agents = preview?.agents ?? liveAgents;
   const todayMessageCount = preview?.todayMessageCount ?? liveStats.todayMessageCount;
   const todayAgentCount = preview?.todayAgentCount ?? liveStats.todayAgentCount;
+  // Local mock only — never enables on-demand on the account.
+  const weeklyForUi = previewWeeklyWithOnDemand(weekly);
   const isLoading = selectIsLoading(status, error);
-  usePanelHeight(about, [agents.length, todayMessageCount, todayAgentCount, Boolean(weekly), Boolean(error)]);
+  usePanelHeight(mode, [agents.length, todayMessageCount, todayAgentCount, Boolean(weeklyForUi), Boolean(error)]);
 
-  // Activity keeps both trees mounted and preserves WeeklyCard/TodayCard state
-  // when toggling About. AboutPanel is stateless, but this avoids remount
-  // cost and keeps scroll position. Hidden tree is display:none.
+  // Activity keeps trees mounted and preserves WeeklyCard/TodayCard state
+  // when toggling About/Settings. Hidden tree is display:none.
   return (
     <>
-      <Activity mode={about ? "hidden" : "visible"}>
+      <Activity mode={mode === "main" ? "visible" : "hidden"}>
         <div className="panel">
-          <AppHeader onClose={hideWindow} />
-          <WeeklyCard weekly={weekly} updatedAt={weeklyUpdatedAt} />
+          <AppHeader onClose={hideWindow} onSettings={openSettings} />
+          <WeeklyCard weekly={weeklyForUi} updatedAt={weeklyUpdatedAt} />
           <TodayCard
             agents={agents}
             todayMessageCount={todayMessageCount}
@@ -41,11 +43,14 @@ export default function App() {
             isLoading={isLoading}
             error={error}
           />
-          <AppFooter onAbout={open} onRefresh={() => void refresh()} onQuit={quit} refreshing={refreshing} />
+          <AppFooter onAbout={openAbout} onRefresh={() => void refresh()} onQuit={quit} refreshing={refreshing} />
         </div>
       </Activity>
-      <Activity mode={about ? "visible" : "hidden"}>
+      <Activity mode={mode === "about" ? "visible" : "hidden"}>
         <AboutPanel onBack={close} />
+      </Activity>
+      <Activity mode={mode === "settings" ? "visible" : "hidden"}>
+        <SettingsPanel onBack={close} />
       </Activity>
     </>
   );

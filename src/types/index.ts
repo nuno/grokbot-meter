@@ -1,6 +1,6 @@
-import type { GrokStatus, WeeklyStatus, PanelHeightMode } from "../../shared/types";
+import type { GrokStatus, WeeklyStatus, PanelHeightMode, LoginItemSettings } from "../../shared/types";
 
-export type { GrokAgent, GrokStatus, WeeklyStatus, PanelHeightMode } from "../../shared/types";
+export type { GrokAgent, GrokStatus, WeeklyStatus, OnDemandSpend, PanelHeightMode, LoginItemSettings } from "../../shared/types";
 
 declare global {
   interface Window {
@@ -10,6 +10,7 @@ declare global {
       isVisible: () => Promise<boolean>;
       showAbout: () => Promise<void>;
       onShowAbout: (cb: () => void) => () => void;
+      onShowSettings: (cb: () => void) => () => void;
       onFocusChanged: (cb: (visible: boolean) => void) => () => void;
       onEscapePressed: (cb: () => void) => () => void;
       onWeeklyUpdated: (cb: (weekly: WeeklyStatus) => void) => () => void;
@@ -17,6 +18,8 @@ declare global {
       hideWindow: () => Promise<void>;
       setContentHeight: (height: number, mode?: PanelHeightMode) => void;
       grokBotVersion: () => Promise<string | null>;
+      getLoginItem: () => Promise<LoginItemSettings>;
+      setLoginItem: (openAtLogin: boolean) => Promise<LoginItemSettings>;
     };
   }
 }

@@ -2,15 +2,21 @@ import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
 import { createDecipheriv, pbkdf2Sync } from "crypto";
+import type { WeeklyStatus, OnDemandSpend } from "../shared/types";
+
+export type { WeeklyStatus, OnDemandSpend };
 
 const CACHE_TTL = 60_000;
 const HTTP_TIMEOUT = 12_000;
 const USAGE_URL = "https://api2.cursor.sh/aiserver.v1.DashboardService/GetSandUsageStatus";
+const PERIOD_USAGE_URL = "https://api2.cursor.sh/aiserver.v1.DashboardService/GetCurrentPeriodUsage";
 const ME_URL = "https://api2.cursor.sh/aiserver.v1.DashboardService/GetMe";
 const TOKEN_URL = "https://api2.cursor.sh/oauth/token";
 const OAUTH_CLIENT_ID = "KbZUR41cY7W6zRSdpSUJ7I7mLYBKOCmB";
 const SECOND_MS_THRESHOLD = 100_000_000_000;
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+/** Grok Bot unlimited sentinel (`jy`) — Hde(limit) returns null at/above this. */
+const UNLIMITED_SPEND_LIMIT = 2_147_483_647;
 const PBKDF2_SALT = Buffer.from("saltysalt");
 const PBKDF2_ITERS = 1003;
 const V10_PREFIX = Buffer.from("v10");
@@ -19,21 +25,6 @@ const JWT_CHAR_RE = /^[A-Za-z0-9._\-+/=]+$/;
 const LONG_TOKEN_RE = /^[A-Za-z0-9\-_\.+/=]+$/;
 const SANITIZE_SPLIT_RE = /\s+/;
 const QUOTE_TRIM_RE = /^["',]+|["',]+$/;
-
-export type WeeklyStatus = {
-  signedIn: boolean;
-  includedLimitZero: boolean;
-  usagePercent: number | null;
-  nextResetAt: number | null;
-  currentPeriodStart: string | null;
-  upgradeLabel: string | null;
-  sandTrial: boolean;
-  sandTrialExpiresAt: number | null;
-  hasNonZeroIncludedLimit: boolean | null;
-  hasAvailableUsage: boolean | null;
-  accountEmail: string | null;
-  error: string | null;
-};
 
 let cache: { fetchedAt: number; status: WeeklyStatus } | null = null;
 let cryptKeyCache: Buffer | null = null;
@@ -63,6 +54,7 @@ function emptyStatus(): WeeklyStatus {
     hasNonZeroIncludedLimit: null,
     hasAvailableUsage: null,
     accountEmail: null,
+    onDemand: null,
     error: null,
   };
 }
@@ -104,13 +96,24 @@ async function fetchStatusAsync(): Promise<WeeklyStatus> {
 }
 
 async function withAccountEmail(status: WeeklyStatus, access: string): Promise<WeeklyStatus> {
-  status.accountEmail = await fetchAccountEmail(access);
+  const [email, onDemand] = await Promise.all([fetchAccountEmail(access), fetchOnDemandSpend(access)]);
+  status.accountEmail = email;
+  status.onDemand = onDemand;
   return status;
 }
 
 async function callUsage(access: string): Promise<{ kind: "ok"; value: unknown } | { kind: "unauthorized" } | { kind: "failed"; error: string }> {
+  return callDashboardJson(USAGE_URL, access, "usage");
+}
+
+/** Same Bearer + Connect-Protocol-Version headers as GetSandUsageStatus. */
+async function callDashboardJson(
+  url: string,
+  access: string,
+  label: string,
+): Promise<{ kind: "ok"; value: unknown } | { kind: "unauthorized" } | { kind: "failed"; error: string }> {
   try {
-    const res = await fetch(USAGE_URL, {
+    const res = await fetch(url, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${access}`,
@@ -121,16 +124,49 @@ async function callUsage(access: string): Promise<{ kind: "ok"; value: unknown }
       signal: AbortSignal.timeout(HTTP_TIMEOUT),
     });
     if (res.status === 401) return { kind: "unauthorized" };
-    if (!res.ok) return { kind: "failed", error: `usage request failed (HTTP ${res.status})` };
+    if (!res.ok) return { kind: "failed", error: `${label} request failed (HTTP ${res.status})` };
     const body = await res.text();
     try {
       return { kind: "ok", value: JSON.parse(body) };
     } catch {
-      return { kind: "failed", error: "unexpected usage response" };
+      return { kind: "failed", error: `unexpected ${label} response` };
     }
   } catch {
     return { kind: "failed", error: "network error" };
   }
+}
+
+/** Fetch + parse on-demand; failures return null (weekly fields still valid). */
+async function fetchOnDemandSpend(access: string): Promise<OnDemandSpend | null> {
+  const period = await callDashboardJson(PERIOD_USAGE_URL, access, "period usage");
+  if (period.kind !== "ok") return null;
+  return parseOnDemandSpend(period.value);
+}
+
+/** Match Grok Bot Hde(limit): null if undefined, non-finite, <=0, or >= unlimited sentinel. */
+function normalizeSpendLimitCents(limit: unknown): number | null {
+  const n = typeof limit === "number" ? limit : typeof limit === "string" ? Number(limit) : NaN;
+  if (!Number.isFinite(n) || n <= 0 || n >= UNLIMITED_SPEND_LIMIT) return null;
+  return n;
+}
+
+/**
+ * Copy GetCurrentPeriodUsage.spendLimitUsage → OnDemandSpend.
+ * Only when spendLimitUsage exists AND limitCents non-null; else null (hide UI).
+ */
+function parseOnDemandSpend(v: unknown): OnDemandSpend | null {
+  if (!v || typeof v !== "object") return null;
+  const o = v as Record<string, unknown>;
+  const spend = o["spendLimitUsage"] ?? o["spend_limit_usage"];
+  if (!spend || typeof spend !== "object") return null;
+  const s = spend as Record<string, unknown>;
+  const usedRaw = jsonF64(s, "individualUsed", "individual_used");
+  const usedCents = usedRaw ?? 0;
+  if (!Number.isFinite(usedCents)) return null;
+  const limitCents = normalizeSpendLimitCents(s["individualLimit"] ?? s["individual_limit"]);
+  if (limitCents == null) return null;
+  const resetTimestampMs = parseTimestampMs(o["billingCycleEnd"] ?? o["billing_cycle_end"]);
+  return { usedCents, limitCents, resetTimestampMs };
 }
 
 async function fetchAccountEmail(access: string): Promise<string | null> {
@@ -230,6 +266,7 @@ function parseUsage(v: unknown): WeeklyStatus {
     hasNonZeroIncludedLimit: hasNonZeroIncludedLimit as boolean | null,
     hasAvailableUsage: hasAvailableUsage as boolean | null,
     accountEmail: null,
+    onDemand: null,
     error: null,
   };
 }

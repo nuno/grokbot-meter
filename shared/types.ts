@@ -15,6 +15,12 @@ export type GrokStatus = {
   agents: GrokAgent[];
 };
 
+export type OnDemandSpend = {
+  usedCents: number;
+  limitCents: number;
+  resetTimestampMs: number | null;
+};
+
 export type WeeklyStatus = {
   signedIn: boolean;
   includedLimitZero: boolean;
@@ -27,8 +33,14 @@ export type WeeklyStatus = {
   hasNonZeroIncludedLimit: boolean | null;
   hasAvailableUsage: boolean | null;
   accountEmail: string | null;
+  onDemand: OnDemandSpend | null;
   error: string | null;
 };
 
-/** Electron panel resize mode — main content vs About. */
-export type PanelHeightMode = "main" | "about";
+/** Electron panel resize mode — main vs overlay panels (About / Settings). */
+export type PanelHeightMode = "main" | "about" | "settings";
+
+export type LoginItemSettings = {
+  openAtLogin: boolean;
+  supported: boolean;
+};

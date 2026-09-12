@@ -1,15 +1,14 @@
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useMemo } from "react";
 import type { WeeklyStatus } from "../types";
-import { clampPercent, formatUpdatedAt, redactEmail } from "../lib/format";
+import { clampPercent, formatCentsUsd, formatUpdatedAt, redactEmail } from "../lib/format";
 import { weeklyLines } from "../lib/weekly";
+import { useRedactEmail, useShowOnDemand } from "../hooks/useLocalPref";
 import { EyeIcon, EyeOffIcon, WeeklyIcon } from "./icons";
 
 type Props = {
   weekly: WeeklyStatus | null;
   updatedAt?: number | null;
 };
-
-const REDACT_STORAGE_KEY = "grokbar:redactEmail";
 
 function meterTone(pct: number): "default" | "warn" | "critical" {
   if (pct >= 95) return "critical";
@@ -25,25 +24,22 @@ export const WeeklyCard = memo(function WeeklyCard({ weekly, updatedAt = null }:
   const lines = useMemo(() => weeklyLines(weekly), [weekly]);
   const meterFillStyle = useMemo(() => ({ width: `${meterPct}%` }), [meterPct]);
   const updatedLabel = weekly ? formatUpdatedAt(updatedAt) : "Updated —";
-  const [isRedacted, setIsRedacted] = useState(() => {
-    try {
-      // Default ON: missing key => redacted; only show email when explicitly "0".
-      return typeof window === "undefined" || window.localStorage.getItem(REDACT_STORAGE_KEY) !== "0";
-    } catch {
-      return true;
-    }
-  });
-  const toggleRedacted = useCallback(() => {
-    setIsRedacted((prev) => {
-      const next = !prev;
-      try {
-        window.localStorage.setItem(REDACT_STORAGE_KEY, next ? "1" : "0");
-      } catch {}
-      return next;
-    });
-  }, []);
+  const { show: showOnDemandPref } = useShowOnDemand();
+  const onDemand = showOnDemandPref ? (weekly?.onDemand ?? null) : null;
+  const onDemandPct = useMemo(() => {
+    if (!onDemand || !(onDemand.limitCents > 0)) return 0;
+    return clampPercent((onDemand.usedCents / onDemand.limitCents) * 100);
+  }, [onDemand]);
+  const onDemandTone = onDemand ? meterTone(onDemandPct) : "default";
+  const onDemandFillStyle = useMemo(() => ({ width: `${onDemandPct}%` }), [onDemandPct]);
+  const onDemandLabel = useMemo(() => {
+    if (!onDemand) return null;
+    return `${formatCentsUsd(onDemand.usedCents)} / ${formatCentsUsd(onDemand.limitCents)}`;
+  }, [onDemand]);
+  const { redacted: isRedacted, toggle: toggleRedacted } = useRedactEmail();
 
   const toneClass = tone === "default" ? "" : ` is-${tone}`;
+  const onDemandToneClass = onDemandTone === "default" ? "" : ` is-${onDemandTone}`;
 
   return (
     <section className="card">
@@ -59,6 +55,7 @@ export const WeeklyCard = memo(function WeeklyCard({ weekly, updatedAt = null }:
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={hasPercent ? meterPct : 0}
+        aria-label="Weekly included usage"
       >
         <div className="meter-fill" style={meterFillStyle} />
       </div>
@@ -67,6 +64,24 @@ export const WeeklyCard = memo(function WeeklyCard({ weekly, updatedAt = null }:
           {line}
         </p>
       ))}
+      {onDemand && onDemandLabel ? (
+        <div className="ondemand">
+          <div className="ondemand-head">
+            <span className="ondemand-label">On-demand</span>
+            <span className={`ondemand-value${onDemandToneClass}`}>{onDemandLabel}</span>
+          </div>
+          <div
+            className={`meter meter-thin${onDemandToneClass}`}
+            role="meter"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={onDemandPct}
+            aria-label="On-demand spend"
+          >
+            <div className="meter-fill" style={onDemandFillStyle} />
+          </div>
+        </div>
+      ) : null}
       <p className="muted updated-line">{updatedLabel}</p>
       {weekly?.accountEmail ? (
         <p className="muted weekly-email">

@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { GrokStatus, WeeklyStatus, PanelHeightMode } from "../shared/types";
+import type { GrokStatus, WeeklyStatus, PanelHeightMode, LoginItemSettings } from "../shared/types";
 
 const api = {
   grokStatus: (): Promise<GrokStatus> => ipcRenderer.invoke("grok:status"),
@@ -10,6 +10,11 @@ const api = {
     const h = () => cb();
     ipcRenderer.on("show-about", h);
     return () => ipcRenderer.removeListener("show-about", h);
+  },
+  onShowSettings: (cb: () => void) => {
+    const h = () => cb();
+    ipcRenderer.on("show-settings", h);
+    return () => ipcRenderer.removeListener("show-settings", h);
   },
   onFocusChanged: (cb: (visible: boolean) => void) => {
     const h = (_: unknown, v: boolean) => cb(v);
@@ -33,6 +38,9 @@ const api = {
     ipcRenderer.sendSync("window:setContentHeight-sync", height, mode);
   },
   grokBotVersion: (): Promise<string | null> => ipcRenderer.invoke("app:grokBotVersion"),
+  getLoginItem: (): Promise<LoginItemSettings> => ipcRenderer.invoke("settings:getLoginItem"),
+  setLoginItem: (openAtLogin: boolean): Promise<LoginItemSettings> =>
+    ipcRenderer.invoke("settings:setLoginItem", openAtLogin),
 };
 
 contextBridge.exposeInMainWorld("api", api as typeof window.api);
@@ -45,6 +53,7 @@ declare global {
       isVisible: () => Promise<boolean>;
       showAbout: () => Promise<void>;
       onShowAbout: (cb: () => void) => () => void;
+      onShowSettings: (cb: () => void) => () => void;
       onFocusChanged: (cb: (visible: boolean) => void) => () => void;
       onEscapePressed: (cb: () => void) => () => void;
       onWeeklyUpdated: (cb: (weekly: WeeklyStatus) => void) => () => void;
@@ -52,6 +61,8 @@ declare global {
       hideWindow: () => Promise<void>;
       setContentHeight: (height: number, mode?: PanelHeightMode) => void;
       grokBotVersion: () => Promise<string | null>;
+      getLoginItem: () => Promise<LoginItemSettings>;
+      setLoginItem: (openAtLogin: boolean) => Promise<LoginItemSettings>;
     };
   }
 }

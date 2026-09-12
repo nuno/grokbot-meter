@@ -73,3 +73,10 @@ export function formatUpdatedAt(ms: number | null | undefined): string {
   const time = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
   return `Updated ${time}`;
 }
+
+/** Cents → `$X.XX` (2 decimal places). */
+export function formatCentsUsd(cents: number): string {
+  if (!Number.isFinite(cents)) return "$—";
+  return `$${(cents / 100).toFixed(2)}`;
+}
+

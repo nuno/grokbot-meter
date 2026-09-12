@@ -1,7 +1,43 @@
-import type { GrokAgent } from "../types";
+import type { GrokAgent, OnDemandSpend, WeeklyStatus } from "../types";
 
 /** Flip off (or delete this file) when the long-list preview is done. */
 export const PREVIEW_LONG_AGENT_LIST = false;
+
+/**
+ * Local UI preview only — does not enable on-demand on the account or call spend APIs.
+ * Flip to false when done reviewing the On-demand row.
+ */
+export const PREVIEW_ONDEMAND_SPEND = false;
+
+/** Sample shaped like Grok Bot spendLimitUsage → OnDemandSpend ($12.40 / $50.00). */
+export const PREVIEW_ONDEMAND_SAMPLE: OnDemandSpend = {
+  usedCents: 1240,
+  limitCents: 5000,
+  resetTimestampMs: Date.now() + 12 * 24 * 60 * 60 * 1000,
+};
+
+export function previewWeeklyWithOnDemand(weekly: WeeklyStatus | null): WeeklyStatus | null {
+  if (!PREVIEW_ONDEMAND_SPEND) return weekly;
+  if (!weekly) {
+    return {
+      signedIn: true,
+      includedLimitZero: false,
+      usagePercent: 42,
+      nextResetAt: Date.now() + 3 * 24 * 60 * 60 * 1000,
+      currentPeriodStart: null,
+      upgradeLabel: null,
+      sandTrial: false,
+      sandTrialExpiresAt: null,
+      hasNonZeroIncludedLimit: true,
+      hasAvailableUsage: true,
+      accountEmail: null,
+      error: null,
+      onDemand: PREVIEW_ONDEMAND_SAMPLE,
+    };
+  }
+  return { ...weekly, onDemand: PREVIEW_ONDEMAND_SAMPLE };
+}
+
 
 const NAMES = [
   "ClipToGo - UX/UI Research",
