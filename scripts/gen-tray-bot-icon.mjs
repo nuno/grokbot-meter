@@ -6,6 +6,9 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const outDir = join(__dirname, "../build/icons");
 
+/** Extra transparent columns to the right of the face before tray.setTitle text. */
+const PAD_RIGHT_1X = 4;
+
 function crc32(buf) {
   let c = ~0;
   for (let i = 0; i < buf.length; i++) {
@@ -24,16 +27,16 @@ function chunk(type, data) {
   return Buffer.concat([len, typeB, data, crcB]);
 }
 
-function encodePng(size, rgba) {
-  const raw = Buffer.alloc((size * 4 + 1) * size);
-  for (let y = 0; y < size; y++) {
-    const row = y * (size * 4 + 1);
+function encodePng(width, height, rgba) {
+  const raw = Buffer.alloc((width * 4 + 1) * height);
+  for (let y = 0; y < height; y++) {
+    const row = y * (width * 4 + 1);
     raw[row] = 0;
-    rgba.copy(raw, row + 1, y * size * 4, (y + 1) * size * 4);
+    rgba.copy(raw, row + 1, y * width * 4, (y + 1) * width * 4);
   }
   const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(size, 0);
-  ihdr.writeUInt32BE(size, 4);
+  ihdr.writeUInt32BE(width, 0);
+  ihdr.writeUInt32BE(height, 4);
   ihdr[8] = 8;
   ihdr[9] = 6;
   const sig = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
@@ -51,7 +54,6 @@ function encodePng(size, rgba) {
  * soft AA on the outer disc only; eyes bias toward fully clear so they don't mud into gray.
  */
 function sampleAt(px, py, size) {
-  // Zoom ~12% so the face fills the 18px tile (less empty ring).
   const zoom = 1.12;
   const mid = size / 2;
   const sx = mid + (px + 0.5 - mid) / zoom;
@@ -65,7 +67,6 @@ function sampleAt(px, py, size) {
     return dx * dx + dy * dy;
   };
 
-  // Soft disc edge (r≈10.6 in zoomed space reads larger)
   const discR = 10.6;
   const dDisc = Math.sqrt(dist2(12, 12));
   if (dDisc > discR + 0.55) return 0;
@@ -75,7 +76,6 @@ function sampleAt(px, py, size) {
     discCov = Math.max(0, Math.min(1, discCov));
   }
 
-  // Eye: rounded capsule, fatter + clearer than header SVG for 18px
   const eyeCov = (ecx, ecy, rotDeg) => {
     const rad = (-rotDeg * Math.PI) / 180;
     const cos = Math.cos(rad);
@@ -84,12 +84,11 @@ function sampleAt(px, py, size) {
     const dy = y - ecy;
     const lx = dx * cos - dy * sin;
     const ly = dx * sin + dy * cos;
-    const hw = 1.7; // was ~1.35 — punch wider
-    const hh = 3.05; // slightly taller
+    const hw = 1.7;
+    const hh = 3.05;
     const rr = 1.55;
     const ax = Math.abs(lx);
     const ay = Math.abs(ly);
-    // distance outside rounded rect (0 = inside)
     let od = 0;
     if (ax <= hw - rr && ay <= hh) od = 0;
     else if (ay <= hh - rr && ax <= hw) od = 0;
@@ -98,21 +97,18 @@ function sampleAt(px, py, size) {
       const cy = Math.max(ay - (hh - rr), 0);
       od = Math.sqrt(cx * cx + cy * cy) - rr;
     }
-    // Bias: fully clear inside + 0.35px fringe, hard cut — avoids muddy gray eyes
     if (od <= 0) return 1;
     if (od >= 0.45) return 0;
     return 1 - od / 0.45;
   };
 
-  // Optical center a touch high; milder tilt so slits read at tiny size
   const eL = eyeCov(9.15, 12.85, 11);
   const eR = eyeCov(14.85, 12.85, -11);
   const eye = Math.max(eL, eR);
-  // Punch eyes out of disc
   return discCov * (1 - eye);
 }
 
-function renderTemplate(size, samples = 6) {
+function renderFace(size, samples = 7) {
   const rgba = Buffer.alloc(size * size * 4);
   const step = 1 / samples;
   for (let y = 0; y < size; y++) {
@@ -134,39 +130,29 @@ function renderTemplate(size, samples = 6) {
   return rgba;
 }
 
-function renderPreview(size, bg = [230, 230, 230]) {
-  const tmpl = renderTemplate(size, 6);
-  const rgba = Buffer.alloc(size * size * 4);
-  for (let i = 0; i < size * size; i++) {
-    const a = tmpl[i * 4 + 3] / 255;
-    rgba[i * 4] = Math.round(bg[0] * (1 - a));
-    rgba[i * 4 + 1] = Math.round(bg[1] * (1 - a));
-    rgba[i * 4 + 2] = Math.round(bg[2] * (1 - a));
-    rgba[i * 4 + 3] = 255;
+/** Face left-aligned + transparent right gutter before setTitle. */
+function withRightPad(faceRgba, faceSize, padRight) {
+  const w = faceSize + padRight;
+  const h = faceSize;
+  const out = Buffer.alloc(w * h * 4);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < faceSize; x++) {
+      const si = (y * faceSize + x) * 4;
+      const di = (y * w + x) * 4;
+      out[di] = faceRgba[si];
+      out[di + 1] = faceRgba[si + 1];
+      out[di + 2] = faceRgba[si + 2];
+      out[di + 3] = faceRgba[si + 3];
+    }
   }
-  return rgba;
+  return { rgba: out, width: w, height: h };
 }
 
-/** Menu-bar style preview: white template on navy (like Focus/status tint). */
-function renderNavyPreview(size) {
-  const tmpl = renderTemplate(size, 6);
-  const rgba = Buffer.alloc(size * size * 4);
-  const navy = [28, 56, 120];
-  for (let i = 0; i < size * size; i++) {
-    const a = tmpl[i * 4 + 3] / 255;
-    rgba[i * 4] = Math.round(navy[0] * (1 - a) + 255 * a);
-    rgba[i * 4 + 1] = Math.round(navy[1] * (1 - a) + 255 * a);
-    rgba[i * 4 + 2] = Math.round(navy[2] * (1 - a) + 255 * a);
-    rgba[i * 4 + 3] = 255;
-  }
-  return rgba;
+for (const faceSize of [18, 36]) {
+  const pad = faceSize === 18 ? PAD_RIGHT_1X : PAD_RIGHT_1X * 2;
+  const face = renderFace(faceSize, 7);
+  const { rgba, width, height } = withRightPad(face, faceSize, pad);
+  const name = faceSize === 18 ? "tray.png" : "tray@2x.png";
+  writeFileSync(join(outDir, name), encodePng(width, height, rgba));
+  console.log("wrote", name, `${width}x${height}`);
 }
-
-for (const size of [18, 36]) {
-  const name = size === 18 ? "tray.png" : "tray@2x.png";
-  writeFileSync(join(outDir, name), encodePng(size, renderTemplate(size, 7)));
-  console.log("wrote", name);
-}
-writeFileSync(join(outDir, "tray-preview@2x.png"), encodePng(72, renderPreview(72)));
-writeFileSync(join(outDir, "tray-preview-navy.png"), encodePng(72, renderNavyPreview(72)));
-console.log("wrote previews");

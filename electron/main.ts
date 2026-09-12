@@ -34,11 +34,18 @@ function setPanelContentHeight(contentHeight: number) {
 }
 
 function trayTitleAndTooltip(weekly: WeeklyStatus, grok: ReturnType<typeof getGrokStatus>) {
+  // Thin space (U+2009) before the label — pairs with right-padded tray.png for icon↔% gap.
+  const gap = "\u2009";
   if (weekly.usagePercent != null && Number.isFinite(weekly.usagePercent)) {
     const r = Math.round(weekly.usagePercent);
-    return { title: `${r}%`, tooltip: `GrokBar · ${r}% weekly` };
+    return { title: `${gap}${r}%`, tooltip: `GrokBar · ${r}% weekly` };
   }
-  if (grok.todayMessageCount > 0) return { title: String(grok.todayMessageCount), tooltip: `GrokBar · ${grok.todayMessageCount} today` };
+  if (grok.todayMessageCount > 0) {
+    return {
+      title: gap + String(grok.todayMessageCount),
+      tooltip: `GrokBar · ${grok.todayMessageCount} today`,
+    };
+  }
   return { title: undefined as string | undefined, tooltip: "GrokBar" };
 }
 
@@ -223,10 +230,11 @@ function createTray() {
   tray = t;
   t.setToolTip("GrokBar");
   lastTrayBounds = t.getBounds();
+  // No item icons — macOS status menus are text-only; role:"quit" added a bogus glyph.
   const menu = Menu.buildFromTemplate([
     { label: "About GrokBar", click: () => showAbout() },
     { type: "separator" },
-    { label: "Quit GrokBar", role: "quit" },
+    { label: "Quit GrokBar", accelerator: "Command+Q", click: () => app.quit() },
   ]);
   t.on("right-click", () => t.popUpContextMenu(menu));
   t.on("click", (_e, bounds) => {
