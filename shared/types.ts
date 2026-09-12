@@ -29,3 +29,6 @@ export type WeeklyStatus = {
   accountEmail: string | null;
   error: string | null;
 };
+
+/** Electron panel resize mode — main content vs About. */
+export type PanelHeightMode = "main" | "about";

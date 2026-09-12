@@ -746,13 +746,14 @@ body,
 .panel:has(> .card.about) .card.about {
   flex: 1 1 auto;
 }
+/* Same filled pill as siblings so the third slot is not an empty hole; quieter via label */
 .footer-btn--quiet {
-  background: transparent;
+  background: var(--control-bg);
   color: var(--secondary-label);
 }
 
 .footer-btn--quiet:hover {
-  background: var(--control-bg);
+  background: var(--control-bg-hover);
   color: var(--label);
 }
 

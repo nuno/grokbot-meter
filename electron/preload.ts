@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { GrokStatus, WeeklyStatus } from "../shared/types";
+import type { GrokStatus, WeeklyStatus, PanelHeightMode } from "../shared/types";
 
 const api = {
   grokStatus: (): Promise<GrokStatus> => ipcRenderer.invoke("grok:status"),
@@ -28,7 +28,7 @@ const api = {
   },
   quit: () => ipcRenderer.invoke("app:quit"),
   hideWindow: () => ipcRenderer.invoke("window:hide"),
-  setContentHeight: (height: number, mode: "main" | "about" = "main") => {
+  setContentHeight: (height: number, mode: PanelHeightMode = "main") => {
     // sendSync so useLayoutEffect can resize before paint (footer About flash).
     ipcRenderer.sendSync("window:setContentHeight-sync", height, mode);
   },
@@ -50,7 +50,7 @@ declare global {
       onWeeklyUpdated: (cb: (weekly: WeeklyStatus) => void) => () => void;
       quit: () => Promise<void>;
       hideWindow: () => Promise<void>;
-      setContentHeight: (height: number, mode?: "main" | "about") => void;
+      setContentHeight: (height: number, mode?: PanelHeightMode) => void;
       grokBotVersion: () => Promise<string | null>;
     };
   }

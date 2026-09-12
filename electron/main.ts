@@ -3,6 +3,7 @@ import { join } from "path";
 import { getGrokStatus } from "./grokSource";
 import { getGrokBotVersion } from "./grokBotApp";
 import { getWeeklyStatusAsync, type WeeklyStatus } from "./weekly";
+import type { PanelHeightMode } from "../shared/types";
 
 if (!app.requestSingleInstanceLock()) app.quit();
 
@@ -28,7 +29,7 @@ const PANEL_WIDTH = 380;
 const PANEL_MIN_HEIGHT = 260;
 const PANEL_MAX_HEIGHT = 520;
 
-function setPanelContentHeight(contentHeight: number, mode: "main" | "about" = "main") {
+function setPanelContentHeight(contentHeight: number, mode: PanelHeightMode = "main") {
   if (!win || !Number.isFinite(contentHeight)) return;
   const nextH = Math.round(Math.min(PANEL_MAX_HEIGHT, Math.max(PANEL_MIN_HEIGHT, contentHeight)));
   if (mode === "about") lastAboutHeight = nextH;
@@ -295,11 +296,11 @@ app.whenReady().then(() => {
   ipcMain.handle("app:quit", () => app.quit());
   ipcMain.handle("window:isVisible", () => win?.isVisible() ?? false);
   ipcMain.handle("window:hide", () => { win?.hide(); });
-  ipcMain.on("window:setContentHeight-sync", (event, height: number, mode?: "main" | "about") => {
+  ipcMain.on("window:setContentHeight-sync", (event, height: number, mode?: PanelHeightMode) => {
     setPanelContentHeight(Number(height), mode === "about" ? "about" : "main");
     event.returnValue = true;
   });
-  ipcMain.handle("window:setContentHeight", (_e, height: number, mode?: "main" | "about") => {
+  ipcMain.handle("window:setContentHeight", (_e, height: number, mode?: PanelHeightMode) => {
     setPanelContentHeight(Number(height), mode === "about" ? "about" : "main");
   });
   setInterval(() => void refreshTray(false), TRAY_PAINT_MS);

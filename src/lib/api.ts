@@ -1,7 +1,7 @@
-import type { GrokStatus, WeeklyStatus } from "../types";
+import type { GrokStatus, WeeklyStatus, PanelHeightMode } from "../types";
 
 // Re-export types for convenience — single import surface
-export type { GrokStatus, WeeklyStatus, GrokAgent } from "../types";
+export type { GrokStatus, WeeklyStatus, GrokAgent, PanelHeightMode } from "../types";
 
 export type Api = NonNullable<Window["api"]>;
 export type Unsubscribe = () => void;

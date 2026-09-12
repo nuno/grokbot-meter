@@ -1,6 +1,6 @@
-import type { GrokStatus, WeeklyStatus } from "../../shared/types";
+import type { GrokStatus, WeeklyStatus, PanelHeightMode } from "../../shared/types";
 
-export type { GrokAgent, GrokStatus, WeeklyStatus } from "../../shared/types";
+export type { GrokAgent, GrokStatus, WeeklyStatus, PanelHeightMode } from "../../shared/types";
 
 declare global {
   interface Window {
@@ -15,7 +15,7 @@ declare global {
       onWeeklyUpdated: (cb: (weekly: WeeklyStatus) => void) => () => void;
       quit: () => Promise<void>;
       hideWindow: () => Promise<void>;
-      setContentHeight: (height: number, mode?: "main" | "about") => void;
+      setContentHeight: (height: number, mode?: PanelHeightMode) => void;
       grokBotVersion: () => Promise<string | null>;
     };
   }
