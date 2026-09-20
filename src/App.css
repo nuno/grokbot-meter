@@ -243,6 +243,54 @@ body,
   height: 4px;
 }
 
+
+
+/* Labeled weekly trend (under meter; hidden until ≥2 samples) */
+.weekly-trend {
+  margin-top: 8px;
+}
+
+.weekly-trend-ends {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--tertiary-label);
+  line-height: 1.2;
+}
+
+.weekly-spark {
+  display: block;
+  width: 100%;
+  height: 30px;
+  margin-top: 0;
+  overflow: visible;
+}
+
+.weekly-spark-line {
+  fill: none;
+  stroke: var(--system-blue);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.weekly-spark-dot {
+  fill: var(--system-blue);
+  stroke: none;
+}
+
+/* Tint last dot only — line stays system-blue */
+.weekly-spark.is-warn .weekly-spark-dot {
+  fill: var(--system-orange);
+}
+
+.weekly-spark.is-critical .weekly-spark-dot {
+  fill: var(--system-red);
+}
+
 .muted {
   margin-top: 6px;
   color: var(--secondary-label);

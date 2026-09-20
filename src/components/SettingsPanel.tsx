@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useState } from "react";
 import { fetchLoginItem, setLoginItem } from "../lib/api";
-import { useRedactEmail, useShowOnDemand } from "../hooks/useLocalPref";
+import { useRedactEmail, useShowOnDemand, useShowWeeklyTrend } from "../hooks/useLocalPref";
 
 type Props = {
   onBack: () => void;
@@ -43,6 +43,7 @@ const PrefToggle = memo(function PrefToggle({ id, label, hint, checked, disabled
 export const SettingsPanel = memo(function SettingsPanel({ onBack }: Props) {
   const { redacted, setRedacted } = useRedactEmail();
   const { show: showOnDemand, setShow: setShowOnDemand } = useShowOnDemand();
+  const { show: showWeeklyTrend, setShow: setShowWeeklyTrend } = useShowWeeklyTrend();
   const [openAtLogin, setOpenAtLogin] = useState(false);
   const [loginSupported, setLoginSupported] = useState(false);
   const [loginReady, setLoginReady] = useState(false);
@@ -112,6 +113,14 @@ export const SettingsPanel = memo(function SettingsPanel({ onBack }: Props) {
           hint="Show the on-demand row when usage data is available. Does not enable on-demand spend."
           checked={showOnDemand}
           onChange={setShowOnDemand}
+        />
+        <div className="settings-divider" role="separator" />
+        <PrefToggle
+          id="pref-show-weekly-trend"
+          label="Show weekly trend"
+          hint="Small chart of included usage this period."
+          checked={showWeeklyTrend}
+          onChange={setShowWeeklyTrend}
         />
       </section>
     </div>

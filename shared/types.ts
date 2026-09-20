@@ -15,6 +15,12 @@ export type GrokStatus = {
   agents: GrokAgent[];
 };
 
+/** Local sample of weekly included usage % (from GetSandUsageStatus). */
+export type WeeklyPctSample = {
+  t: number;
+  pct: number;
+};
+
 export type OnDemandSpend = {
   usedCents: number;
   limitCents: number;

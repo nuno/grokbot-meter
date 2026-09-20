@@ -9,6 +9,8 @@ import { SettingsPanel } from "./components/SettingsPanel";
 import { useGrokPolling } from "./hooks/useGrokPolling";
 import { usePanelController } from "./hooks/useAbout";
 import { usePanelHeight } from "./hooks/usePanelHeight";
+import { useShowWeeklyTrend } from "./hooks/useLocalPref";
+import { useWeeklyPctHistory } from "./hooks/useWeeklyPctHistory";
 import { hideWindow } from "./lib/api";
 import { selectAgents, selectIsLoading, selectTodayStats } from "./lib/grok";
 import { PREVIEW_LONG_AGENT_LIST, previewPadAgents, previewWeeklyWithOnDemand } from "./lib/previewMocks";
@@ -16,6 +18,9 @@ import { PREVIEW_LONG_AGENT_LIST, previewPadAgents, previewWeeklyWithOnDemand } 
 export default function App() {
   const { mode, openAbout, openSettings, close, resetOnHide, quit } = usePanelController();
   const { status, weekly, weeklyUpdatedAt, error, refreshing, refresh } = useGrokPolling(resetOnHide);
+  const { show: showWeeklyTrend } = useShowWeeklyTrend();
+  const livePct = typeof weekly?.usagePercent === "number" ? weekly.usagePercent : null;
+  const trendPoints = useWeeklyPctHistory(weeklyUpdatedAt, livePct);
 
   const liveAgents = selectAgents(status);
   const liveStats = selectTodayStats(status);
@@ -26,16 +31,27 @@ export default function App() {
   // Local mock only — never enables on-demand on the account.
   const weeklyForUi = previewWeeklyWithOnDemand(weekly);
   const isLoading = selectIsLoading(status, error);
-  usePanelHeight(mode, [agents.length, todayMessageCount, todayAgentCount, Boolean(weeklyForUi), Boolean(error)]);
+  usePanelHeight(mode, [
+    agents.length,
+    todayMessageCount,
+    todayAgentCount,
+    Boolean(weeklyForUi),
+    Boolean(error),
+    showWeeklyTrend,
+    trendPoints.length,
+  ]);
 
-  // Activity keeps trees mounted and preserves WeeklyCard/TodayCard state
-  // when toggling About/Settings. Hidden tree is display:none.
   return (
     <>
       <Activity mode={mode === "main" ? "visible" : "hidden"}>
         <div className="panel">
           <AppHeader onClose={hideWindow} onSettings={openSettings} />
-          <WeeklyCard weekly={weeklyForUi} updatedAt={weeklyUpdatedAt} />
+          <WeeklyCard
+            weekly={weeklyForUi}
+            updatedAt={weeklyUpdatedAt}
+            trendPoints={trendPoints}
+            showTrend={showWeeklyTrend}
+          />
           <TodayCard
             agents={agents}
             todayMessageCount={todayMessageCount}

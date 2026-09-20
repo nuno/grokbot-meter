@@ -1,7 +1,7 @@
-import type { GrokStatus, WeeklyStatus, PanelHeightMode, LoginItemSettings } from "../types";
+import type { GrokStatus, WeeklyStatus, WeeklyPctSample, PanelHeightMode, LoginItemSettings } from "../types";
 
 // Re-export types for convenience — single import surface
-export type { GrokStatus, WeeklyStatus, OnDemandSpend, GrokAgent, PanelHeightMode, LoginItemSettings } from "../types";
+export type { GrokStatus, WeeklyStatus, WeeklyPctSample, OnDemandSpend, GrokAgent, PanelHeightMode, LoginItemSettings } from "../types";
 
 export type Api = NonNullable<Window["api"]>;
 export type Unsubscribe = () => void;
@@ -24,6 +24,12 @@ export function fetchWeeklyStatus(): Promise<WeeklyStatus> {
   const api = getApi();
   if (!api) return Promise.reject(new Error("API unavailable"));
   return api.weeklyStatus();
+}
+
+export function fetchWeeklyPctHistory(): Promise<WeeklyPctSample[]> {
+  const api = getApi();
+  if (!api?.weeklyPctHistory) return Promise.resolve([]);
+  return api.weeklyPctHistory();
 }
 
 export function fetchGrokBotVersion(): Promise<string | null> {

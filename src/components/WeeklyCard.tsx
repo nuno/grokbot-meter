@@ -1,13 +1,16 @@
 import { memo, useMemo } from "react";
-import type { WeeklyStatus } from "../types";
+import type { WeeklyPctSample, WeeklyStatus } from "../types";
 import { clampPercent, formatCentsUsd, formatUpdatedAt, redactEmail } from "../lib/format";
 import { weeklyLines } from "../lib/weekly";
 import { useRedactEmail, useShowOnDemand } from "../hooks/useLocalPref";
 import { EyeIcon, EyeOffIcon, WeeklyIcon } from "./icons";
+import { WeeklySparkline } from "./TrendCard";
 
 type Props = {
   weekly: WeeklyStatus | null;
   updatedAt?: number | null;
+  trendPoints?: readonly WeeklyPctSample[];
+  showTrend?: boolean;
 };
 
 function meterTone(pct: number): "default" | "warn" | "critical" {
@@ -16,7 +19,12 @@ function meterTone(pct: number): "default" | "warn" | "critical" {
   return "default";
 }
 
-export const WeeklyCard = memo(function WeeklyCard({ weekly, updatedAt = null }: Props) {
+export const WeeklyCard = memo(function WeeklyCard({
+  weekly,
+  updatedAt = null,
+  trendPoints = [],
+  showTrend = false,
+}: Props) {
   const hasPercent = typeof weekly?.usagePercent === "number";
   const meterPct = hasPercent ? clampPercent(weekly!.usagePercent as number) : 0;
   const pctLabel = hasPercent ? `${Math.round(meterPct)}%` : "—";
@@ -59,6 +67,7 @@ export const WeeklyCard = memo(function WeeklyCard({ weekly, updatedAt = null }:
       >
         <div className="meter-fill" style={meterFillStyle} />
       </div>
+      {showTrend ? <WeeklySparkline points={trendPoints} /> : null}
       {lines.map((line) => (
         <p key={line} className="muted">
           {line}

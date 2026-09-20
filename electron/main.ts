@@ -3,6 +3,7 @@ import { join } from "path";
 import { getGrokStatus } from "./grokSource";
 import { getGrokBotVersion } from "./grokBotApp";
 import { getWeeklyStatusAsync, type WeeklyStatus } from "./weekly";
+import { getWeeklyPctHistory, recordWeeklyPctSample } from "./weeklyPctHistory";
 import type { PanelHeightMode } from "../shared/types";
 
 if (!app.requestSingleInstanceLock()) app.quit();
@@ -96,6 +97,8 @@ function paintTrayFromCache() {
 }
 
 function applyWeeklyToTray(weekly: WeeklyStatus) {
+  const pct = weekly.usagePercent;
+  if (pct != null && Number.isFinite(pct)) recordWeeklyPctSample(pct);
   if (!tray) return;
   lastWeekly = weekly;
   const grok = getGrokStatus();
@@ -323,6 +326,7 @@ app.whenReady().then(() => {
     applyWeeklyToTray(weekly);
     return weekly;
   });
+  ipcMain.handle("weekly:pctHistory", () => getWeeklyPctHistory());
   ipcMain.handle("show-about", () => { showAbout(); });
   ipcMain.handle("app:quit", () => app.quit());
   ipcMain.handle("window:isVisible", () => win?.isVisible() ?? false);

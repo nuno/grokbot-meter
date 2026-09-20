@@ -1,12 +1,13 @@
-import type { GrokStatus, WeeklyStatus, PanelHeightMode, LoginItemSettings } from "../../shared/types";
+import type { GrokStatus, WeeklyStatus, WeeklyPctSample, PanelHeightMode, LoginItemSettings } from "../../shared/types";
 
-export type { GrokAgent, GrokStatus, WeeklyStatus, OnDemandSpend, PanelHeightMode, LoginItemSettings } from "../../shared/types";
+export type { GrokAgent, GrokStatus, WeeklyStatus, WeeklyPctSample, OnDemandSpend, PanelHeightMode, LoginItemSettings } from "../../shared/types";
 
 declare global {
   interface Window {
     api: {
       grokStatus: () => Promise<GrokStatus>;
       weeklyStatus: () => Promise<WeeklyStatus>;
+      weeklyPctHistory: () => Promise<WeeklyPctSample[]>;
       isVisible: () => Promise<boolean>;
       showAbout: () => Promise<void>;
       onShowAbout: (cb: () => void) => () => void;

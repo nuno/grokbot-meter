@@ -2,9 +2,10 @@
 
 export const REDACT_EMAIL_KEY = "grokbar:redactEmail";
 export const SHOW_ON_DEMAND_KEY = "grokbar:showOnDemand";
+export const SHOW_WEEKLY_TREND_KEY = "grokbar:showWeeklyTrend";
 export const PREFS_CHANGED_EVENT = "grokbar:prefs";
 
-export type PrefKey = typeof REDACT_EMAIL_KEY | typeof SHOW_ON_DEMAND_KEY;
+export type PrefKey = typeof REDACT_EMAIL_KEY | typeof SHOW_ON_DEMAND_KEY | typeof SHOW_WEEKLY_TREND_KEY;
 
 function readFlag(key: string, defaultOn: boolean): boolean {
   try {
@@ -47,4 +48,13 @@ export function getShowOnDemand(): boolean {
 
 export function setShowOnDemand(show: boolean): void {
   writeFlag(SHOW_ON_DEMAND_KEY, show);
+}
+
+/** Default ON: show labeled weekly trend when ≥2 samples exist. */
+export function getShowWeeklyTrend(): boolean {
+  return readFlag(SHOW_WEEKLY_TREND_KEY, true);
+}
+
+export function setShowWeeklyTrend(show: boolean): void {
+  writeFlag(SHOW_WEEKLY_TREND_KEY, show);
 }
