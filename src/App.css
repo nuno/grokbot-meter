@@ -82,7 +82,11 @@ body,
   display: flex;
   flex-direction: column;
   height: auto;
-  padding: 10px 12px 8px;
+  /* Match electron/main.ts PANEL_MAX_HEIGHT — when weekly trend (+ on-demand)
+     grows the stack past the window cap, Today shrinks/scrolls instead of
+     clipping the footer pills. */
+  max-height: 520px;
+  padding: 10px 12px 12px;
   gap: 10px;
 }
 
@@ -90,6 +94,7 @@ body,
   display: flex;
   align-items: center;
   min-height: 26px;
+  flex-shrink: 0;
   user-select: none;
 }
 
@@ -112,8 +117,13 @@ body,
   -webkit-backdrop-filter: blur(22px) saturate(180%);
 }
 
+.panel > .card:not(.card-today) {
+  flex-shrink: 0;
+}
+
 .card-today {
-  /* Hug content when few agents; do not stretch into a sparse tall card. */
+  /* Hug content when few agents; do not stretch into a sparse tall card.
+     When panel hits max-height (trend on), this is the shrink/scroll target. */
   flex: 0 1 auto;
   min-height: 0;
   display: flex;
@@ -579,6 +589,7 @@ body,
 
 .footer {
   padding-top: 4px;
+  flex-shrink: 0;
   color: var(--secondary-label);
   font-size: 11px;
   font-weight: 450;
@@ -896,6 +907,7 @@ body,
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 

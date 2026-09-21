@@ -110,7 +110,7 @@ export const SettingsPanel = memo(function SettingsPanel({ onBack }: Props) {
         <PrefToggle
           id="pref-show-ondemand"
           label="Show on-demand"
-          hint="Show the on-demand row when usage data is available. Does not enable on-demand spend."
+          hint="Only when a spend limit exists. Does not enable spend."
           checked={showOnDemand}
           onChange={setShowOnDemand}
         />
