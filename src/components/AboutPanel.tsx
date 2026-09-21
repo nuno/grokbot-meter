@@ -3,7 +3,7 @@ import { fetchGrokBotVersion } from "../lib/api";
 import { GrokMark2Icon } from "./icons";
 
 /** Keep in sync with package.json version. */
-const APP_VERSION = "0.1.0";
+const APP_VERSION = "0.2.0";
 
 type Props = {
   onBack: () => void;
