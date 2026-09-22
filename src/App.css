@@ -176,6 +176,21 @@ body,
   color: var(--system-red);
 }
 
+.card-pct--count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+}
+
+.card-pct-unit {
+  margin-left: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--tertiary-label);
+  letter-spacing: 0;
+}
+
+
 .meter {
   margin-top: 8px;
   height: 6px;

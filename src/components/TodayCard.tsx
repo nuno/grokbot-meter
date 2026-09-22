@@ -52,7 +52,14 @@ export const TodayCard = memo(function TodayCard({
         <span className="card-label">
           <TodayIcon /> Today
         </span>
-        {hasToday ? <span className="card-pct">{todayMessageCount}</span> : null}
+        {hasToday ? (
+          <span className="card-pct card-pct--count" aria-label={`${todayMessageCount} messages`}>
+            {todayMessageCount}
+            <span className="card-pct-unit" aria-hidden="true">
+              msg
+            </span>
+          </span>
+        ) : null}
       </div>
       {isLoading ? (
         <div className="today-skeleton" aria-busy="true" aria-label="Loading today">

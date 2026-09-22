@@ -137,8 +137,8 @@ export const SettingsPanel = memo(function SettingsPanel({ onBack, accountEmail 
         <div className="settings-divider" role="separator" />
         <PrefToggle
           id="pref-show-weekly-trend"
-          label="Show weekly trend"
-          hint="Small chart of included usage this period."
+          label="Show usage trend"
+          hint="Chart of included % from checks on this Mac."
           checked={showWeeklyTrend}
           onChange={setShowWeeklyTrend}
         />
