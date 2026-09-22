@@ -79,7 +79,7 @@ export const WeeklySparkline = memo(function WeeklySparkline({ points }: Props) 
         <span>{startLabel}</span>
         <span>{endLabel}</span>
       </div>
-      <p className="weekly-trend-caption">Included usage · this period</p>
+      <p className="weekly-trend-caption">Included usage · since period start</p>
     </div>
   );
 });
