@@ -262,7 +262,7 @@ body,
 
 
 
-/* Labeled weekly trend (under meter; hidden until ≥2 samples) */
+/* Weekly trend under meter — % ends + caption; hidden until ≥2 samples */
 .weekly-trend {
   margin-top: 8px;
 }
@@ -272,17 +272,31 @@ body,
   justify-content: space-between;
   margin-top: 2px;
   font-size: 11px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--secondary-label);
+  line-height: 1.2;
+}
+
+.weekly-trend-caption {
+  margin: 4px 0 0;
+  font-size: 11px;
   font-weight: 400;
   color: var(--tertiary-label);
-  line-height: 1.2;
+  line-height: 1.3;
 }
 
 .weekly-spark {
   display: block;
   width: 100%;
-  height: 30px;
+  height: 36px;
   margin-top: 0;
   overflow: visible;
+}
+
+.weekly-spark-area {
+  fill: color-mix(in srgb, var(--system-blue) 14%, transparent);
+  stroke: none;
 }
 
 .weekly-spark-line {
@@ -304,8 +318,16 @@ body,
   fill: var(--system-orange);
 }
 
+.weekly-spark.is-warn .weekly-spark-area {
+  fill: color-mix(in srgb, var(--system-orange) 14%, transparent);
+}
+
 .weekly-spark.is-critical .weekly-spark-dot {
   fill: var(--system-red);
+}
+
+.weekly-spark.is-critical .weekly-spark-area {
+  fill: color-mix(in srgb, var(--system-red) 14%, transparent);
 }
 
 .muted {
