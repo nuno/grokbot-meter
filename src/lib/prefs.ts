@@ -41,7 +41,7 @@ export function setRedactEmail(redact: boolean): void {
   writeFlag(REDACT_EMAIL_KEY, redact);
 }
 
-/** Default ON: show on-demand row when data exists unless explicitly "0". */
+/** Default ON: show on-demand row (meter or No spend limit) unless explicitly "0". */
 export function getShowOnDemand(): boolean {
   return readFlag(SHOW_ON_DEMAND_KEY, true);
 }

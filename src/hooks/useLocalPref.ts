@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import {
   PREFS_CHANGED_EVENT,
   type PrefKey,
@@ -13,34 +13,42 @@ import {
   SHOW_WEEKLY_TREND_KEY,
 } from "../lib/prefs";
 
+/**
+ * localStorage-backed boolean pref.
+ * useSyncExternalStore (not useEffect+useState) so React Activity hide/show
+ * re-subscribes and re-reads on become-visible — Settings toggles stay in sync
+ * with WeeklyCard without a manual remount sync.
+ */
+function subscribePref(key: PrefKey, onStoreChange: () => void): () => void {
+  const onPrefs = (e: Event) => {
+    const detail = (e as CustomEvent<{ key?: string }>).detail;
+    if (!detail?.key || detail.key === key) onStoreChange();
+  };
+  const onStorage = (e: StorageEvent) => {
+    if (e.key === key || e.key === null) onStoreChange();
+  };
+  window.addEventListener(PREFS_CHANGED_EVENT, onPrefs);
+  window.addEventListener("storage", onStorage);
+  return () => {
+    window.removeEventListener(PREFS_CHANGED_EVENT, onPrefs);
+    window.removeEventListener("storage", onStorage);
+  };
+}
+
 function useBoolPref(
   key: PrefKey,
   read: () => boolean,
   write: (v: boolean) => void,
 ): [boolean, (next: boolean) => void, () => void] {
-  const [value, setValue] = useState(read);
-
-  useEffect(() => {
-    const sync = () => setValue(read());
-    const onPrefs = (e: Event) => {
-      const detail = (e as CustomEvent<{ key?: string }>).detail;
-      if (!detail?.key || detail.key === key) sync();
-    };
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === key || e.key === null) sync();
-    };
-    window.addEventListener(PREFS_CHANGED_EVENT, onPrefs);
-    window.addEventListener("storage", onStorage);
-    return () => {
-      window.removeEventListener(PREFS_CHANGED_EVENT, onPrefs);
-      window.removeEventListener("storage", onStorage);
-    };
-  }, [key, read]);
+  const value = useSyncExternalStore(
+    (onStoreChange) => subscribePref(key, onStoreChange),
+    read,
+    read,
+  );
 
   const set = useCallback(
     (next: boolean) => {
       write(next);
-      setValue(next);
     },
     [write],
   );

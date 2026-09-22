@@ -4,13 +4,14 @@ import { clampPercent, formatCentsUsd, formatUpdatedAt, redactEmail } from "../l
 import { weeklyLines } from "../lib/weekly";
 import { useRedactEmail, useShowOnDemand } from "../hooks/useLocalPref";
 import { EyeIcon, EyeOffIcon, WeeklyIcon } from "./icons";
-import { WeeklySparkline } from "./TrendCard";
+import { WeeklySparkline } from "./WeeklySparkline";
 
 type Props = {
   weekly: WeeklyStatus | null;
   updatedAt?: number | null;
   trendPoints?: readonly WeeklyPctSample[];
   showTrend?: boolean;
+  isLoading?: boolean;
 };
 
 function meterTone(pct: number): "default" | "warn" | "critical" {
@@ -24,6 +25,7 @@ export const WeeklyCard = memo(function WeeklyCard({
   updatedAt = null,
   trendPoints = [],
   showTrend = false,
+  isLoading = false,
 }: Props) {
   const hasPercent = typeof weekly?.usagePercent === "number";
   const meterPct = hasPercent ? clampPercent(weekly!.usagePercent as number) : 0;
@@ -49,6 +51,24 @@ export const WeeklyCard = memo(function WeeklyCard({
   const toneClass = tone === "default" ? "" : ` is-${tone}`;
   const onDemandToneClass = onDemandTone === "default" ? "" : ` is-${onDemandTone}`;
 
+  if (isLoading) {
+    return (
+      <section className="card">
+        <div className="card-head">
+          <span className="card-label">
+            <WeeklyIcon /> Weekly
+          </span>
+          <span className="card-pct">—</span>
+        </div>
+        <div className="weekly-skeleton" aria-busy="true" aria-label="Loading weekly">
+          <div className="weekly-skeleton-meter" />
+          <div className="weekly-skeleton-row" />
+          <div className="weekly-skeleton-row short" />
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="card">
       <div className="card-head">
@@ -73,23 +93,32 @@ export const WeeklyCard = memo(function WeeklyCard({
           {line}
         </p>
       ))}
-      {onDemand && onDemandLabel ? (
-        <div className="ondemand">
-          <div className="ondemand-head">
-            <span className="ondemand-label">On-demand</span>
-            <span className={`ondemand-value${onDemandToneClass}`}>{onDemandLabel}</span>
+      {showOnDemandPref ? (
+        onDemand && onDemandLabel ? (
+          <div className="ondemand">
+            <div className="ondemand-head">
+              <span className="ondemand-label">On-demand</span>
+              <span className={`ondemand-value${onDemandToneClass}`}>{onDemandLabel}</span>
+            </div>
+            <div
+              className={`meter meter-thin${onDemandToneClass}`}
+              role="meter"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={onDemandPct}
+              aria-label="On-demand spend"
+            >
+              <div className="meter-fill" style={onDemandFillStyle} />
+            </div>
           </div>
-          <div
-            className={`meter meter-thin${onDemandToneClass}`}
-            role="meter"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={onDemandPct}
-            aria-label="On-demand spend"
-          >
-            <div className="meter-fill" style={onDemandFillStyle} />
+        ) : (
+          <div className="ondemand ondemand--empty">
+            <div className="ondemand-head">
+              <span className="ondemand-label">On-demand</span>
+              <span className="ondemand-empty">No spend limit</span>
+            </div>
           </div>
-        </div>
+        )
       ) : null}
       <p className="muted updated-line">{updatedLabel}</p>
       {weekly?.accountEmail ? (

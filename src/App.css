@@ -253,6 +253,13 @@ body,
   height: 4px;
 }
 
+.ondemand-empty {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--tertiary-label);
+  line-height: 1;
+}
+
 
 
 /* Labeled weekly trend (under meter; hidden until ≥2 samples) */
@@ -821,6 +828,34 @@ body,
 
 .about-version.is-pending {
   color: var(--tertiary-label);
+}
+
+.weekly-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 2px 0 4px;
+}
+
+.weekly-skeleton-meter {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--control-bg);
+  opacity: 0.85;
+  animation: grokbar-pulse 1.1s ease-in-out infinite;
+}
+
+.weekly-skeleton-row {
+  height: 11px;
+  width: 58%;
+  border-radius: 6px;
+  background: var(--control-bg);
+  opacity: 0.85;
+  animation: grokbar-pulse 1.1s ease-in-out infinite;
+}
+
+.weekly-skeleton-row.short {
+  width: 42%;
 }
 
 .today-skeleton {

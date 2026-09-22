@@ -88,8 +88,7 @@ export const TodayCard = memo(function TodayCard({
           ) : null}
           {hasRecent ? (
             <>
-              {hasToday ? <div className="empty-separator" role="separator" /> : null}
-              {!hasToday ? <div className="empty-separator" role="separator" /> : null}
+              <div className="empty-separator" role="separator" />
               <p className="recent-label">Recent</p>
               <ul className="agents" aria-label="Recent sessions">
                 {recentAgents.map((agent) => (

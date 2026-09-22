@@ -51,6 +51,7 @@ export default function App() {
             updatedAt={weeklyUpdatedAt}
             trendPoints={trendPoints}
             showTrend={showWeeklyTrend}
+            isLoading={weeklyForUi == null}
           />
           <TodayCard
             agents={agents}
