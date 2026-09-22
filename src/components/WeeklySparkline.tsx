@@ -1,6 +1,6 @@
 import { memo, useMemo } from "react";
 import type { WeeklyPctSample } from "../types";
-import { clampPercent } from "../lib/format";
+import { clampPercent, formatSparkSampleDay } from "../lib/format";
 
 type Props = {
   points: readonly WeeklyPctSample[];
@@ -24,6 +24,8 @@ function sparklinePath(points: readonly WeeklyPctSample[]): {
   lastY: number;
   firstPct: number;
   lastPct: number;
+  firstT: number;
+  lastT: number;
 } | null {
   if (points.length < 2) return null;
   const pcts = points.map((p) => clampPercent(p.pct));
@@ -46,12 +48,14 @@ function sparklinePath(points: readonly WeeklyPctSample[]): {
     lastY: last.y,
     firstPct: first.pct,
     lastPct: last.pct,
+    firstT: points[0]!.t,
+    lastT: points[n - 1]!.t,
   };
 }
 
 /**
  * Nested under the Weekly meter.
- * Soft area + start/end % + “Included usage · since period start”.
+ * Soft area + start/end % with sample dates (local check times).
  * Renders nothing until ≥2 samples.
  */
 export const WeeklySparkline = memo(function WeeklySparkline({ points }: Props) {
@@ -59,8 +63,10 @@ export const WeeklySparkline = memo(function WeeklySparkline({ points }: Props) 
   if (!spark) return null;
   const tone = meterTone(spark.lastPct);
   const toneClass = tone === "default" ? "" : ` is-${tone}`;
-  const startLabel = `${Math.round(spark.firstPct)}%`;
-  const endLabel = `${Math.round(spark.lastPct)}%`;
+  const startPct = `${Math.round(spark.firstPct)}%`;
+  const endPct = `${Math.round(spark.lastPct)}%`;
+  const startDay = formatSparkSampleDay(spark.firstT);
+  const endDay = formatSparkSampleDay(spark.lastT);
 
   return (
     <div className="weekly-trend">
@@ -69,17 +75,22 @@ export const WeeklySparkline = memo(function WeeklySparkline({ points }: Props) 
         viewBox={`0 0 ${W} ${H}`}
         preserveAspectRatio="none"
         role="img"
-        aria-label={`Included usage since period start, from ${startLabel} to ${endLabel}`}
+        aria-label={`Included usage from ${startPct} on ${startDay} to ${endPct} on ${endDay}`}
       >
         <path className="weekly-spark-area" d={spark.area} />
         <path className="weekly-spark-line" d={spark.line} />
         <circle className="weekly-spark-dot" cx={spark.lastX} cy={spark.lastY} r={3.2} />
       </svg>
       <div className="weekly-trend-ends" aria-hidden="true">
-        <span>{startLabel}</span>
-        <span>{endLabel}</span>
+        <span className="weekly-trend-end">
+          {startPct}
+          <span className="weekly-trend-end-day">{startDay}</span>
+        </span>
+        <span className="weekly-trend-end is-end">
+          {endPct}
+          <span className="weekly-trend-end-day">{endDay}</span>
+        </span>
       </div>
-      <p className="weekly-trend-caption">Included usage · since period start</p>
     </div>
   );
 });

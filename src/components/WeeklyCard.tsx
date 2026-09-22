@@ -1,9 +1,9 @@
 import { memo, useMemo } from "react";
 import type { WeeklyPctSample, WeeklyStatus } from "../types";
-import { clampPercent, formatCentsUsd, formatUpdatedAt, redactEmail } from "../lib/format";
+import { clampPercent, formatCentsUsd, formatUpdatedAt } from "../lib/format";
 import { weeklyLines } from "../lib/weekly";
-import { useRedactEmail, useShowOnDemand } from "../hooks/useLocalPref";
-import { EyeIcon, EyeOffIcon, WeeklyIcon } from "./icons";
+import { useShowOnDemand } from "../hooks/useLocalPref";
+import { WeeklyIcon } from "./icons";
 import { WeeklySparkline } from "./WeeklySparkline";
 
 type Props = {
@@ -46,7 +46,6 @@ export const WeeklyCard = memo(function WeeklyCard({
     if (!onDemand) return null;
     return `${formatCentsUsd(onDemand.usedCents)} / ${formatCentsUsd(onDemand.limitCents)}`;
   }, [onDemand]);
-  const { redacted: isRedacted, toggle: toggleRedacted } = useRedactEmail();
 
   const toneClass = tone === "default" ? "" : ` is-${tone}`;
   const onDemandToneClass = onDemandTone === "default" ? "" : ` is-${onDemandTone}`;
@@ -121,21 +120,6 @@ export const WeeklyCard = memo(function WeeklyCard({
         )
       ) : null}
       <p className="muted updated-line">{updatedLabel}</p>
-      {weekly?.accountEmail ? (
-        <p className="muted weekly-email">
-          <span className="weekly-email-text">{isRedacted ? redactEmail(weekly.accountEmail) : weekly.accountEmail}</span>
-          <button
-            type="button"
-            className="weekly-email-toggle"
-            aria-label={isRedacted ? "Show email" : "Hide email"}
-            aria-pressed={isRedacted}
-            title={isRedacted ? "Show email" : "Hide email"}
-            onClick={toggleRedacted}
-          >
-            {isRedacted ? <EyeOffIcon /> : <EyeIcon />}
-          </button>
-        </p>
-      ) : null}
     </section>
   );
 });

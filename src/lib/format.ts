@@ -80,3 +80,11 @@ export function formatCentsUsd(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
+/** Short calendar day for spark ends (e.g. "Sep 20") — local timezone. */
+export function formatSparkSampleDay(ms: number): string {
+  if (!Number.isFinite(ms)) return "—";
+  const d = new Date(ms);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+

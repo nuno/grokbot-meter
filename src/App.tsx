@@ -67,7 +67,7 @@ export default function App() {
         <AboutPanel onBack={close} />
       </Activity>
       <Activity mode={mode === "settings" ? "visible" : "hidden"}>
-        <SettingsPanel onBack={close} />
+        <SettingsPanel onBack={close} accountEmail={weeklyForUi?.accountEmail ?? null} />
       </Activity>
     </>
   );

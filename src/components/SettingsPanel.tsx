@@ -1,9 +1,12 @@
 import { memo, useCallback, useEffect, useState } from "react";
 import { fetchLoginItem, setLoginItem } from "../lib/api";
+import { redactEmail } from "../lib/format";
 import { useRedactEmail, useShowOnDemand, useShowWeeklyTrend } from "../hooks/useLocalPref";
+import { EyeIcon, EyeOffIcon } from "./icons";
 
 type Props = {
   onBack: () => void;
+  accountEmail?: string | null;
 };
 
 type ToggleProps = {
@@ -40,8 +43,8 @@ const PrefToggle = memo(function PrefToggle({ id, label, hint, checked, disabled
   );
 });
 
-export const SettingsPanel = memo(function SettingsPanel({ onBack }: Props) {
-  const { redacted, setRedacted } = useRedactEmail();
+export const SettingsPanel = memo(function SettingsPanel({ onBack, accountEmail = null }: Props) {
+  const { redacted, toggle: toggleRedacted } = useRedactEmail();
   const { show: showOnDemand, setShow: setShowOnDemand } = useShowOnDemand();
   const { show: showWeeklyTrend, setShow: setShowWeeklyTrend } = useShowWeeklyTrend();
   const [openAtLogin, setOpenAtLogin] = useState(false);
@@ -78,6 +81,12 @@ export const SettingsPanel = memo(function SettingsPanel({ onBack }: Props) {
     }
   }, []);
 
+  const emailText = accountEmail
+    ? redacted
+      ? redactEmail(accountEmail)
+      : accountEmail
+    : "Not available";
+
   return (
     <div className="panel">
       <header className="header header-row">
@@ -90,6 +99,25 @@ export const SettingsPanel = memo(function SettingsPanel({ onBack }: Props) {
         <h1 className="title settings-title">Settings</h1>
       </header>
       <section className="card settings">
+        <div className="settings-row settings-account">
+          <div className="settings-copy">
+            <span className="settings-label">Account email</span>
+            <p className="settings-account-email">{emailText}</p>
+          </div>
+          {accountEmail ? (
+            <button
+              type="button"
+              className="settings-email-toggle"
+              aria-label={redacted ? "Show email" : "Hide email"}
+              aria-pressed={redacted}
+              title={redacted ? "Show email" : "Hide email"}
+              onClick={toggleRedacted}
+            >
+              {redacted ? <EyeOffIcon /> : <EyeIcon />}
+            </button>
+          ) : null}
+        </div>
+        <div className="settings-divider" role="separator" />
         <PrefToggle
           id="pref-open-at-login"
           label="Open at login"
@@ -97,14 +125,6 @@ export const SettingsPanel = memo(function SettingsPanel({ onBack }: Props) {
           checked={openAtLogin}
           disabled={!loginReady || !loginSupported}
           onChange={(next) => void onLoginToggle(next)}
-        />
-        <div className="settings-divider" role="separator" />
-        <PrefToggle
-          id="pref-redact-email"
-          label="Redact account email"
-          hint="Hide the email on the Weekly card."
-          checked={redacted}
-          onChange={setRedacted}
         />
         <div className="settings-divider" role="separator" />
         <PrefToggle
