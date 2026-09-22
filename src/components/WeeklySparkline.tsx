@@ -51,7 +51,7 @@ function sparklinePath(points: readonly WeeklyPctSample[]): {
 
 /**
  * Nested under the Weekly meter.
- * Soft area + start/end % + “Included usage · this period”.
+ * Soft area + start/end % + “Included usage · since period start”.
  * Renders nothing until ≥2 samples.
  */
 export const WeeklySparkline = memo(function WeeklySparkline({ points }: Props) {
@@ -69,7 +69,7 @@ export const WeeklySparkline = memo(function WeeklySparkline({ points }: Props) 
         viewBox={`0 0 ${W} ${H}`}
         preserveAspectRatio="none"
         role="img"
-        aria-label={`Included usage this period, from ${startLabel} to ${endLabel}`}
+        aria-label={`Included usage since period start, from ${startLabel} to ${endLabel}`}
       >
         <path className="weekly-spark-area" d={spark.area} />
         <path className="weekly-spark-line" d={spark.line} />
