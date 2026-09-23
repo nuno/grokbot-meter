@@ -24,9 +24,11 @@ npm install
 npm run electron:build
 ```
 
-This creates the app in `dist/mac-arm64`. Open that folder and drag **GrokBar** to your Applications folder.
+This creates an unpacked app in `dist/mac-arm64` and versioned DMG/zip under `releases/<version>/`. Open the DMG (or `dist/mac-arm64`) and drag **GrokBar** to Applications.
 
-> Note: `dist/mac-arm64` is about 480 MB because it bundles the whole runtime.
+> Note: the first build is unsigned. If macOS blocks it, right-click → **Open**. See `docs/MAC-RELEASE.md`.
+>
+> `dist/mac-arm64` is large (~480 MB) because it bundles the Electron runtime.
 
 ## How to use
 
