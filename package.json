@@ -9,11 +9,13 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "electron:dev": "electron-vite dev --watch",
-    "electron:build": "tsc && electron-vite build && electron-builder",
+    "electron:build": "tsc && electron-vite build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac dir dmg zip --arm64",
     "electron:preview": "electron-vite preview",
     "perf:baseline": "node scripts/perf/run.mjs --label tauri-baseline",
     "perf:electron": "node scripts/perf/run.mjs --label electron",
-    "perf:compare": "node scripts/perf/report.mjs perf-results/tauri-baseline.json perf-results/electron.json"
+    "perf:compare": "node scripts/perf/report.mjs perf-results/tauri-baseline.json perf-results/electron.json",
+    "electron:build:release": "tsc && electron-vite build && electron-builder --mac dmg zip --arm64",
+    "icons:gen": "python3 scripts/gen-packaging-icons.py"
   },
   "dependencies": {
     "react": "^19.1.0",
@@ -36,16 +38,32 @@
       "buildResources": "build"
     },
     "files": [
-      "dist/**",
       "out/**"
     ],
     "mac": {
       "target": [
-        "dmg",
-        "zip"
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64"
+          ]
+        }
       ],
       "icon": "build/icons/icon.icns",
-      "minimumSystemVersion": "10.15"
+      "minimumSystemVersion": "10.15",
+      "category": "public.app-category.productivity",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "notarize": false,
+      "forceCodeSigning": false
     },
     "win": {
       "target": [
@@ -58,6 +76,16 @@
         "AppImage"
       ],
       "icon": "build/icons/icon.png"
-    }
+    },
+    "extraResources": [
+      {
+        "from": "build/icons/tray.png",
+        "to": "tray.png"
+      },
+      {
+        "from": "build/icons/tray@2x.png",
+        "to": "tray@2x.png"
+      }
+    ]
   }
 }

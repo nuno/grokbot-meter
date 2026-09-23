@@ -289,14 +289,24 @@ function createWindow() {
   });
 }
 
+/** Tray PNGs: dev uses repo build/icons; packaged uses extraResources → Contents/Resources. */
+function trayIconPath(file: string): string {
+  if (app.isPackaged) return join(process.resourcesPath, file);
+  return join(__dirname, "../../build/icons", file);
+}
+
 function createTray() {
-  const iconPath = join(__dirname, "../../build/icons/tray.png");
-  let img = nativeImage.createFromPath(iconPath);
-  if (process.platform === "darwin") img.setTemplateImage(true);
+  // Prefer 1x name so macOS/Electron can pick tray@2x.png beside it when present.
+  let img = nativeImage.createFromPath(trayIconPath("tray.png"));
   if (img.isEmpty()) {
-    const fallback = join(__dirname, "../../build/icons/icon.png");
-    img = nativeImage.createFromPath(fallback);
-    if (process.platform === "darwin") img.setTemplateImage(true);
+    img = nativeImage.createFromPath(trayIconPath("tray@2x.png"));
+  }
+  if (img.isEmpty()) {
+    img = nativeImage.createFromPath(trayIconPath("icon.png"));
+  }
+  if (process.platform === "darwin" && !img.isEmpty()) img.setTemplateImage(true);
+  if (img.isEmpty()) {
+    console.error("[grokbar] tray icon missing — checked", trayIconPath("tray.png"));
   }
   const t = new Tray(img);
   tray = t;
