@@ -12,13 +12,11 @@ Menu bar meters for **Grok Bot** on macOS — weekly usage %, today, and reset t
 
 ## Screenshots
 
-_Place screenshots here before publishing (menu bar icon + popup)._
-
 | Menu bar | Popup |
 | -------- | ----- |
-| `docs/screenshots/menubar.png` | `docs/screenshots/popup.png` |
+| ![Menu bar](docs/screenshots/menubar.png) | ![Popup](docs/screenshots/popup.png) |
 
-Until those files exist, open the app after a local build and capture the tray + panel yourself. Do **not** burn weekly usage with Refresh just for shots — idle UI is enough.
+Captured from a local 0.2.3 build without using Refresh for shots. See [docs/screenshots/README.md](docs/screenshots/README.md).
 
 ## Install from source
 
