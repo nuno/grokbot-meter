@@ -40,6 +40,7 @@ release
 tsconfig.node.tsbuildinfo
 
 # QA scratch (screenshots / helper bins) — delete on commit; never track
+docs/screenshots/.review/
 .qa-*/
 verify-*/
 .ui-review/
