@@ -9,8 +9,6 @@ import { SettingsPanel } from "./components/SettingsPanel";
 import { useGrokPolling } from "./hooks/useGrokPolling";
 import { usePanelController } from "./hooks/useAbout";
 import { usePanelHeight } from "./hooks/usePanelHeight";
-import { useShowWeeklyTrend } from "./hooks/useLocalPref";
-import { useWeeklyPctHistory } from "./hooks/useWeeklyPctHistory";
 import { hideWindow } from "./lib/api";
 import { selectAgents, selectIsLoading, selectTodayStats } from "./lib/grok";
 import { PREVIEW_LONG_AGENT_LIST, previewPadAgents, previewWeeklyWithOnDemand } from "./lib/previewMocks";
@@ -18,10 +16,6 @@ import { PREVIEW_LONG_AGENT_LIST, previewPadAgents, previewWeeklyWithOnDemand } 
 export default function App() {
   const { mode, openAbout, openSettings, close, resetOnHide, quit } = usePanelController();
   const { status, weekly, weeklyUpdatedAt, error, refreshing, refresh } = useGrokPolling(resetOnHide);
-  const { show: showWeeklyTrend } = useShowWeeklyTrend();
-  const livePct = typeof weekly?.usagePercent === "number" ? weekly.usagePercent : null;
-  const trendPoints = useWeeklyPctHistory(weeklyUpdatedAt, livePct);
-
   const liveAgents = selectAgents(status);
   const liveStats = selectTodayStats(status);
   const preview = PREVIEW_LONG_AGENT_LIST ? previewPadAgents(liveAgents) : null;
@@ -37,8 +31,6 @@ export default function App() {
     todayAgentCount,
     Boolean(weeklyForUi),
     Boolean(error),
-    showWeeklyTrend,
-    trendPoints.length,
   ]);
 
   return (
@@ -49,8 +41,6 @@ export default function App() {
           <WeeklyCard
             weekly={weeklyForUi}
             updatedAt={weeklyUpdatedAt}
-            trendPoints={trendPoints}
-            showTrend={showWeeklyTrend}
             isLoading={weeklyForUi == null}
           />
           <TodayCard

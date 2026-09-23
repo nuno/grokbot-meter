@@ -1,9 +1,9 @@
 import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, screen } from "electron";
 import { join } from "path";
+import { existsSync, unlinkSync } from "fs";
 import { getGrokStatus } from "./grokSource";
 import { getGrokBotVersion } from "./grokBotApp";
 import { getWeeklyStatusAsync, type WeeklyStatus } from "./weekly";
-import { getWeeklyPctHistory, periodStartMsFromWeekly, recordWeeklyPctSample } from "./weeklyPctHistory";
 import type { PanelHeightMode } from "../shared/types";
 
 if (!app.requestSingleInstanceLock()) app.quit();
@@ -97,11 +97,8 @@ function paintTrayFromCache() {
 }
 
 function applyWeeklyToTray(weekly: WeeklyStatus) {
-  const pct = weekly.usagePercent;
-  const periodStartMs = periodStartMsFromWeekly(weekly.currentPeriodStart);
-  if (pct != null && Number.isFinite(pct)) recordWeeklyPctSample(pct, periodStartMs);
-  if (!tray) return;
   lastWeekly = weekly;
+  if (!tray) return;
   const grok = getGrokStatus();
   const { title, tooltip } = trayTitleAndTooltip(weekly, grok);
   tray.setToolTip(tooltip);
@@ -318,6 +315,13 @@ function createTray() {
 }
 
 app.whenReady().then(() => {
+  // Orphan from removed weekly spark — stop leaving unused samples on disk.
+  try {
+    const hist = join(app.getPath("userData"), "weekly-pct-history.json");
+    if (existsSync(hist)) unlinkSync(hist);
+  } catch {
+    /* ignore */
+  }
   createWindow();
   createTray();
   ipcMain.handle("grok:status", () => getGrokStatus());
@@ -326,10 +330,6 @@ app.whenReady().then(() => {
     const weekly = await getWeeklyStatusAsync();
     applyWeeklyToTray(weekly);
     return weekly;
-  });
-  ipcMain.handle("weekly:pctHistory", () => {
-    const periodStartMs = periodStartMsFromWeekly(lastWeekly?.currentPeriodStart);
-    return getWeeklyPctHistory(periodStartMs);
   });
   ipcMain.handle("show-about", () => { showAbout(); });
   ipcMain.handle("app:quit", () => app.quit());

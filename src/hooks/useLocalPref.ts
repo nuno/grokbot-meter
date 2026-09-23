@@ -4,13 +4,10 @@ import {
   type PrefKey,
   getRedactEmail,
   getShowOnDemand,
-  getShowWeeklyTrend,
   setRedactEmail,
   setShowOnDemand,
-  setShowWeeklyTrend,
   REDACT_EMAIL_KEY,
   SHOW_ON_DEMAND_KEY,
-  SHOW_WEEKLY_TREND_KEY,
 } from "../lib/prefs";
 
 /**
@@ -67,11 +64,5 @@ export function useRedactEmail() {
 /** When false, WeeklyCard hides on-demand even if API/mock data exists. */
 export function useShowOnDemand() {
   const [show, setShow, toggle] = useBoolPref(SHOW_ON_DEMAND_KEY, getShowOnDemand, setShowOnDemand);
-  return { show, setShow, toggle };
-}
-
-/** When false, labeled weekly trend spark under the meter is hidden. */
-export function useShowWeeklyTrend() {
-  const [show, setShow, toggle] = useBoolPref(SHOW_WEEKLY_TREND_KEY, getShowWeeklyTrend, setShowWeeklyTrend);
   return { show, setShow, toggle };
 }
