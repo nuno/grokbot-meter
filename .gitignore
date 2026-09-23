@@ -48,3 +48,15 @@ verify-*/
 releases/*/*.dmg
 releases/*/*.zip
 releases/*/*.blockmap
+
+# Secrets / local env
+.env
+.env.*
+!.env.example
+
+# Local dumps / Application Support exports (never track)
+**/sand-secrets.json
+**/Application Support/
+*.pem
+*.p12
+*.mobileprovision
