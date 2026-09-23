@@ -50,3 +50,6 @@ releases/*/*.blockmap
 *.pem
 *.p12
 *.mobileprovision
+
+# Screenshot scratch / review captures (not for commit)
+docs/screenshots/.review/
