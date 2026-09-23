@@ -1,16 +1,13 @@
 import { memo, useMemo } from "react";
-import type { WeeklyPctSample, WeeklyStatus } from "../types";
+import type { WeeklyStatus } from "../types";
 import { clampPercent, formatCentsUsd, formatUpdatedAt } from "../lib/format";
 import { weeklyLines } from "../lib/weekly";
 import { useShowOnDemand } from "../hooks/useLocalPref";
 import { WeeklyIcon } from "./icons";
-import { WeeklySparkline } from "./WeeklySparkline";
 
 type Props = {
   weekly: WeeklyStatus | null;
   updatedAt?: number | null;
-  trendPoints?: readonly WeeklyPctSample[];
-  showTrend?: boolean;
   isLoading?: boolean;
 };
 
@@ -23,8 +20,6 @@ function meterTone(pct: number): "default" | "warn" | "critical" {
 export const WeeklyCard = memo(function WeeklyCard({
   weekly,
   updatedAt = null,
-  trendPoints = [],
-  showTrend = false,
   isLoading = false,
 }: Props) {
   const hasPercent = typeof weekly?.usagePercent === "number";
@@ -86,7 +81,6 @@ export const WeeklyCard = memo(function WeeklyCard({
       >
         <div className="meter-fill" style={meterFillStyle} />
       </div>
-      {showTrend ? <WeeklySparkline points={trendPoints} /> : null}
       {lines.map((line) => (
         <p key={line} className="muted">
           {line}

@@ -1,4 +1,4 @@
-import type { GrokAgent, OnDemandSpend, WeeklyPctSample, WeeklyStatus } from "../types";
+import type { GrokAgent, OnDemandSpend, WeeklyStatus } from "../types";
 
 /** Flip off (or delete this file) when the long-list preview is done. */
 export const PREVIEW_LONG_AGENT_LIST = false;
@@ -38,35 +38,6 @@ export function previewWeeklyWithOnDemand(weekly: WeeklyStatus | null): WeeklySt
   return { ...weekly, onDemand: PREVIEW_ONDEMAND_SAMPLE };
 }
 
-
-/**
- * Local UI preview only — sample series that **ends at the live weekly %**
- * so the spark never fights the meter. Flip off before commit.
- */
-export const PREVIEW_WEEKLY_CHART = false;
-
-/** Build a rising series that ends on `livePct` (falls back to 42). */
-export function previewWeeklyPctHistory(
-  points: readonly WeeklyPctSample[],
-  livePct: number | null = null,
-): WeeklyPctSample[] {
-  if (!PREVIEW_WEEKLY_CHART) return [...points];
-  const end = livePct != null && Number.isFinite(livePct) ? Math.min(100, Math.max(0, livePct)) : 42;
-  const now = Date.now();
-  const day = 24 * 60 * 60 * 1000;
-  const steps = 9;
-  const start = Math.max(0, end * 0.25);
-  const out: WeeklyPctSample[] = [];
-  for (let i = 0; i < steps; i++) {
-    const t = i / (steps - 1);
-    // Ease toward current % — readable “climbing toward now”.
-    const pct = start + (end - start) * (t * t);
-    out.push({ t: now - (steps - 1 - i) * (day * 0.65), pct });
-  }
-  // Exact end match to meter.
-  out[out.length - 1] = { t: now, pct: end };
-  return out;
-}
 
 const NAMES = [
   "ClipToGo - UX/UI Research",

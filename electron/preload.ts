@@ -1,10 +1,9 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { GrokStatus, WeeklyStatus, WeeklyPctSample, PanelHeightMode, LoginItemSettings } from "../shared/types";
+import type { GrokStatus, WeeklyStatus, PanelHeightMode, LoginItemSettings } from "../shared/types";
 
 const api = {
   grokStatus: (): Promise<GrokStatus> => ipcRenderer.invoke("grok:status"),
   weeklyStatus: (): Promise<WeeklyStatus> => ipcRenderer.invoke("weekly:status"),
-  weeklyPctHistory: (): Promise<WeeklyPctSample[]> => ipcRenderer.invoke("weekly:pctHistory"),
   isVisible: (): Promise<boolean> => ipcRenderer.invoke("window:isVisible"),
   showAbout: () => ipcRenderer.invoke("show-about"),
   onShowAbout: (cb: () => void) => {
@@ -51,7 +50,6 @@ declare global {
     api: {
       grokStatus: () => Promise<GrokStatus>;
       weeklyStatus: () => Promise<WeeklyStatus>;
-      weeklyPctHistory: () => Promise<WeeklyPctSample[]>;
       isVisible: () => Promise<boolean>;
       showAbout: () => Promise<void>;
       onShowAbout: (cb: () => void) => () => void;
