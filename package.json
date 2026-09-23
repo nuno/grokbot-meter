@@ -9,12 +9,12 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "electron:dev": "electron-vite dev --watch",
-    "electron:build": "tsc && electron-vite build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac dir dmg zip --arm64",
+    "electron:build": "tsc && electron-vite build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac dir dmg zip --arm64 && node scripts/organize-release-artifacts.mjs",
     "electron:preview": "electron-vite preview",
     "perf:baseline": "node scripts/perf/run.mjs --label tauri-baseline",
     "perf:electron": "node scripts/perf/run.mjs --label electron",
     "perf:compare": "node scripts/perf/report.mjs perf-results/tauri-baseline.json perf-results/electron.json",
-    "electron:build:release": "tsc && electron-vite build && electron-builder --mac dmg zip --arm64",
+    "electron:build:release": "tsc && electron-vite build && electron-builder --mac dmg zip --arm64 && node scripts/organize-release-artifacts.mjs",
     "icons:gen": "python3 scripts/gen-packaging-icons.py"
   },
   "dependencies": {

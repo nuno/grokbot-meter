@@ -44,3 +44,7 @@ tsconfig.node.tsbuildinfo
 verify-*/
 .ui-review/
 .retest-shots/
+# Packaged release artifacts (keep versioned folders and docs, not large binaries)
+releases/*/*.dmg
+releases/*/*.zip
+releases/*/*.blockmap

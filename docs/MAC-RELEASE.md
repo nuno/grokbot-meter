@@ -8,13 +8,15 @@ Your account is a **free Personal Team** (`YOUR_TEAM_ID`, Nuno Costa). That is e
 npm run electron:build
 ```
 
-This produces an **unsigned** arm64 `.app` / `.dmg` / `.zip` under `dist/` for **your Mac only**.
+This produces an **unsigned** arm64 `.app` under `dist/mac-arm64` and versioned `.dmg` / `.zip` artifacts under `releases/<version>/` for **your Mac only**.
 
 First open on macOS:
-1. Open the DMG and drag GrokBar to Applications (or run from `dist/mac-arm64`).
+1. Open `releases/<version>/GrokBar-<version>-arm64.dmg` and drag GrokBar to Applications (or run from `dist/mac-arm64`).
 2. If Gatekeeper blocks it: right-click the app → **Open** → **Open**.
 
 Do **not** use any other person’s Developer ID on this machine.
+
+Before every release, bump the `version` in `package.json`. The build scripts use that version to move the DMG, zip, and blockmaps from `dist/` into `releases/<version>/`; `dist/mac-arm64` remains build staging.
 
 ## What requires paid Apple Developer Program ($99/yr)
 
