@@ -13,3 +13,4 @@
 out
 release
 tsconfig.node.tsbuildinfo
+tsconfig.tsbuildinfo
