@@ -33,12 +33,6 @@ export function fetchGrokBotVersion(): Promise<string | null> {
   return api.grokBotVersion();
 }
 
-export function openSponsors(): Promise<void> {
-  const api = getApi();
-  if (!api?.openSponsors) return Promise.resolve();
-  return api.openSponsors();
-}
-
 export function fetchAppVersion(): Promise<string> {
   const api = getApi();
   if (!api?.getVersion) return Promise.resolve("0.0.0");

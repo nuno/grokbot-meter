@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, screen, session, shell } from "electron";
+import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, screen, session } from "electron";
 import { join } from "path";
 import { existsSync, unlinkSync } from "fs";
 import { getGrokStatus } from "./grokSource";
@@ -366,7 +366,6 @@ app.whenReady().then(() => {
     return weekly;
   });
   ipcMain.handle("app:quit", () => app.quit());
-  ipcMain.handle("app:openSponsors", () => shell.openExternal("https://github.com/sponsors/nuno"));
   ipcMain.handle("window:isVisible", () => win?.isVisible() ?? false);
   ipcMain.handle("window:hide", () => { win?.hide(); });
   ipcMain.on("window:setContentHeight-sync", (event, height: number, mode?: PanelHeightMode) => {
