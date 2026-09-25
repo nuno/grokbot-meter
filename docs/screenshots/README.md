@@ -7,6 +7,8 @@
 | [`popup.png`](popup.png) | Main popover (light) — Weekly, on-demand, Today, footer |
 | [`popup-dark.png`](popup-dark.png) | Main popover (dark) — same layout |
 | [`desktop-focus.png`](desktop-focus.png) | Same desktop demo with other status items grayed out and ours highlighted |
+| [`grokbot-meter-desktop-demo.png`](grokbot-meter-desktop-demo.png) | Full desktop demo with the dark popover anchored to the highlighted menu-bar meter |
+| [`grokbot-meter-desktop-demo-light.png`](grokbot-meter-desktop-demo-light.png) | Full desktop demo with the light popover anchored to the highlighted menu-bar meter |
 
 ## Capture notes
 

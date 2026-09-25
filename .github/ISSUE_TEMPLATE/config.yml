@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Install and first launch
+    url: https://github.com/nuno/grokbot-meter#first-launch-gatekeeper
+    about: Gatekeeper steps for the unsigned early beta

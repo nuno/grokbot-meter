@@ -9,7 +9,8 @@
     "electron:build": "tsc && electron-vite build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac dir dmg zip --arm64 && node scripts/organize-release-artifacts.mjs",
     "electron:preview": "electron-vite preview",
     "electron:build:release": "tsc && electron-vite build && electron-builder --mac dmg zip --arm64 && node scripts/organize-release-artifacts.mjs",
-    "icons:gen": "python3 scripts/gen-packaging-icons.py"
+    "icons:gen": "python3 scripts/gen-packaging-icons.py",
+    "typecheck": "tsc --noEmit && tsc -p electron/tsconfig.json --noEmit"
   },
   "dependencies": {
     "react": "^19.1.0",
