@@ -46,6 +46,3 @@ releases/*/*.blockmap
 *.mobileprovision
 electron/tsconfig.tsbuildinfo
 tsconfig.tsbuildinfo
-
-# Local capture scratch
-.smoke-artifacts/
