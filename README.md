@@ -28,7 +28,7 @@ Live meters from a local **0.2.7** build — weekly %, on-demand, today, and res
 
 **Menu bar** — weekly % beside the tray icon, no Dock clutter.
 
-![GrokBot Meter menu bar showing weekly usage percent](docs/screenshots/menubar.png)
+![GrokBot Meter menu bar showing weekly usage percent](docs/screenshots/menubar2.png)
 
 **Popup (light)** — weekly progress, on-demand, reset countdown, and today’s messages and agents.
 
