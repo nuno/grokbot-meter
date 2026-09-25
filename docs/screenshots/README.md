@@ -3,8 +3,10 @@
 | File | What |
 | ---- | ---- |
 | [`menubar.png`](menubar.png) | Menu bar status item — bot face + weekly % |
+| [`menubar2.png`](menubar2.png) | Menu bar status item — bot face + weekly % |
 | [`popup.png`](popup.png) | Main popover (light) — Weekly, on-demand, Today, footer |
 | [`popup-dark.png`](popup-dark.png) | Main popover (dark) — same layout |
+| [`desktop-focus.png`](desktop-focus.png) | Same desktop demo with other status items grayed out and ours highlighted |
 
 ## Capture notes
 
