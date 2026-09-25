@@ -24,15 +24,19 @@ Unofficial **Grok Bot** menu-bar meters for macOS — early public beta for test
 
 ## Screenshots
 
-Live meters from a local **0.2.5** build — weekly %, today, and reset timing at a glance.
+Live meters from a local **0.2.7** build — weekly %, on-demand, today, and reset timing at a glance.
 
 **Menu bar** — weekly % beside the tray icon, no Dock clutter.
 
 ![GrokBot Meter menu bar showing weekly usage percent](docs/screenshots/menubar.png)
 
-**Popup** — weekly progress, reset countdown, and today’s messages and agents.
+**Popup (light)** — weekly progress, on-demand, reset countdown, and today’s messages and agents.
 
-![GrokBot Meter popup with weekly meter, today messages and agents, and reset countdown](docs/screenshots/popup.png)
+![GrokBot Meter popup in light appearance](docs/screenshots/popup.png)
+
+**Popup (dark)** — same meters in dark appearance.
+
+![GrokBot Meter popup in dark appearance](docs/screenshots/popup-dark.png)
 
 Captured without using Refresh for shots. See [docs/screenshots/README.md](docs/screenshots/README.md).
 
