@@ -1,8 +1,14 @@
 # GrokBot Meter
 
+[![Release](https://img.shields.io/github/v/release/nuno/grokbot-meter?label=release)](https://github.com/nuno/grokbot-meter/releases)
+[![Downloads](https://img.shields.io/github/downloads/nuno/grokbot-meter/total?label=downloads)](https://github.com/nuno/grokbot-meter/releases)
+[![License: MIT](https://img.shields.io/github/license/nuno/grokbot-meter)](LICENSE)
+
 Menu bar meters for **Grok Bot** on macOS — weekly usage %, today, and reset timing. Tiny tray app; no Dock clutter.
 
 > Unofficial companion. Not affiliated with, endorsed by, or a product of xAI, Cursor, or Apple. Uses **official Grok Bot meters only** — no invented caps or estimates.
+
+![GrokBot Meter on the desktop, with the weekly popup open from the menu bar](docs/screenshots/grokbot-meter-desktop-demo.png)
 
 ## Early public beta
 
@@ -37,6 +43,10 @@ Live meters from a local **0.2.7** build — weekly %, on-demand, today, and res
 **Popup (dark)** — same meters in dark appearance.
 
 ![GrokBot Meter popup in dark appearance](docs/screenshots/popup-dark.png)
+
+**Desktop (light)** — the same popup in light appearance, anchored to the menu bar.
+
+![GrokBot Meter light popup on the desktop](docs/screenshots/grokbot-meter-desktop-demo-light.png)
 
 Captured without using Refresh for shots. See [docs/screenshots/README.md](docs/screenshots/README.md).
 

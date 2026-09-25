@@ -22,6 +22,10 @@ Use the **`electron:*`** scripts only. There is no standalone Vite `dev` / `buil
 | `npm run electron:preview` | Preview a production electron-vite build |
 | `npm run icons:gen` | Regenerate icns / png / tray templates from the canonical Bot mark |
 | `npm run electron:build:release` | Same packaging path intended for Developer ID + notarization (see `docs/MAC-RELEASE.md`) |
+| `npm run typecheck` | Typecheck the renderer and the Electron main process |
+| `node scripts/snapshot-github-traffic.mjs` | Append one line of stars, clones, views, and release downloads to `docs/traffic-log.jsonl` |
+
+GitHub only keeps clone and view counts for 14 days. Run the snapshot at least once a week if you want that history, then commit `docs/traffic-log.jsonl`. It needs `gh` authenticated with access to this repo.
 
 ## Product rules
 

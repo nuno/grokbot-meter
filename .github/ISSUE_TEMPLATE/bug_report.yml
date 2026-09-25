@@ -1,0 +1,44 @@
+name: Bug report
+description: The meter, install, or Keychain prompt misbehaved
+labels: [bug]
+body:
+  - type: input
+    id: app-version
+    attributes:
+      label: GrokBot Meter version
+      description: Shown in About, or the release you installed (for example 0.2.7).
+      placeholder: "0.2.7"
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      placeholder: "15.6"
+    validations:
+      required: true
+  - type: input
+    id: grok-bot
+    attributes:
+      label: Grok Bot version
+      description: Optional. From Grok Bot → About, if you have it.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where it failed
+      options:
+        - Install or Gatekeeper
+        - Keychain prompt
+        - Weekly meter
+        - Today / agents
+        - Menu bar icon
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you expected, and what you saw instead. Leave account email and tokens out.
+    validations:
+      required: true
