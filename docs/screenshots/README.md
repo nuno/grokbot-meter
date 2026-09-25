@@ -9,6 +9,7 @@
 | [`desktop-focus.png`](desktop-focus.png) | Same desktop demo with other status items grayed out and ours highlighted |
 | [`grokbot-meter-desktop-demo.png`](grokbot-meter-desktop-demo.png) | Full desktop demo with the dark popover anchored to the highlighted menu-bar meter |
 | [`grokbot-meter-desktop-demo-light.png`](grokbot-meter-desktop-demo-light.png) | Full desktop demo with the light popover anchored to the highlighted menu-bar meter |
+| [`social-preview.jpg`](social-preview.jpg) | 1280×640 JPEG under 1 MB for the GitHub social preview (Settings → General) |
 
 ## Capture notes
 
