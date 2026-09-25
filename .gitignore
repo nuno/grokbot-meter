@@ -24,11 +24,8 @@ dist-ssr
 *.sw?
 
 
-# Perf results (keep baselines)
-perf-results/*.json
-!perf-results/tauri-baseline.json
-!perf-results/electron.json
-!perf-results/report.md
+# Perf results (local only; harness removed from product repo)
+perf-results/
 # Electron
 out
 release

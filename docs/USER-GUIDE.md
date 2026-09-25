@@ -80,4 +80,4 @@ from Applications.
 
 ## For developers
 
-The technical README (build commands, performance tests) is in `README.md`.
+The technical README (build commands and more) is in `README.md`.

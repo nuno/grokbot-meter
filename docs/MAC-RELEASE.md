@@ -2,7 +2,7 @@
 
 ## What you can do without Apple Developer Program
 
-Your account is a **free Personal Team** (`YOUR_TEAM_ID`, Nuno Costa). That is enough for:
+A free **Personal Team** Apple ID (Developer → Account) is enough for:
 
 ```bash
 npm run electron:build
@@ -30,7 +30,7 @@ When enrolled, use:
 npm run electron:build:release
 ```
 
-with identity `Developer ID Application: Nuno Costa (YOUR_TEAM_ID)` and notary credentials configured.
+with identity `Developer ID Application: Your Name (YOUR_TEAM_ID)` and notary credentials configured.
 
 
 ## App / tray icons

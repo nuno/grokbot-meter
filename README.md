@@ -79,14 +79,6 @@ npm run electron:build  # unsigned arm64 dir + DMG + zip → releases/<version>/
 npm run icons:gen       # regenerate packaging / tray icons
 ```
 
-Optional perf harness (real env, no mocks):
-
-```bash
-npm run perf:baseline
-npm run perf:electron
-npm run perf:compare    # → perf-results/report.md
-```
-
 More detail: [docs/USER-GUIDE.md](docs/USER-GUIDE.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
