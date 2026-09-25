@@ -69,16 +69,27 @@ Settings let you control local UI preferences only (not your Cursor / Grok accou
 
 ## Where the data comes from
 
-GrokBot Meter reads local data saved by **Grok Bot** on your Mac. It also checks
-your Grok account to show the weekly usage percentage. Your data stays on your
-computer; GrokBot Meter only reads files that Grok Bot already created.
+GrokBot Meter reads local data saved by **Grok Bot** on your Mac. To show the
+weekly usage percentage, it uses Grok Bot's sign-in to ask Cursor's servers for
+your usage. It only reads files that Grok Bot already created, never changes them,
+and sends nothing anywhere else. The full list is in "What it accesses" in `README.md`.
 
 ## Common questions
 
-**The icon shows nothing / a dash (`—`).**
-GrokBot Meter could not read your weekly usage. This usually means you are not signed
-in to Grok, or the account token is missing. Your today's activity may still
-show when you open the popup.
+**macOS asks: "security wants to use your confidential information stored in Grok Bot Safe Storage".**
+That's GrokBot Meter asking to read the key Grok Bot uses to protect your sign-in.
+Click **Allow**. "Always Allow" also works but lets other programs read that key
+without asking — see `README.md` for details. If you click **Deny**, the weekly meter
+says "Keychain access denied" until you reopen GrokBot Meter.
+
+**The weekly meter says "Open Grok Bot to refresh sign-in".**
+Grok Bot's sign-in has expired. Open Grok Bot once; the meter picks it up within a few
+minutes, or right away if you click **Refresh**.
+
+**The icon shows no percentage.**
+GrokBot Meter could not read your weekly usage. Open the popup: the Weekly card says
+why (not signed in, Keychain access denied, or Grok Bot needs to refresh its sign-in).
+Today's activity still shows.
 
 **The popup is blank or says "Loading…".**
 Give it a few seconds. If it stays blank, quit and reopen the app.

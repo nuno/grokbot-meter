@@ -37,6 +37,16 @@ export type WeeklyStatus = {
   error: string | null;
 };
 
+/** WeeklyStatus.error values that are safe to show verbatim (others collapse to "Can't load weekly"). */
+export const WEEKLY_NOTICE = {
+  keychainDenied: "Keychain access denied · reopen app to retry",
+  openGrokBot: "Open Grok Bot to refresh sign-in",
+} as const;
+
+export function isWeeklyNotice(error: string | null | undefined): boolean {
+  return error === WEEKLY_NOTICE.keychainDenied || error === WEEKLY_NOTICE.openGrokBot;
+}
+
 /** Electron panel resize mode — main vs overlay panels (About / Settings). */
 export type PanelHeightMode = "main" | "about" | "settings";
 

@@ -1,6 +1,6 @@
 # Security
 
-GrokBot Meter is a local macOS tray companion. It reads Grok Bot data on your machine and may call official account meter APIs using credentials already stored by Grok Bot / Cursor — it does not introduce its own cloud backend.
+GrokBot Meter is a local macOS tray companion with no backend and no telemetry. It reads Grok Bot's local files and encrypted access token, decrypts the token with the **Grok Bot Safe Storage** Keychain key (via `/usr/bin/security`, after macOS asks you), and calls Cursor's dashboard APIs with it. It never reads or uses Grok Bot's refresh token. The full list is in [What it accesses](README.md#what-it-accesses).
 
 ## Reporting a vulnerability
 
@@ -10,7 +10,12 @@ Report security issues via **[GitHub Security Advisories](https://github.com/nun
 
 Public repository: [github.com/nuno/grokbot-meter](https://github.com/nuno/grokbot-meter).
 
+## Known limitations
+
+- The Keychain key is read through the `security` command-line tool. Choosing **Always Allow** in the macOS prompt grants that tool (not GrokBot Meter) ongoing access, so other local programs could read the key too. Choose **Allow** to avoid this.
+- Builds are ad-hoc signed and not notarized.
+
 ## Scope notes
 
-- Do not file reports that require stealing session tokens from another user’s Keychain or Grok Bot install.
+- Do not file reports that require stealing session tokens from another user's Keychain or Grok Bot install.
 - Supply-chain / dependency CVEs: open a normal issue or PR with the advisory link.

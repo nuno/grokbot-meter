@@ -1,6 +1,7 @@
 import type { GrokStatus, WeeklyStatus, PanelHeightMode, LoginItemSettings } from "../../shared/types";
 
 export type { GrokAgent, GrokStatus, WeeklyStatus, OnDemandSpend, PanelHeightMode, LoginItemSettings } from "../../shared/types";
+export { isWeeklyNotice } from "../../shared/types";
 
 declare global {
   interface Window {

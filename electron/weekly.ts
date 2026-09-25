@@ -1,18 +1,24 @@
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
+import { execFile } from "child_process";
+import { promisify } from "util";
 import { createDecipheriv, pbkdf2Sync } from "crypto";
-import type { WeeklyStatus, OnDemandSpend } from "../shared/types";
+import { WEEKLY_NOTICE, type WeeklyStatus, type OnDemandSpend } from "../shared/types";
 
 export type { WeeklyStatus, OnDemandSpend };
+
+const execFileAsync = promisify(execFile);
 
 const CACHE_TTL = 60_000;
 const HTTP_TIMEOUT = 12_000;
 const USAGE_URL = "https://api2.cursor.sh/aiserver.v1.DashboardService/GetSandUsageStatus";
 const PERIOD_USAGE_URL = "https://api2.cursor.sh/aiserver.v1.DashboardService/GetCurrentPeriodUsage";
 const ME_URL = "https://api2.cursor.sh/aiserver.v1.DashboardService/GetMe";
-const TOKEN_URL = "https://api2.cursor.sh/oauth/token";
-const OAUTH_CLIENT_ID = "KbZUR41cY7W6zRSdpSUJ7I7mLYBKOCmB";
+/** Long enough for a user to answer the Keychain prompt; the call is async so the tray never blocks. */
+const KEYCHAIN_TIMEOUT_MS = 120_000;
+/** `security` exit status for errSecItemNotFound. */
+const SECURITY_ITEM_NOT_FOUND = 44;
 const SECOND_MS_THRESHOLD = 100_000_000_000;
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 /** Grok Bot unlimited sentinel (`jy`) — Hde(limit) returns null at/above this. */
@@ -27,12 +33,13 @@ const SANITIZE_SPLIT_RE = /\s+/;
 const QUOTE_TRIM_RE = /^["',]+|["',]+$/;
 
 const TOKEN_EXPIRY_SKEW_MS = 60_000;
-type RefreshResult = { kind: "access"; token: string } | { kind: "signedOut" } | { kind: "failed" };
+
+type KeyState = { kind: "ok"; key: Buffer } | { kind: "missing" } | { kind: "denied" };
+type LoadedTokens = { access: string | null; hasCredentials: boolean; keychainDenied: boolean };
 
 let cache: { fetchedAt: number; status: WeeklyStatus } | null = null;
-let cryptKeyCache: Buffer | null = null;
-/** Access token we minted via refresh; only valid while Grok Bot still holds the same refresh token. */
-let refreshedAccess: { token: string; refresh: string } | null = null;
+/** "ok" and "denied" last for the session so a Deny never re-prompts; "missing" is retried. */
+let keyState: KeyState | null = null;
 let inFlight: Promise<WeeklyStatus> | null = null;
 
 export async function getWeeklyStatusAsync(force = false): Promise<WeeklyStatus> {
@@ -73,47 +80,22 @@ function errStatus(signedIn: boolean, error: string): WeeklyStatus {
   return { ...emptyStatus(), signedIn, error: sanitizeError(error) };
 }
 
+/**
+ * Read-only: uses Grok Bot's current access token and never refreshes it. Refreshing with
+ * Grok Bot's refresh token could rotate it out from under Grok Bot and sign the user out.
+ */
 async function fetchStatusAsync(): Promise<WeeklyStatus> {
-  const tokens = loadTokens();
-  const refresh = tokens.refresh?.trim() || null;
-  const fileAccess = tokens.access?.trim();
-
-  let access: string | null = null;
-  if (fileAccess && looksLikeJwt(fileAccess) && !isExpired(fileAccess)) access = fileAccess;
-  else if (refreshedAccess && refreshedAccess.refresh === refresh && !isExpired(refreshedAccess.token))
-    access = refreshedAccess.token;
-  else refreshedAccess = null;
-
+  const { access, hasCredentials, keychainDenied } = await loadTokens();
   if (!access) {
-    if (!refresh) return signedOut(null);
-    const r = await refreshAndRemember(refresh);
-    if (r.kind !== "access") return refreshFailureStatus(r);
-    access = r.token;
+    if (keychainDenied) return errStatus(true, WEEKLY_NOTICE.keychainDenied);
+    return hasCredentials ? errStatus(true, WEEKLY_NOTICE.openGrokBot) : signedOut(null);
   }
+  if (isExpired(access)) return errStatus(true, WEEKLY_NOTICE.openGrokBot);
 
   const usage = await callUsage(access);
   if (usage.kind === "ok") return withAccountEmail(parseUsage(usage.value), access);
-  if (usage.kind !== "unauthorized") return errStatus(true, usage.error);
-
-  refreshedAccess = null;
-  if (!refresh) return signedOut(null);
-  const r = await refreshAndRemember(refresh);
-  if (r.kind !== "access") return refreshFailureStatus(r);
-  const retry = await callUsage(r.token);
-  if (retry.kind === "ok") return withAccountEmail(parseUsage(retry.value), r.token);
-  if (retry.kind === "unauthorized") return signedOut(null);
-  return errStatus(true, retry.error);
-}
-
-async function refreshAndRemember(refresh: string): Promise<RefreshResult> {
-  const r = await refreshAccess(refresh);
-  refreshedAccess = r.kind === "access" ? { token: r.token, refresh } : null;
-  return r;
-}
-
-function refreshFailureStatus(r: Exclude<RefreshResult, { kind: "access" }>): WeeklyStatus {
-  if (r.kind === "signedOut") return signedOut(null);
-  return errStatus(true, "network error");
+  if (usage.kind === "unauthorized") return errStatus(true, WEEKLY_NOTICE.openGrokBot);
+  return errStatus(true, usage.error);
 }
 
 async function withAccountEmail(status: WeeklyStatus, access: string): Promise<WeeklyStatus> {
@@ -221,36 +203,6 @@ function extractAccountLabel(v: unknown): string | null {
   if (r) return r;
   if (obj["me"] && typeof obj["me"] === "object") r = from(obj["me"] as Record<string, unknown>);
   return r || null;
-}
-
-async function refreshAccess(refresh: string): Promise<RefreshResult> {
-  try {
-    const res = await fetch(TOKEN_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ grant_type: "refresh_token", client_id: OAUTH_CLIENT_ID, refresh_token: refresh }),
-      signal: AbortSignal.timeout(HTTP_TIMEOUT),
-    });
-    const body = await res.text();
-    let v: unknown;
-    try {
-      v = JSON.parse(body);
-    } catch {
-      return { kind: "failed" };
-    }
-    return parseRefreshJson(v as Record<string, unknown>, res.status);
-  } catch {
-    return { kind: "failed" };
-  }
-}
-
-function parseRefreshJson(v: Record<string, unknown>, httpStatus: number): RefreshResult {
-  if (jsonBool(v, "shouldLogout", "should_logout")) return { kind: "signedOut" };
-  if (httpStatus === 401) return { kind: "signedOut" };
-  if (httpStatus < 200 || httpStatus >= 300) return { kind: "failed" };
-  const t = jsonStr(v, "access_token", "accessToken");
-  if (t && looksLikeJwt(t)) return { kind: "access", token: t };
-  return { kind: "signedOut" };
 }
 
 function parseUsage(v: unknown): WeeklyStatus {
@@ -379,48 +331,45 @@ function sanitizeError(msg: string): string {
 function homeDir(): string {
   return homedir();
 }
-function loadTokens(): { access?: string; refresh?: string } {
-  const tokens: { access?: string; refresh?: string } = {};
-  const key = cryptKey();
+/**
+ * Only the access token is decrypted; the refresh token is never read, just noted as present
+ * so an expired session shows "Open Grok Bot" instead of "Sign in".
+ */
+async function loadTokens(): Promise<LoadedTokens> {
+  let hasCredentials = false;
+  let keychainDenied = false;
+  const decrypt = async (b64: string): Promise<string | null> => {
+    const state = await cryptKey();
+    if (state.kind === "denied") keychainDenied = true;
+    return state.kind === "ok" ? decryptSafeStorage(b64, state.key) : null;
+  };
   for (const p of sandSecretsPaths()) {
     if (!existsSync(p)) continue;
+    let val: Record<string, unknown>;
     try {
-      const raw = readFileSync(p, "utf8");
-      const val = JSON.parse(raw) as Record<string, unknown>;
-      if (!tokens.access || !looksLikeJwt(tokens.access)) {
-        const c = jsonStr(val, "cursor-access-token", "cursorAccessToken");
-        if (c) {
-          const u = unwrapSecret(c, key);
-          if (u && looksLikeJwt(u)) tokens.access = u;
-        }
-      }
-      if (!tokens.refresh) {
-        const c = jsonStr(val, "cursor-refresh-token", "cursorRefreshToken");
-        if (c) {
-          const u = unwrapSecret(c, key);
-          if (u) tokens.refresh = u;
-        }
-      }
-      if ((!tokens.access || !looksLikeJwt(tokens.access)) || !tokens.refresh) {
-        const pair = extractFromCursorAccounts(val, key);
-        if (pair) {
-          const hasValidAccess = tokens.access != null && looksLikeJwt(tokens.access);
-          // Use pair atomically to avoid mixing access from file A with refresh from file B
-          if (!hasValidAccess && pair.access) {
-            tokens.access = pair.access;
-            if (pair.refresh) tokens.refresh = pair.refresh;
-          } else if (!hasValidAccess && !pair.access && pair.refresh && !tokens.refresh) {
-            tokens.refresh = pair.refresh;
-          }
-          // if hasValidAccess, ignore pair.refresh from different account
-        }
-      }
-      if (tokens.access && looksLikeJwt(tokens.access) && tokens.refresh) break;
-    } catch {}
+      val = JSON.parse(readFileSync(p, "utf8")) as Record<string, unknown>;
+    } catch {
+      continue;
+    }
+    const top = rawTokenFields(val);
+    const acct = activeAccountFields(val);
+    for (const fields of [top, acct]) {
+      if (!fields) continue;
+      if (fields.access || fields.refresh) hasCredentials = true;
+      if (!fields.access) continue;
+      const access = await unwrapSecret(fields.access, decrypt);
+      if (access && looksLikeJwt(access)) return { access, hasCredentials, keychainDenied };
+    }
   }
-  return tokens;
+  return { access: null, hasCredentials, keychainDenied };
 }
-function extractFromCursorAccounts(val: Record<string, unknown>, key: Buffer | null): { access?: string; refresh?: string } | null {
+function rawTokenFields(o: Record<string, unknown>): { access: string | null; refresh: string | null } {
+  return {
+    access: jsonStr(o, "cursor-access-token", "cursorAccessToken"),
+    refresh: jsonStr(o, "cursor-refresh-token", "cursorRefreshToken"),
+  };
+}
+function activeAccountFields(val: Record<string, unknown>): { access: string | null; refresh: string | null } | null {
   const raw = val["cursor-accounts"] ?? val["cursorAccounts"] ?? val["cursor_accounts"];
   if (raw == null) return null;
   let inner: Record<string, unknown>;
@@ -442,17 +391,11 @@ function extractFromCursorAccounts(val: Record<string, unknown>, key: Buffer | n
   const accounts = inner["accounts"] as Record<string, unknown> | undefined;
   if (!accounts || typeof accounts !== "object") return null;
   const acct = accounts[active] as Record<string, unknown> | undefined;
-  if (!acct) return null;
-  const accessRaw = jsonStr(acct, "cursor-access-token", "cursorAccessToken");
-  const refreshRaw = jsonStr(acct, "cursor-refresh-token", "cursorRefreshToken");
-  const access = accessRaw ? unwrapSecret(accessRaw, key) : undefined;
-  const refresh = refreshRaw ? unwrapSecret(refreshRaw, key) : undefined;
-  const a = access && looksLikeJwt(access) ? access : undefined;
-  const r = refresh || undefined;
-  if (!a && !r) return null;
-  return { access: a, refresh: r };
+  if (!acct || typeof acct !== "object") return null;
+  return rawTokenFields(acct);
 }
-function unwrapSecret(raw: string, key: Buffer | null): string | null {
+/** `decrypt` is only called for encrypted values, so plaintext tokens never touch the Keychain. */
+async function unwrapSecret(raw: string, decrypt: (b64: string) => Promise<string | null>): Promise<string | null> {
   const trimmed = normalizeSecret(raw);
   if (!trimmed) return null;
   if (trimmed.startsWith("plaintext:v1:")) {
@@ -463,10 +406,10 @@ function unwrapSecret(raw: string, key: Buffer | null): string | null {
     const parts = trimmed.split(":");
     const ciphertext = parts[parts.length - 1];
     if (!ciphertext) return null;
-    return decryptSafeStorage(ciphertext, key);
+    return decrypt(ciphertext);
   }
   if (looksLikeJwt(trimmed)) return trimmed;
-  return decryptSafeStorage(trimmed, key);
+  return decrypt(trimmed);
 }
 function normalizeSecret(raw: string): string {
   const t = raw.trim();
@@ -488,8 +431,7 @@ function sandSecretsPaths(): string[] {
     join(home, ".config/Grok Bot/sand-client-persistence/sand-secrets.json"),
   ];
 }
-function decryptSafeStorage(b64: string, key: Buffer | null): string | null {
-  if (!key) return null;
+function decryptSafeStorage(b64: string, key: Buffer): string | null {
   let data: Buffer;
   try {
     data = Buffer.from(b64.trim(), "base64");
@@ -511,23 +453,26 @@ function decryptSafeStorage(b64: string, key: Buffer | null): string | null {
     return null;
   }
 }
-function cryptKey(): Buffer | null {
-  if (cryptKeyCache) return cryptKeyCache;
-  const secret = safeStorageSecret();
-  if (!secret) return null;
-  const key = pbkdf2Sync(secret, PBKDF2_SALT, PBKDF2_ITERS, 16, "sha1");
-  cryptKeyCache = key;
-  return key;
+async function cryptKey(): Promise<KeyState> {
+  if (keyState) return keyState;
+  const state = await readSafeStorageKey();
+  if (state.kind !== "missing") keyState = state;
+  return state;
 }
-function safeStorageSecret(): Buffer | null {
-  if (process.platform === "darwin") return macosSafeStorageSecret();
-  return null;
-}
-function macosSafeStorageSecret(): Buffer | null {
+/** Any failure other than "item not found" (Deny, Cancel, timeout) counts as denied. */
+async function readSafeStorageKey(): Promise<KeyState> {
+  if (process.platform !== "darwin") return { kind: "missing" };
   try {
-    const { execSync } = require("node:child_process");
-    const out = execSync(`security find-generic-password -s "Grok Bot Safe Storage" -a "Grok Bot Key" -w 2>/dev/null`, { encoding: "utf8" }).trim();
-    if (out) return Buffer.from(out, "utf8");
-  } catch {}
-  return null;
+    const { stdout } = await execFileAsync(
+      "/usr/bin/security",
+      ["find-generic-password", "-s", "Grok Bot Safe Storage", "-a", "Grok Bot Key", "-w"],
+      { encoding: "utf8", timeout: KEYCHAIN_TIMEOUT_MS },
+    );
+    const secret = stdout.trim();
+    if (!secret) return { kind: "missing" };
+    return { kind: "ok", key: pbkdf2Sync(secret, PBKDF2_SALT, PBKDF2_ITERS, 16, "sha1") };
+  } catch (e) {
+    if ((e as { code?: unknown }).code === SECURITY_ITEM_NOT_FOUND) return { kind: "missing" };
+    return { kind: "denied" };
+  }
 }

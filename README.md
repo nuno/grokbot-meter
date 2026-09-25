@@ -80,7 +80,33 @@ xattr -dr com.apple.quarantine "/Applications/GrokBot Meter.app"
 2. Click for weekly %, today, sessions, and reset info.
 3. Right-click the icon for About / Quit.
 
-Data comes from local Grok Bot state on your Mac (and official account meters when signed in). Your files stay on your machine.
+## What it accesses
+
+GrokBot Meter has no server of its own and no telemetry. Everything below happens on your Mac or between your Mac and Cursor's servers — the same servers Grok Bot already talks to.
+
+| What | Why |
+| ---- | --- |
+| `~/Library/Application Support/Grok Bot/sand-client-persistence/*.blob` (read-only) | Today's message count and recent agents |
+| `~/Library/Application Support/Grok Bot/sand-secrets.json` (read-only) | Grok Bot's encrypted access token for your account |
+| Keychain item **Grok Bot Safe Storage** (read-only) | The key Grok Bot uses to encrypt that token |
+| `/Applications/Grok Bot.app/Contents/Info.plist` (read-only) | Grok Bot version shown in About |
+| `api2.cursor.sh` — `GetSandUsageStatus`, `GetCurrentPeriodUsage`, `GetMe` | Weekly usage %, on-demand spend, account email |
+
+It never writes to Grok Bot's files, never reads your refresh token, and never refreshes or changes your sign-in. When Grok Bot's access token expires, the meter shows **Open Grok Bot to refresh sign-in** until Grok Bot renews it.
+
+These are undocumented Cursor endpoints, so they can change or break without notice.
+
+### The Keychain prompt
+
+When GrokBot Meter first loads your weekly usage after starting, macOS asks:
+
+> **security** wants to use your confidential information stored in "Grok Bot Safe Storage" in your keychain.
+
+"security" is macOS's built-in Keychain tool (`/usr/bin/security`), which GrokBot Meter uses to read the key.
+
+- **Allow** (recommended): works for this session; you'll be asked again next launch.
+- **Always Allow**: stops the prompts, but grants access to the `security` tool itself, which means any other program on your Mac could then read this key without asking. Only choose it if you're comfortable with that.
+- **Deny**: the weekly meter shows **Keychain access denied** and won't ask again until you reopen the app. Today's activity still works.
 
 ## Development
 
