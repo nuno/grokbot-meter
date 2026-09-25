@@ -23,9 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
-
-# Perf results (local only; harness removed from product repo)
-perf-results/
 # Electron
 out
 release
@@ -47,9 +44,3 @@ releases/*/*.blockmap
 *.pem
 *.p12
 *.mobileprovision
-
-# Screenshot scratch / review captures (not for commit)
-docs/screenshots/.review/
-
-# Local smoke / QA scratch
-.smoke-artifacts/
