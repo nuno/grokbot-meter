@@ -71,15 +71,15 @@ function trayTitleAndTooltip(weekly: WeeklyStatus, grok: ReturnType<typeof getGr
   const gap = "\u2009";
   if (weekly.usagePercent != null && Number.isFinite(weekly.usagePercent)) {
     const r = Math.round(weekly.usagePercent);
-    return { title: `${gap}${r}%`, tooltip: `GrokBar · ${r}% weekly` };
+    return { title: `${gap}${r}%`, tooltip: `GrokBot Meter · ${r}% weekly` };
   }
   if (grok.todayMessageCount > 0) {
     return {
       title: gap + String(grok.todayMessageCount),
-      tooltip: `GrokBar · ${grok.todayMessageCount} today`,
+      tooltip: `GrokBot Meter · ${grok.todayMessageCount} today`,
     };
   }
-  return { title: undefined as string | undefined, tooltip: "GrokBar" };
+  return { title: undefined as string | undefined, tooltip: "GrokBot Meter" };
 }
 
 function weeklyRefreshIntervalMs(weekly: WeeklyStatus | null): number {
@@ -303,18 +303,18 @@ function createTray() {
   }
   if (process.platform === "darwin" && !img.isEmpty()) img.setTemplateImage(true);
   if (img.isEmpty()) {
-    console.error("[grokbar] tray icon missing — checked", trayIconPath("tray.png"));
+    console.error("[GrokBot Meter] tray icon missing — checked", trayIconPath("tray.png"));
   }
   const t = new Tray(img);
   tray = t;
-  t.setToolTip("GrokBar");
+  t.setToolTip("GrokBot Meter");
   lastTrayBounds = t.getBounds();
   // No item icons — macOS status menus are text-only; role:"quit" added a bogus glyph.
   const menu = Menu.buildFromTemplate([
-    { label: "About GrokBar", click: () => showAbout() },
+    { label: "About GrokBot Meter", click: () => showAbout() },
     { label: "Settings…", click: () => showSettings() },
     { type: "separator" },
-    { label: "Quit GrokBar", accelerator: "Command+Q", click: () => app.quit() },
+    { label: "Quit GrokBot Meter", accelerator: "Command+Q", click: () => app.quit() },
   ]);
   t.on("right-click", () => t.popUpContextMenu(menu));
   t.on("click", (_e, bounds) => {

@@ -15,7 +15,7 @@ export const AppFooter = memo(function AppFooter({
 }: Props) {
   return (
     <footer className="footer footer-row">
-      <button type="button" className="footer-btn" onClick={onAbout} title="About GrokBar">
+      <button type="button" className="footer-btn" onClick={onAbout} title="About GrokBot Meter">
         About
       </button>
       <button
@@ -33,8 +33,8 @@ export const AppFooter = memo(function AppFooter({
         type="button"
         className="footer-btn footer-btn--quiet"
         onClick={onQuit}
-        aria-label="Quit GrokBar"
-        title="Quit GrokBar (⌘Q)"
+        aria-label="Quit GrokBot Meter"
+        title="Quit GrokBot Meter (⌘Q)"
       >
         Quit
       </button>

@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping with GrokBar. Mac-first Electron tray app; keep changes small and reviewable.
+Thanks for helping with GrokBot Meter. Mac-first Electron tray app; keep changes small and reviewable.
 
 ## Setup
 

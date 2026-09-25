@@ -10,7 +10,7 @@ const releaseDir = path.join(root, "releases", version);
 
 await mkdir(releaseDir, { recursive: true });
 
-const prefix = `GrokBar-${version}-`;
+const prefix = `GrokBot-Meter-${version}-`;
 const artifacts = (await readdir(distDir)).filter((name) =>
   name.startsWith(prefix) &&
   (name.endsWith(".dmg") || name.endsWith(".zip") || name.endsWith(".blockmap")),

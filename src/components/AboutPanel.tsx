@@ -3,7 +3,7 @@ import { fetchGrokBotVersion } from "../lib/api";
 import { GrokMark2Icon } from "./icons";
 
 /** Keep in sync with package.json version. */
-const APP_VERSION = "0.2.3";
+const APP_VERSION = "0.2.5";
 
 type Props = {
   onBack: () => void;
@@ -56,7 +56,7 @@ export const AboutPanel = memo(function AboutPanel({ onBack }: Props) {
             <GrokMark2Icon className="about-mark" />
           </div>
           <div className="about-titleblock">
-            <h2>GrokBar</h2>
+            <h2>GrokBot Meter</h2>
             <p className="tagline">Menu bar stats for Grok Bot.</p>
             <p className="about-version">Version {APP_VERSION}</p>
             <p className={`about-version${!grokBotVersionLoaded ? " is-pending" : ""}`}>{grokBotLine}</p>

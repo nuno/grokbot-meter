@@ -1,6 +1,6 @@
 # Security
 
-GrokBar is a local macOS tray companion. It reads Grok Bot data on your machine and may call official account meter APIs using credentials already stored by Grok Bot / Cursor — it does not introduce its own cloud backend.
+GrokBot Meter is a local macOS tray companion. It reads Grok Bot data on your machine and may call official account meter APIs using credentials already stored by Grok Bot / Cursor — it does not introduce its own cloud backend.
 
 ## Reporting a vulnerability
 

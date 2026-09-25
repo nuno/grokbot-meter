@@ -1,4 +1,4 @@
-# GrokBar
+# GrokBot Meter
 
 Menu bar meters for **Grok Bot** on macOS — weekly usage %, today, and reset timing. Tiny tray app; no Dock clutter.
 
@@ -12,15 +12,15 @@ Menu bar meters for **Grok Bot** on macOS — weekly usage %, today, and reset t
 
 ## Screenshots
 
-Live meters from a local **0.2.3** build — weekly %, today, and reset timing at a glance.
+Live meters from a local **0.2.5** build — weekly %, today, and reset timing at a glance.
 
 **Menu bar** — weekly % beside the tray icon, no Dock clutter.
 
-![GrokBar menu bar showing weekly usage percent](docs/screenshots/menubar.png)
+![GrokBot Meter menu bar showing weekly usage percent](docs/screenshots/menubar.png)
 
 **Popup** — weekly progress, reset countdown, and today’s messages and agents.
 
-![GrokBar popup with weekly meter, today messages and agents, and reset countdown](docs/screenshots/popup.png)
+![GrokBot Meter popup with weekly meter, today messages and agents, and reset countdown](docs/screenshots/popup.png)
 
 Captured without using Refresh for shots. See [docs/screenshots/README.md](docs/screenshots/README.md).
 
@@ -37,23 +37,23 @@ Artifacts:
 
 | Output | Path |
 | ------ | ---- |
-| Unpacked `.app` | `dist/mac-arm64/GrokBar.app` |
-| Versioned DMG / zip | `releases/<version>/` (e.g. `releases/0.2.3/`) |
+| Unpacked `.app` | `dist/mac-arm64/GrokBot Meter.app` |
+| Versioned DMG / zip | `releases/<version>/` (e.g. `releases/0.2.5/`) |
 
-Drag **GrokBar** to Applications (from the DMG or from `dist/mac-arm64`).
+Drag **GrokBot Meter** to Applications (from the DMG or from `dist/mac-arm64`).
 
 ### Unsigned builds & Gatekeeper
 
 `npm run electron:build` produces an **unsigned** app (`CSC_IDENTITY_AUTO_DISCOVERY=false`). Until the DMG is signed and notarized:
 
-1. Right-click **GrokBar** → **Open** → **Open** (first launch).
+1. Right-click **GrokBot Meter** → **Open** → **Open** (first launch).
 2. Or: System Settings → Privacy & Security → allow the blocked app.
 
 See [docs/MAC-RELEASE.md](docs/MAC-RELEASE.md) for Personal Team limits, paid Developer ID, and notarization notes.
 
 ## Usage
 
-1. Launch GrokBar — a small icon appears in the menu bar (no Dock icon).
+1. Launch GrokBot Meter — a small icon appears in the menu bar (no Dock icon).
 2. Click for weekly %, today, sessions, and reset info.
 3. Right-click the icon for About / Quit.
 

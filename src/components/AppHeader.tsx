@@ -11,7 +11,7 @@ export const AppHeader = memo(function AppHeader({ onClose, onSettings }: Props)
     <header className="header header-row">
       <h1 className="title">
         <GrokMark2Icon className="title-icon" />
-        GrokBar
+        GrokBot Meter
       </h1>
       <div className="header-actions">
         <button

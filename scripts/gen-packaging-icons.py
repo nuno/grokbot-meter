@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate GrokBar packaging icons from the in-app GrokMark2Icon geometry.
+Generate GrokBot Meter packaging icons from the in-app GrokMark2Icon geometry.
 
 Canonical source of truth (React):
   src/components/icons/GrokMark2Icon.tsx

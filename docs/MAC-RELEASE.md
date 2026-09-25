@@ -1,4 +1,4 @@
-# GrokBar Mac release
+# GrokBot Meter Mac release
 
 ## What you can do without Apple Developer Program
 
@@ -11,7 +11,7 @@ npm run electron:build
 This produces an **unsigned** arm64 `.app` under `dist/mac-arm64` and versioned `.dmg` / `.zip` artifacts under `releases/<version>/` for **your Mac only**.
 
 First open on macOS:
-1. Open `releases/<version>/GrokBar-<version>-arm64.dmg` and drag GrokBar to Applications (or run from `dist/mac-arm64`).
+1. Open `releases/<version>/GrokBot-Meter-<version>-arm64.dmg` and drag GrokBot Meter to Applications (or run from `dist/mac-arm64`).
 2. If Gatekeeper blocks it: right-click the app → **Open** → **Open**.
 
 Do **not** use any other person’s Developer ID on this machine.
