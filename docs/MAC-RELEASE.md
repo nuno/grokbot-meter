@@ -8,11 +8,19 @@ A free **Personal Team** Apple ID (Developer → Account) is enough for:
 npm run electron:build
 ```
 
-This produces an **unsigned** arm64 `.app` under `dist/mac-arm64` and versioned `.dmg` / `.zip` artifacts under `releases/<version>/` for **your Mac only**.
+This produces an **ad-hoc signed** (not notarized) arm64 `.app` under `dist/mac-arm64` and versioned `.dmg` / `.zip` artifacts under `releases/<version>/`.
 
-First open on macOS:
-1. Open `releases/<version>/GrokBot-Meter-<version>-arm64.dmg` and drag GrokBot Meter to Applications (or run from `dist/mac-arm64`).
-2. If Gatekeeper blocks it: right-click the app → **Open** → **Open**.
+The `afterPack` hook (`scripts/after-pack-adhoc-sign.cjs`) re-signs the whole bundle with `codesign --force --deep --sign -` and runs a strict verify, so the build fails if the signature is broken. Without it, the bundle keeps Electron's linker-only signature and quarantined downloads are reported as "damaged".
+
+Before publishing, check the artifact users will download (not just `dist/mac-arm64`):
+
+```bash
+ditto -x -k releases/<version>/GrokBot-Meter-<version>-arm64.zip /tmp/gbm-check
+codesign --verify --deep --strict --verbose=2 "/tmp/gbm-check/GrokBot Meter.app"   # must print "valid on disk"
+spctl --assess --type execute -vv "/tmp/gbm-check/GrokBot Meter.app"               # "rejected" is expected (not notarized)
+```
+
+First open on macOS: see [First launch (Gatekeeper)](../README.md#first-launch-gatekeeper) in the README.
 
 Do **not** use any other person’s Developer ID on this machine.
 

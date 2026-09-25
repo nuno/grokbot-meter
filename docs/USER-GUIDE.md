@@ -26,7 +26,7 @@ npm run electron:build
 
 This creates an unpacked app in `dist/mac-arm64` and versioned DMG/zip under `releases/<version>/`. Open the DMG (or `dist/mac-arm64`) and drag **GrokBot Meter** to Applications.
 
-> Note: the first build is unsigned. If macOS blocks it, right-click → **Open**. See `docs/MAC-RELEASE.md`.
+> Note: the app is not notarized, so macOS asks you to approve it on first launch. On macOS 15 or later, open it once, then go to System Settings → Privacy & Security → **Open Anyway**. On older macOS, right-click → **Open**. Full steps: "First launch (Gatekeeper)" in `README.md`.
 >
 > `dist/mac-arm64` is large (~480 MB) because it bundles the Electron runtime.
 

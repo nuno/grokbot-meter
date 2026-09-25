@@ -1,7 +1,7 @@
 {
   "name": "grokbot-meter",
   "private": true,
-  "version": "0.2.5",
+  "version": "0.2.6",
   "type": "module",
   "main": "out/main/index.js",
   "scripts": {
@@ -36,6 +36,7 @@
     "files": [
       "out/**"
     ],
+    "afterPack": "scripts/after-pack-adhoc-sign.cjs",
     "mac": {
       "target": [
         {

@@ -8,8 +8,8 @@ Menu bar meters for **Grok Bot** on macOS — weekly usage %, today, and reset t
 
 Unofficial **Grok Bot** menu-bar meters for macOS — early public beta for testers.
 
-- **Unsigned** Apple Silicon (arm64) build — not notarized
-- First launch: right-click the app → **Open** → **Open** (Gatekeeper)
+- Apple Silicon (arm64) build — ad-hoc signed, **not notarized**
+- First launch needs one Gatekeeper approval — see [First launch](#first-launch-gatekeeper)
 - Please file bugs and feedback via [Issues](https://github.com/nuno/grokbot-meter/issues)
 - Not affiliated with xAI, Cursor, or Apple
 
@@ -54,14 +54,25 @@ Artifacts:
 
 Drag **GrokBot Meter** to Applications (from the DMG or from `dist/mac-arm64`).
 
-### Unsigned builds & Gatekeeper
+### First launch (Gatekeeper)
 
-`npm run electron:build` produces an **unsigned** app (`CSC_IDENTITY_AUTO_DISCOVERY=false`). Until the DMG is signed and notarized:
+Release builds are ad-hoc signed but not notarized (no paid Apple Developer ID yet), so macOS asks you to approve the app once.
 
-1. Right-click **GrokBot Meter** → **Open** → **Open** (first launch).
-2. Or: System Settings → Privacy & Security → allow the blocked app.
+**macOS 15 Sequoia and later**
 
-See [docs/MAC-RELEASE.md](docs/MAC-RELEASE.md) for Personal Team limits, paid Developer ID, and notarization notes.
+1. Drag **GrokBot Meter** to Applications and open it. macOS says it can't verify the developer — click **Done**.
+2. Open **System Settings → Privacy & Security**, scroll to **Security**, and click **Open Anyway** next to "GrokBot Meter was blocked".
+3. Confirm with **Open Anyway** and your password. Later launches open normally.
+
+**macOS 14 Sonoma and earlier:** right-click **GrokBot Meter** → **Open** → **Open**.
+
+If macOS still refuses (for example "is damaged and can't be opened"), clear the download quarantine flag and open it again:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/GrokBot Meter.app"
+```
+
+`npm run electron:build` ad-hoc signs the app in an `afterPack` hook (`scripts/after-pack-adhoc-sign.cjs`). See [docs/MAC-RELEASE.md](docs/MAC-RELEASE.md) for Developer ID and notarization notes.
 
 ## Usage
 
@@ -75,7 +86,7 @@ Data comes from local Grok Bot state on your Mac (and official account meters wh
 
 ```bash
 npm run electron:dev    # Electron + hot reload
-npm run electron:build  # unsigned arm64 dir + DMG + zip → releases/<version>/
+npm run electron:build  # ad-hoc signed arm64 dir + DMG + zip → releases/<version>/
 npm run icons:gen       # regenerate packaging / tray icons
 ```
 
