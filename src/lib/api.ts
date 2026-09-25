@@ -20,10 +20,11 @@ export function fetchGrokStatus(): Promise<GrokStatus> {
   return api.grokStatus();
 }
 
-export function fetchWeeklyStatus(): Promise<WeeklyStatus> {
+/** `force` skips the main-process weekly cache (Refresh button). */
+export function fetchWeeklyStatus(force = false): Promise<WeeklyStatus> {
   const api = getApi();
   if (!api) return Promise.reject(new Error("API unavailable"));
-  return api.weeklyStatus();
+  return api.weeklyStatus(force);
 }
 
 export function fetchGrokBotVersion(): Promise<string | null> {

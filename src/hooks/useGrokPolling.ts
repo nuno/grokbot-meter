@@ -64,7 +64,7 @@ export function useGrokPolling(onWindowHide?: () => void): Result {
     try {
       const [grokResult, weeklyResult] = await Promise.allSettled([
         fetchGrokStatus(),
-        fetchWeeklyStatus(),
+        fetchWeeklyStatus(true),
       ]);
       if (cancelledRef.current) return;
       if (grokResult.status === "fulfilled") {

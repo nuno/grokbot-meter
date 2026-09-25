@@ -360,8 +360,8 @@ app.whenReady().then(() => {
   ipcMain.handle("grok:status", () => getGrokStatus());
   ipcMain.handle("app:grokBotVersion", () => getGrokBotVersion());
   ipcMain.handle("app:getVersion", () => app.getVersion());
-  ipcMain.handle("weekly:status", async () => {
-    const weekly = await getWeeklyStatusAsync();
+  ipcMain.handle("weekly:status", async (_e, force?: boolean) => {
+    const weekly = await getWeeklyStatusAsync(force === true);
     applyWeeklyToTray(weekly);
     return weekly;
   });

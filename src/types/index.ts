@@ -6,7 +6,7 @@ declare global {
   interface Window {
     api: {
       grokStatus: () => Promise<GrokStatus>;
-      weeklyStatus: () => Promise<WeeklyStatus>;
+      weeklyStatus: (force?: boolean) => Promise<WeeklyStatus>;
       isVisible: () => Promise<boolean>;
       onShowAbout: (cb: () => void) => () => void;
       onShowSettings: (cb: () => void) => () => void;

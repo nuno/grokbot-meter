@@ -3,7 +3,7 @@ import type { GrokStatus, WeeklyStatus, PanelHeightMode, LoginItemSettings } fro
 
 const api = {
   grokStatus: (): Promise<GrokStatus> => ipcRenderer.invoke("grok:status"),
-  weeklyStatus: (): Promise<WeeklyStatus> => ipcRenderer.invoke("weekly:status"),
+  weeklyStatus: (force = false): Promise<WeeklyStatus> => ipcRenderer.invoke("weekly:status", force),
   isVisible: (): Promise<boolean> => ipcRenderer.invoke("window:isVisible"),
   onShowAbout: (cb: () => void) => {
     const h = () => cb();
@@ -49,7 +49,7 @@ declare global {
   interface Window {
     api: {
       grokStatus: () => Promise<GrokStatus>;
-      weeklyStatus: () => Promise<WeeklyStatus>;
+      weeklyStatus: (force?: boolean) => Promise<WeeklyStatus>;
       isVisible: () => Promise<boolean>;
       onShowAbout: (cb: () => void) => () => void;
       onShowSettings: (cb: () => void) => () => void;

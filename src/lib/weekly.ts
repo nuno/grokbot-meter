@@ -6,7 +6,7 @@ export function weeklyLines(weekly: WeeklyStatus | null): string[] {
   const hasPercent = typeof weekly.usagePercent === "number";
   if (hasPercent) return [formatResetsIn(weekly.nextResetAt)];
   if (weekly.error) return ["Can't load weekly"];
-  if (!weekly.signedIn) return ["Sign in to see weekly"];
+  if (!weekly.signedIn) return ["Sign in to Grok Bot to see weekly"];
   const lines = ["No included weekly quota"];
   if (weekly.upgradeLabel) lines.push(weekly.upgradeLabel);
   return lines;

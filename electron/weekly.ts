@@ -26,14 +26,27 @@ const LONG_TOKEN_RE = /^[A-Za-z0-9\-_\.+/=]+$/;
 const SANITIZE_SPLIT_RE = /\s+/;
 const QUOTE_TRIM_RE = /^["',]+|["',]+$/;
 
+const TOKEN_EXPIRY_SKEW_MS = 60_000;
+type RefreshResult = { kind: "access"; token: string } | { kind: "signedOut" } | { kind: "failed" };
+
 let cache: { fetchedAt: number; status: WeeklyStatus } | null = null;
 let cryptKeyCache: Buffer | null = null;
+/** Access token we minted via refresh; only valid while Grok Bot still holds the same refresh token. */
+let refreshedAccess: { token: string; refresh: string } | null = null;
+let inFlight: Promise<WeeklyStatus> | null = null;
 
-export async function getWeeklyStatusAsync(): Promise<WeeklyStatus> {
-  if (cache && Date.now() - cache.fetchedAt < CACHE_TTL) return cache.status;
-  const fresh = await fetchStatusAsync();
-  cache = { fetchedAt: Date.now(), status: fresh };
-  return fresh;
+export async function getWeeklyStatusAsync(force = false): Promise<WeeklyStatus> {
+  if (!force && cache && Date.now() - cache.fetchedAt < CACHE_TTL) return cache.status;
+  if (inFlight) return inFlight;
+  inFlight = fetchStatusAsync()
+    .then((fresh) => {
+      cache = { fetchedAt: Date.now(), status: fresh };
+      return fresh;
+    })
+    .finally(() => {
+      inFlight = null;
+    });
+  return inFlight;
 }
 
 function emptyStatus(): WeeklyStatus {
@@ -61,33 +74,46 @@ function errStatus(signedIn: boolean, error: string): WeeklyStatus {
 }
 
 async function fetchStatusAsync(): Promise<WeeklyStatus> {
-  let tokens = loadTokens();
-  if (!tokens.access || !looksLikeJwt(tokens.access)) {
-    if (tokens.refresh) {
-      const r = await refreshAccess(tokens.refresh);
-      if (r.kind === "access") tokens.access = r.token;
-      else if (r.kind === "signedOut") return signedOut(null);
-      else return errStatus(true, "network error");
-    } else return signedOut(null);
+  const tokens = loadTokens();
+  const refresh = tokens.refresh?.trim() || null;
+  const fileAccess = tokens.access?.trim();
+
+  let access: string | null = null;
+  if (fileAccess && looksLikeJwt(fileAccess) && !isExpired(fileAccess)) access = fileAccess;
+  else if (refreshedAccess && refreshedAccess.refresh === refresh && !isExpired(refreshedAccess.token))
+    access = refreshedAccess.token;
+  else refreshedAccess = null;
+
+  if (!access) {
+    if (!refresh) return signedOut(null);
+    const r = await refreshAndRemember(refresh);
+    if (r.kind !== "access") return refreshFailureStatus(r);
+    access = r.token;
   }
-  const access = tokens.access?.trim();
-  if (!access || !looksLikeJwt(access)) return signedOut(null);
 
   const usage = await callUsage(access);
   if (usage.kind === "ok") return withAccountEmail(parseUsage(usage.value), access);
-  if (usage.kind === "unauthorized") {
-    if (!tokens.refresh) return signedOut(null);
-    const r = await refreshAccess(tokens.refresh);
-    if (r.kind === "access") {
-      const retry = await callUsage(r.token);
-      if (retry.kind === "ok") return withAccountEmail(parseUsage(retry.value), r.token);
-      if (retry.kind === "unauthorized") return signedOut(null);
-      return errStatus(true, retry.error);
-    }
-    if (r.kind === "failed") return errStatus(true, "network error");
-    return signedOut(null);
-  }
-  return errStatus(true, usage.error);
+  if (usage.kind !== "unauthorized") return errStatus(true, usage.error);
+
+  refreshedAccess = null;
+  if (!refresh) return signedOut(null);
+  const r = await refreshAndRemember(refresh);
+  if (r.kind !== "access") return refreshFailureStatus(r);
+  const retry = await callUsage(r.token);
+  if (retry.kind === "ok") return withAccountEmail(parseUsage(retry.value), r.token);
+  if (retry.kind === "unauthorized") return signedOut(null);
+  return errStatus(true, retry.error);
+}
+
+async function refreshAndRemember(refresh: string): Promise<RefreshResult> {
+  const r = await refreshAccess(refresh);
+  refreshedAccess = r.kind === "access" ? { token: r.token, refresh } : null;
+  return r;
+}
+
+function refreshFailureStatus(r: Exclude<RefreshResult, { kind: "access" }>): WeeklyStatus {
+  if (r.kind === "signedOut") return signedOut(null);
+  return errStatus(true, "network error");
 }
 
 async function withAccountEmail(status: WeeklyStatus, access: string): Promise<WeeklyStatus> {
@@ -197,7 +223,7 @@ function extractAccountLabel(v: unknown): string | null {
   return r || null;
 }
 
-async function refreshAccess(refresh: string): Promise<{ kind: "access"; token: string } | { kind: "signedOut" } | { kind: "failed" }> {
+async function refreshAccess(refresh: string): Promise<RefreshResult> {
   try {
     const res = await fetch(TOKEN_URL, {
       method: "POST",
@@ -218,7 +244,7 @@ async function refreshAccess(refresh: string): Promise<{ kind: "access"; token: 
   }
 }
 
-function parseRefreshJson(v: Record<string, unknown>, httpStatus: number): { kind: "access"; token: string } | { kind: "signedOut" } | { kind: "failed" } {
+function parseRefreshJson(v: Record<string, unknown>, httpStatus: number): RefreshResult {
   if (jsonBool(v, "shouldLogout", "should_logout")) return { kind: "signedOut" };
   if (httpStatus === 401) return { kind: "signedOut" };
   if (httpStatus < 200 || httpStatus >= 300) return { kind: "failed" };
@@ -320,6 +346,16 @@ function looksLikeJwt(token: string): boolean {
   const parts = t.split(".");
   if (parts.length !== 3 || parts.some((p) => !p)) return false;
   return JWT_CHAR_RE.test(t);
+}
+/** Unreadable `exp` counts as not expired so the server decides. */
+function isExpired(token: string): boolean {
+  try {
+    const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString("utf8")) as { exp?: unknown };
+    if (typeof payload.exp !== "number") return false;
+    return normalizeEpoch(payload.exp) - TOKEN_EXPIRY_SKEW_MS <= Date.now();
+  } catch {
+    return false;
+  }
 }
 function sanitizeError(msg: string): string {
   const out: string[] = [];
