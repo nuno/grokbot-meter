@@ -44,3 +44,5 @@ releases/*/*.blockmap
 *.pem
 *.p12
 *.mobileprovision
+electron/tsconfig.tsbuildinfo
+tsconfig.tsbuildinfo
