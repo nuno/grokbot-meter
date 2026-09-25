@@ -31,6 +31,6 @@ Use the **`electron:*`** scripts only. There is no standalone Vite `dev` / `buil
 
 ## PRs
 
-1. Branch from `master`.
+1. Branch from `main`.
 2. Keep commits focused; match existing message style (`feat:`, `fix:`, `chore:`).
 3. Update docs if install/release behavior changes.
