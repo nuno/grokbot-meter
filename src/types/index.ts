@@ -8,7 +8,6 @@ declare global {
       grokStatus: () => Promise<GrokStatus>;
       weeklyStatus: () => Promise<WeeklyStatus>;
       isVisible: () => Promise<boolean>;
-      showAbout: () => Promise<void>;
       onShowAbout: (cb: () => void) => () => void;
       onShowSettings: (cb: () => void) => () => void;
       onFocusChanged: (cb: (visible: boolean) => void) => () => void;
@@ -18,6 +17,7 @@ declare global {
       hideWindow: () => Promise<void>;
       setContentHeight: (height: number, mode?: PanelHeightMode) => void;
       grokBotVersion: () => Promise<string | null>;
+      getVersion: () => Promise<string>;
       getLoginItem: () => Promise<LoginItemSettings>;
       setLoginItem: (openAtLogin: boolean) => Promise<LoginItemSettings>;
     };

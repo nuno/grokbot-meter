@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, screen } from "electron";
+import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, screen, session } from "electron";
 import { join } from "path";
 import { existsSync, unlinkSync } from "fs";
 import { getGrokStatus } from "./grokSource";
@@ -222,9 +222,6 @@ function showSettings() {
 }
 
 function createWindow() {
-  // <ai-start-DO NOT REMOVE THIS COMMENT>
-  // const isDev = !!process.env["ELECTRON_RENDERER_URL"] || !!process.env.ELECTRON_START_URL;
-  //<ai-end-DO NOT REMOVE THIS COMMENT />
   win = new BrowserWindow({
     width: PANEL_WIDTH,
     height: PANEL_MIN_HEIGHT,
@@ -244,14 +241,27 @@ function createWindow() {
       preload: join(__dirname, "../preload/index.mjs"),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false,
+      sandbox: false, // true breaks electron-vite preload/IPC in practice; keep other A hardenings
     },
   });
   if (process.platform === "darwin" && app.dock) app.dock.hide();
 
   if (!app.isPackaged && process.env["ELECTRON_RENDERER_URL"]) win.loadURL(process.env["ELECTRON_RENDERER_URL"]);
-  else if (process.env.ELECTRON_START_URL) win.loadURL(process.env.ELECTRON_START_URL);
+  else if (!app.isPackaged && process.env.ELECTRON_START_URL) win.loadURL(process.env.ELECTRON_START_URL);
   else win.loadFile(join(__dirname, "../renderer/index.html"));
+
+  win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  win.webContents.on("will-navigate", (event, url) => {
+    let allowed = url.startsWith("file:") || url.startsWith("app:");
+    if (!allowed && !app.isPackaged) {
+      const renderer = process.env["ELECTRON_RENDERER_URL"];
+      const start = process.env.ELECTRON_START_URL;
+      if (renderer && url.startsWith(renderer)) allowed = true;
+      else if (start && url.startsWith(start)) allowed = true;
+      else if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/.test(url)) allowed = true;
+    }
+    if (!allowed) event.preventDefault();
+  });
 
   win.on("close", (e) => {
     if (isQuitting) return;
@@ -332,25 +342,35 @@ app.whenReady().then(() => {
   } catch {
     /* ignore */
   }
+  // Packaged-only CSP — skip in electron-vite dev (HMR / localhost).
+  if (app.isPackaged) {
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+      callback({
+        responseHeaders: {
+          ...details.responseHeaders,
+          "Content-Security-Policy": [
+            "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'",
+          ],
+        },
+      });
+    });
+  }
   createWindow();
   createTray();
   ipcMain.handle("grok:status", () => getGrokStatus());
   ipcMain.handle("app:grokBotVersion", () => getGrokBotVersion());
+  ipcMain.handle("app:getVersion", () => app.getVersion());
   ipcMain.handle("weekly:status", async () => {
     const weekly = await getWeeklyStatusAsync();
     applyWeeklyToTray(weekly);
     return weekly;
   });
-  ipcMain.handle("show-about", () => { showAbout(); });
   ipcMain.handle("app:quit", () => app.quit());
   ipcMain.handle("window:isVisible", () => win?.isVisible() ?? false);
   ipcMain.handle("window:hide", () => { win?.hide(); });
   ipcMain.on("window:setContentHeight-sync", (event, height: number, mode?: PanelHeightMode) => {
     setPanelContentHeight(Number(height), normalizeHeightMode(mode));
     event.returnValue = true;
-  });
-  ipcMain.handle("window:setContentHeight", (_e, height: number, mode?: PanelHeightMode) => {
-    setPanelContentHeight(Number(height), normalizeHeightMode(mode));
   });
   ipcMain.handle("settings:getLoginItem", () => {
     if (process.platform !== "darwin") return { openAtLogin: false, supported: false };

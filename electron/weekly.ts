@@ -29,11 +29,6 @@ const QUOTE_TRIM_RE = /^["',]+|["',]+$/;
 let cache: { fetchedAt: number; status: WeeklyStatus } | null = null;
 let cryptKeyCache: Buffer | null = null;
 
-export function getWeeklyStatus(): WeeklyStatus {
-  if (cache && Date.now() - cache.fetchedAt < CACHE_TTL) return cache.status;
-  return emptyStatus();
-}
-
 export async function getWeeklyStatusAsync(): Promise<WeeklyStatus> {
   if (cache && Date.now() - cache.fetchedAt < CACHE_TTL) return cache.status;
   const fresh = await fetchStatusAsync();

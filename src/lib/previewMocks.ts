@@ -1,13 +1,13 @@
 import type { GrokAgent, OnDemandSpend, WeeklyStatus } from "../types";
 
 /** Flip off (or delete this file) when the long-list preview is done. */
-export const PREVIEW_LONG_AGENT_LIST = false;
+export const PREVIEW_LONG_AGENT_LIST = import.meta.env.DEV && false;
 
 /**
  * Local UI preview only — does not enable on-demand on the account or call spend APIs.
  * Flip to false when done reviewing the On-demand row.
  */
-export const PREVIEW_ONDEMAND_SPEND = false;
+export const PREVIEW_ONDEMAND_SPEND = import.meta.env.DEV && false;
 
 /** Sample shaped like Grok Bot spendLimitUsage → OnDemandSpend ($12.40 / $50.00). */
 export const PREVIEW_ONDEMAND_SAMPLE: OnDemandSpend = {

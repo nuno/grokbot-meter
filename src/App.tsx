@@ -18,7 +18,7 @@ export default function App() {
   const { status, weekly, weeklyUpdatedAt, error, refreshing, refresh } = useGrokPolling(resetOnHide);
   const liveAgents = selectAgents(status);
   const liveStats = selectTodayStats(status);
-  const preview = PREVIEW_LONG_AGENT_LIST ? previewPadAgents(liveAgents) : null;
+  const preview = import.meta.env.DEV && PREVIEW_LONG_AGENT_LIST ? previewPadAgents(liveAgents) : null;
   const agents = preview?.agents ?? liveAgents;
   const todayMessageCount = preview?.todayMessageCount ?? liveStats.todayMessageCount;
   const todayAgentCount = preview?.todayAgentCount ?? liveStats.todayAgentCount;

@@ -48,7 +48,16 @@ This creates an unpacked app in `dist/mac-arm64` and versioned DMG/zip under `re
 A small menu appears:
 
 - **About GrokBot Meter** — shows app information.
+- **Settings…** — open preferences (Launch at login, redact email, show on-demand row). You can also open Settings from the gear in the popup header.
 - **Quit GrokBot Meter** — closes the app completely.
+
+### Settings
+
+Settings let you control local UI preferences only (not your Cursor / Grok account):
+
+- **Launch at login** — start GrokBot Meter when you log in to macOS.
+- **Redact email** — hide your account email in the UI.
+- **Show on-demand** — show or hide the on-demand spend row when Grok Bot reports one.
 
 ## What the popup shows
 

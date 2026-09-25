@@ -32,6 +32,12 @@ export function fetchGrokBotVersion(): Promise<string | null> {
   return api.grokBotVersion();
 }
 
+export function fetchAppVersion(): Promise<string> {
+  const api = getApi();
+  if (!api?.getVersion) return Promise.resolve("0.0.0");
+  return api.getVersion();
+}
+
 export function fetchIsVisible(): Promise<boolean> {
   const api = getApi();
   if (!api?.isVisible) return Promise.resolve(true);

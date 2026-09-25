@@ -5,5 +5,5 @@
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true
   },
-  "include": ["vite.config.ts", "electron.vite.config.ts", "electron/**/*", "shared/**/*"]
+  "include": ["electron.vite.config.ts", "electron/**/*", "shared/**/*"]
 }

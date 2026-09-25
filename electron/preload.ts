@@ -5,7 +5,6 @@ const api = {
   grokStatus: (): Promise<GrokStatus> => ipcRenderer.invoke("grok:status"),
   weeklyStatus: (): Promise<WeeklyStatus> => ipcRenderer.invoke("weekly:status"),
   isVisible: (): Promise<boolean> => ipcRenderer.invoke("window:isVisible"),
-  showAbout: () => ipcRenderer.invoke("show-about"),
   onShowAbout: (cb: () => void) => {
     const h = () => cb();
     ipcRenderer.on("show-about", h);
@@ -38,6 +37,7 @@ const api = {
     ipcRenderer.sendSync("window:setContentHeight-sync", height, mode);
   },
   grokBotVersion: (): Promise<string | null> => ipcRenderer.invoke("app:grokBotVersion"),
+  getVersion: (): Promise<string> => ipcRenderer.invoke("app:getVersion"),
   getLoginItem: (): Promise<LoginItemSettings> => ipcRenderer.invoke("settings:getLoginItem"),
   setLoginItem: (openAtLogin: boolean): Promise<LoginItemSettings> =>
     ipcRenderer.invoke("settings:setLoginItem", openAtLogin),
@@ -51,7 +51,6 @@ declare global {
       grokStatus: () => Promise<GrokStatus>;
       weeklyStatus: () => Promise<WeeklyStatus>;
       isVisible: () => Promise<boolean>;
-      showAbout: () => Promise<void>;
       onShowAbout: (cb: () => void) => () => void;
       onShowSettings: (cb: () => void) => () => void;
       onFocusChanged: (cb: (visible: boolean) => void) => () => void;
@@ -61,6 +60,7 @@ declare global {
       hideWindow: () => Promise<void>;
       setContentHeight: (height: number, mode?: PanelHeightMode) => void;
       grokBotVersion: () => Promise<string | null>;
+      getVersion: () => Promise<string>;
       getLoginItem: () => Promise<LoginItemSettings>;
       setLoginItem: (openAtLogin: boolean) => Promise<LoginItemSettings>;
     };

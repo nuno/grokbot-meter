@@ -1,13 +1,10 @@
 {
-  "name": "grokbar",
+  "name": "grokbot-meter",
   "private": true,
   "version": "0.2.5",
   "type": "module",
   "main": "out/main/index.js",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
     "electron:dev": "electron-vite dev --watch",
     "electron:build": "tsc && electron-vite build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac dir dmg zip --arm64 && node scripts/organize-release-artifacts.mjs",
     "electron:preview": "electron-vite preview",

@@ -1,20 +1,25 @@
 import { memo, useEffect, useState } from "react";
-import { fetchGrokBotVersion } from "../lib/api";
+import { fetchAppVersion, fetchGrokBotVersion } from "../lib/api";
 import { GrokMark2Icon } from "./icons";
-
-/** Keep in sync with package.json version. */
-const APP_VERSION = "0.2.5";
 
 type Props = {
   onBack: () => void;
 };
 
 export const AboutPanel = memo(function AboutPanel({ onBack }: Props) {
+  const [appVersion, setAppVersion] = useState<string | null>(null);
   const [grokBotVersion, setGrokBotVersion] = useState<string | null>(null);
   const [grokBotVersionLoaded, setGrokBotVersionLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+    void fetchAppVersion()
+      .then((v) => {
+        if (!cancelled) setAppVersion(v);
+      })
+      .catch(() => {
+        if (!cancelled) setAppVersion(null);
+      });
     void fetchGrokBotVersion()
       .then((v) => {
         if (!cancelled) {
@@ -40,6 +45,8 @@ export const AboutPanel = memo(function AboutPanel({ onBack }: Props) {
       ? `Grok Bot ${grokBotVersion}`
       : "Grok Bot — not installed";
 
+  const versionLine = appVersion ? `Version ${appVersion}` : "Version …";
+
   return (
     <div className="panel">
       <header className="header header-row">
@@ -58,7 +65,7 @@ export const AboutPanel = memo(function AboutPanel({ onBack }: Props) {
           <div className="about-titleblock">
             <h2>GrokBot Meter</h2>
             <p className="tagline">Menu bar stats for Grok Bot.</p>
-            <p className="about-version">Version {APP_VERSION}</p>
+            <p className="about-version">{versionLine}</p>
             <p className={`about-version${!grokBotVersionLoaded ? " is-pending" : ""}`}>{grokBotLine}</p>
           </div>
         </div>
@@ -70,7 +77,7 @@ export const AboutPanel = memo(function AboutPanel({ onBack }: Props) {
         </div>
         <div className="about-divider" role="separator" />
         <div className="about-footer">
-          <p>Built by Grok Bot.</p>
+          <p>Independent project · built with Grok Bot.</p>
           <p className="legal">© 2026 Nuno Costa</p>
         </div>
       </section>

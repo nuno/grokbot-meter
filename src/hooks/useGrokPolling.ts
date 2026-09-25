@@ -2,6 +2,32 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import type { GrokStatus, WeeklyStatus } from "../types";
 import { fetchGrokStatus, fetchWeeklyStatus, fetchIsVisible, getPollInterval, subscribeFocusChanged, subscribeWeeklyUpdated } from "../lib/api";
 
+
+function weeklyFetchFailed(reason: unknown): WeeklyStatus {
+  const raw =
+    reason instanceof Error
+      ? reason.message
+      : typeof reason === "string"
+        ? reason
+        : "";
+  const error = (raw.trim() || "Can't load weekly").slice(0, 160);
+  return {
+    signedIn: false,
+    includedLimitZero: false,
+    usagePercent: null,
+    nextResetAt: null,
+    currentPeriodStart: null,
+    upgradeLabel: null,
+    sandTrial: false,
+    sandTrialExpiresAt: null,
+    hasNonZeroIncludedLimit: null,
+    hasAvailableUsage: null,
+    accountEmail: null,
+    onDemand: null,
+    error,
+  };
+}
+
 type Result = {
   status: GrokStatus | null;
   weekly: WeeklyStatus | null;
@@ -29,8 +55,11 @@ export function useGrokPolling(onWindowHide?: () => void): Result {
     if (next) setWeeklyUpdatedAt(Date.now());
   }, []);
 
+  const refreshingRef = useRef(false);
+
   const refresh = useCallback(async () => {
-    if (refreshing) return;
+    if (refreshingRef.current) return;
+    refreshingRef.current = true;
     setRefreshing(true);
     try {
       const [grokResult, weeklyResult] = await Promise.allSettled([
@@ -47,11 +76,14 @@ export function useGrokPolling(onWindowHide?: () => void): Result {
       }
       if (weeklyResult.status === "fulfilled") {
         applyWeekly(weeklyResult.value);
+      } else {
+        applyWeekly(weeklyFetchFailed(weeklyResult.reason));
       }
     } finally {
+      refreshingRef.current = false;
       if (!cancelledRef.current) setRefreshing(false);
     }
-  }, [refreshing, applyWeekly]);
+  }, [applyWeekly]);
 
   useEffect(() => {
     cancelledRef.current = false;
@@ -79,9 +111,10 @@ export function useGrokPolling(onWindowHide?: () => void): Result {
           setWeekly(next);
           setWeeklyUpdatedAt(Date.now());
         })
-        .catch(() => {
+        .catch((err: unknown) => {
           if (cancelled) return;
-          setWeekly(null);
+          setWeekly(weeklyFetchFailed(err));
+          setWeeklyUpdatedAt(Date.now());
         });
     };
 
