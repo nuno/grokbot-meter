@@ -15,6 +15,7 @@ declare global {
       onEscapePressed: (cb: () => void) => () => void;
       onWeeklyUpdated: (cb: (weekly: WeeklyStatus) => void) => () => void;
       quit: () => Promise<void>;
+      openSponsors: () => Promise<void>;
       hideWindow: () => Promise<void>;
       setContentHeight: (height: number, mode?: PanelHeightMode) => void;
       grokBotVersion: () => Promise<string | null>;

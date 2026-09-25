@@ -1,5 +1,5 @@
 import { memo, useEffect, useState } from "react";
-import { fetchAppVersion, fetchGrokBotVersion } from "../lib/api";
+import { fetchAppVersion, fetchGrokBotVersion, openSponsors } from "../lib/api";
 import { GrokMark2Icon } from "./icons";
 
 type Props = {
@@ -78,6 +78,9 @@ export const AboutPanel = memo(function AboutPanel({ onBack }: Props) {
         <div className="about-divider" role="separator" />
         <div className="about-footer">
           <p>Independent project · built with Grok Bot.</p>
+          <button type="button" className="about-sponsor" onClick={() => void openSponsors()}>
+            Sponsor
+          </button>
           <p className="legal">© 2026 Nuno Costa</p>
         </div>
       </section>

@@ -31,6 +31,7 @@ const api = {
     return () => ipcRenderer.removeListener("weekly:updated", h);
   },
   quit: () => ipcRenderer.invoke("app:quit"),
+  openSponsors: () => ipcRenderer.invoke("app:openSponsors"),
   hideWindow: () => ipcRenderer.invoke("window:hide"),
   setContentHeight: (height: number, mode: PanelHeightMode = "main") => {
     // sendSync so useLayoutEffect can resize before paint (footer About flash).
@@ -57,6 +58,7 @@ declare global {
       onEscapePressed: (cb: () => void) => () => void;
       onWeeklyUpdated: (cb: (weekly: WeeklyStatus) => void) => () => void;
       quit: () => Promise<void>;
+      openSponsors: () => Promise<void>;
       hideWindow: () => Promise<void>;
       setContentHeight: (height: number, mode?: PanelHeightMode) => void;
       grokBotVersion: () => Promise<string | null>;

@@ -3,6 +3,7 @@
 [![Release](https://img.shields.io/github/v/release/nuno/grokbot-meter?label=release)](https://github.com/nuno/grokbot-meter/releases)
 [![Downloads](https://img.shields.io/github/downloads/nuno/grokbot-meter/total?label=downloads)](https://github.com/nuno/grokbot-meter/releases)
 [![License: MIT](https://img.shields.io/github/license/nuno/grokbot-meter)](LICENSE)
+[![Sponsor](https://img.shields.io/github/sponsors/nuno?label=sponsor)](https://github.com/sponsors/nuno)
 
 Menu bar meters for **Grok Bot** on macOS — weekly usage %, today, and reset timing. Tiny tray app; no Dock clutter.
 
@@ -131,6 +132,10 @@ npm run icons:gen       # regenerate packaging / tray icons
 ```
 
 More detail: [docs/USER-GUIDE.md](docs/USER-GUIDE.md), [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Sponsor
+
+If GrokBot Meter is useful, you can [sponsor the project](https://github.com/sponsors/nuno).
 
 ## License
 

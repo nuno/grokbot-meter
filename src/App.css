@@ -762,6 +762,22 @@ body,
   color: var(--tertiary-label);
 }
 
+.about-sponsor {
+  align-self: flex-start;
+  margin-top: 10px;
+  color: var(--label);
+  background: var(--control-bg);
+  border: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 550;
+}
+
+.about-sponsor:hover {
+  background: var(--control-bg-hover);
+}
+
 .footer-btn {
   position: relative;
   color: var(--label);
