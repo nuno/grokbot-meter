@@ -4,6 +4,18 @@ Menu bar meters for **Grok Bot** on macOS — weekly usage %, today, and reset t
 
 > Unofficial companion. Not affiliated with, endorsed by, or a product of xAI, Cursor, or Apple. Uses **official Grok Bot meters only** — no invented caps or estimates.
 
+## Early public beta
+
+Unofficial **Grok Bot** menu-bar meters for macOS — early public beta for testers.
+
+- **Unsigned** Apple Silicon (arm64) build — not notarized
+- First launch: right-click the app → **Open** → **Open** (Gatekeeper)
+- Please file bugs and feedback via [Issues](https://github.com/nuno/grokbot-meter/issues)
+- Not affiliated with xAI, Cursor, or Apple
+
+**Install from Release DMG:** [github.com/nuno/grokbot-meter/releases](https://github.com/nuno/grokbot-meter/releases)
+
+
 ## Requirements
 
 - macOS (Apple Silicon build target today; Intel not packaged yet)
@@ -27,8 +39,8 @@ Captured without using Refresh for shots. See [docs/screenshots/README.md](docs/
 ## Install from source
 
 ```bash
-git clone <your-fork-or-repo-url> grokbar
-cd grokbar
+git clone https://github.com/nuno/grokbot-meter.git grokbot-meter
+cd grokbot-meter
 npm install
 npm run electron:build
 ```
