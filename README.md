@@ -1,7 +1,7 @@
 <div align="center">
 
 <h1>
-  <img src="docs/logo.png" alt="GrokBot Meter logo" width="64" height="64" align="center">
+  <img src="docs/logo.png" alt="GrokBot Meter logo" width="48" height="48" align="center">
   GrokBot Meter
 </h1>
 
