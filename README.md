@@ -1,146 +1,142 @@
-# GrokBot Meter
+<div align="center">
+
+<h1>
+  <img src="build/icons/128x128@2x.png" alt="GrokBot Meter logo" width="64" height="64" align="center">
+  GrokBot Meter
+</h1>
+
+**Your Grok Bot weekly usage, always one glance away in the macOS menu bar.**
 
 [![Release](https://img.shields.io/github/v/release/nuno/grokbot-meter?label=release)](https://github.com/nuno/grokbot-meter/releases)
 [![Downloads](https://img.shields.io/github/downloads/nuno/grokbot-meter/total?label=downloads)](https://github.com/nuno/grokbot-meter/releases)
 [![License: MIT](https://img.shields.io/github/license/nuno/grokbot-meter)](LICENSE)
 [![Sponsor](https://img.shields.io/github/sponsors/nuno?label=sponsor)](https://github.com/sponsors/nuno)
 
-Menu bar meters for **Grok Bot** on macOS — weekly usage %, today, and reset timing. Tiny tray app; no Dock clutter.
-
-> Unofficial companion. Not affiliated with, endorsed by, or a product of xAI, Cursor, or Apple. Uses **official Grok Bot meters only** — no invented caps or estimates.
+### [Download for macOS (Apple Silicon)](https://github.com/nuno/grokbot-meter/releases/latest)
 
 ![GrokBot Meter on the desktop, with the weekly popup open from the menu bar](docs/screenshots/grokbot-meter-desktop-demo.png)
 
-## Early public beta
+</div>
 
-Unofficial **Grok Bot** menu-bar meters for macOS — early public beta for testers.
+## Highlights
 
-- Apple Silicon (arm64) build — ad-hoc signed, **not notarized**
-- First launch needs one Gatekeeper approval — see [First launch](#first-launch-gatekeeper)
-- Please file bugs and feedback via [Issues](https://github.com/nuno/grokbot-meter/issues)
-- Not affiliated with xAI, Cursor, or Apple
+- **Weekly % in the menu bar**: know where you stand without opening anything.
+- **Reset countdown**: see exactly when your weekly meter resets.
+- **Today at a glance**: messages, recent agents, and on-demand spend.
+- **Native feel**: light and dark mode, tiny tray app, no Dock icon.
+- **Honest and private**: official Grok Bot meters only, no estimates, no telemetry, no server of its own.
 
-**Install from Release DMG:** [github.com/nuno/grokbot-meter/releases](https://github.com/nuno/grokbot-meter/releases)
+## Quick start
 
+1. [Download the latest DMG](https://github.com/nuno/grokbot-meter/releases/latest).
+2. Drag **GrokBot Meter** to Applications.
+3. Open it and approve it once (see [First launch](#first-launch-gatekeeper)).
 
-## Requirements
+Click the menu bar icon for the full popup. Right-click for About and Quit.
 
-- macOS (Apple Silicon build target today; Intel not packaged yet)
-- [Grok Bot](https://cursor.com) installed and signed in on this Mac
-- Node.js 20+ (to build from source)
+Requires macOS on Apple Silicon and [Grok Bot](https://cursor.com) installed and signed in.
 
 ## Screenshots
 
-Live meters from a local **0.2.7** build — weekly %, on-demand, today, and reset timing at a glance.
-
-**Menu bar** — weekly % beside the tray icon, no Dock clutter.
+<table>
+  <tr>
+    <td><img src="docs/screenshots/popup.png" alt="GrokBot Meter popup in light appearance"></td>
+    <td><img src="docs/screenshots/popup-dark.png" alt="GrokBot Meter popup in dark appearance"></td>
+  </tr>
+  <tr>
+    <td align="center">Light</td>
+    <td align="center">Dark</td>
+  </tr>
+</table>
 
 ![GrokBot Meter menu bar showing weekly usage percent](docs/screenshots/menubar2.png)
 
-**Popup (light)** — weekly progress, on-demand, reset countdown, and today’s messages and agents.
+## First launch (Gatekeeper)
 
-![GrokBot Meter popup in light appearance](docs/screenshots/popup.png)
+Builds are ad-hoc signed but not notarized yet, so macOS asks you to approve the app once.
 
-**Popup (dark)** — same meters in dark appearance.
-
-![GrokBot Meter popup in dark appearance](docs/screenshots/popup-dark.png)
-
-**Desktop (light)** — the same popup in light appearance, anchored to the menu bar.
-
-![GrokBot Meter light popup on the desktop](docs/screenshots/grokbot-meter-desktop-demo-light.png)
-
-Captured without using Refresh for shots. See [docs/screenshots/README.md](docs/screenshots/README.md).
-
-## Install from source
-
-```bash
-git clone https://github.com/nuno/grokbot-meter.git grokbot-meter
-cd grokbot-meter
-npm install
-npm run electron:build
-```
-
-Artifacts:
-
-| Output | Path |
-| ------ | ---- |
-| Unpacked `.app` | `dist/mac-arm64/GrokBot Meter.app` |
-| Versioned DMG / zip | `releases/<version>/` (e.g. `releases/0.2.5/`) |
-
-Drag **GrokBot Meter** to Applications (from the DMG or from `dist/mac-arm64`).
-
-### First launch (Gatekeeper)
-
-Release builds are ad-hoc signed but not notarized (no paid Apple Developer ID yet), so macOS asks you to approve the app once.
+<details>
+<summary>Show steps</summary>
 
 **macOS 15 Sequoia and later**
 
-1. Drag **GrokBot Meter** to Applications and open it. macOS says it can't verify the developer — click **Done**.
-2. Open **System Settings → Privacy & Security**, scroll to **Security**, and click **Open Anyway** next to "GrokBot Meter was blocked".
+1. Open **GrokBot Meter** from Applications. When macOS says it can't verify the developer, click **Done**.
+2. Go to **System Settings → Privacy & Security → Security** and click **Open Anyway**.
 3. Confirm with **Open Anyway** and your password. Later launches open normally.
 
-**macOS 14 Sonoma and earlier:** right-click **GrokBot Meter** → **Open** → **Open**.
+**macOS 14 Sonoma and earlier:** right-click the app → **Open** → **Open**.
 
-If macOS still refuses (for example "is damaged and can't be opened"), clear the download quarantine flag and open it again:
+If macOS says the app "is damaged and can't be opened", clear the quarantine flag:
 
 ```bash
 xattr -dr com.apple.quarantine "/Applications/GrokBot Meter.app"
 ```
 
-`npm run electron:build` ad-hoc signs the app in an `afterPack` hook (`scripts/after-pack-adhoc-sign.cjs`). See [docs/MAC-RELEASE.md](docs/MAC-RELEASE.md) for Developer ID and notarization notes.
+</details>
 
-## Usage
+## Privacy
 
-1. Launch GrokBot Meter — a small icon appears in the menu bar (no Dock icon).
-2. Click for weekly %, today, sessions, and reset info.
-3. Right-click the icon for About / Quit.
+Everything runs on your Mac. GrokBot Meter only reads Grok Bot's local data (read-only) and calls the same Cursor servers Grok Bot already uses. It never writes to Grok Bot's files or touches your sign-in.
 
-## What it accesses
-
-GrokBot Meter has no server of its own and no telemetry. Everything below happens on your Mac or between your Mac and Cursor's servers — the same servers Grok Bot already talks to.
+<details>
+<summary>What it accesses</summary>
 
 | What | Why |
 | ---- | --- |
-| `~/Library/Application Support/Grok Bot/sand-client-persistence/*.blob` (read-only) | Today's message count and recent agents |
-| `~/Library/Application Support/Grok Bot/sand-secrets.json` (read-only) | Grok Bot's encrypted access token for your account |
-| Keychain item **Grok Bot Safe Storage** (read-only) | The key Grok Bot uses to encrypt that token |
-| `/Applications/Grok Bot.app/Contents/Info.plist` (read-only) | Grok Bot version shown in About |
-| `api2.cursor.sh` — `GetSandUsageStatus`, `GetCurrentPeriodUsage`, `GetMe` | Weekly usage %, on-demand spend, account email |
+| `~/Library/Application Support/Grok Bot/sand-client-persistence/*.blob` | Today's message count and recent agents |
+| `~/Library/Application Support/Grok Bot/sand-secrets.json` | Grok Bot's encrypted access token |
+| Keychain item **Grok Bot Safe Storage** | The key used to decrypt that token |
+| `/Applications/Grok Bot.app/Contents/Info.plist` | Grok Bot version shown in About |
+| `api2.cursor.sh`: `GetSandUsageStatus`, `GetCurrentPeriodUsage`, `GetMe` | Weekly %, on-demand spend, account email |
 
-It never writes to Grok Bot's files, never reads your refresh token, and never refreshes or changes your sign-in. When Grok Bot's access token expires, the meter shows **Open Grok Bot to refresh sign-in** until Grok Bot renews it.
+All file access is read-only. It never reads your refresh token or refreshes your sign-in. When the access token expires, the meter shows **Open Grok Bot to refresh sign-in**. These endpoints are undocumented and may change without notice.
 
-These are undocumented Cursor endpoints, so they can change or break without notice.
+</details>
 
-### The Keychain prompt
+<details>
+<summary>About the Keychain prompt</summary>
 
-When GrokBot Meter first loads your weekly usage after starting, macOS asks:
+On first load, macOS asks whether **security** (the built-in `/usr/bin/security` tool) may use "Grok Bot Safe Storage".
 
-> **security** wants to use your confidential information stored in "Grok Bot Safe Storage" in your keychain.
+- **Allow** (recommended): works for this session; asked again next launch.
+- **Always Allow**: no more prompts, but any program using the `security` tool could then read this key.
+- **Deny**: the weekly meter shows **Keychain access denied** until you reopen the app. Today's activity still works.
 
-"security" is macOS's built-in Keychain tool (`/usr/bin/security`), which GrokBot Meter uses to read the key.
+</details>
 
-- **Allow** (recommended): works for this session; you'll be asked again next launch.
-- **Always Allow**: stops the prompts, but grants access to the `security` tool itself, which means any other program on your Mac could then read this key without asking. Only choose it if you're comfortable with that.
-- **Deny**: the weekly meter shows **Keychain access denied** and won't ask again until you reopen the app. Today's activity still works.
+## Build from source
 
-## Development
+Requires Node.js 20+.
+
+```bash
+git clone https://github.com/nuno/grokbot-meter.git
+cd grokbot-meter
+npm install
+npm run electron:build
+```
+
+| Output | Path |
+| ------ | ---- |
+| Unpacked `.app` | `dist/mac-arm64/GrokBot Meter.app` |
+| DMG / zip | `releases/<version>/` |
+
+Release signing and notarization notes: [docs/MAC-RELEASE.md](docs/MAC-RELEASE.md).
+
+### Development
 
 ```bash
 npm run electron:dev    # Electron + hot reload
-npm run electron:build  # ad-hoc signed arm64 dir + DMG + zip → releases/<version>/
+npm run electron:build  # ad-hoc signed arm64 app + DMG + zip
 npm run icons:gen       # regenerate packaging / tray icons
 ```
 
-More detail: [docs/USER-GUIDE.md](docs/USER-GUIDE.md), [CONTRIBUTING.md](CONTRIBUTING.md).
+See [docs/USER-GUIDE.md](docs/USER-GUIDE.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Sponsor
+## Feedback
 
-If GrokBot Meter is useful, you can [sponsor the project](https://github.com/sponsors/nuno).
+GrokBot Meter is in early public beta. Bugs and ideas are welcome in [Issues](https://github.com/nuno/grokbot-meter/issues). If it's useful to you, consider [sponsoring the project](https://github.com/sponsors/nuno).
 
-## License
+---
 
-[MIT](LICENSE) © 2026 Nuno Costa
-
-## Security
-
-See [SECURITY.md](SECURITY.md).
+Unofficial companion. Not affiliated with xAI, Cursor, or Apple.
+[MIT](LICENSE) © 2026 Nuno Costa · [Security](SECURITY.md)
