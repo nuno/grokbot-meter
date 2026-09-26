@@ -72,7 +72,7 @@ Settings let you control local UI preferences only (not your Cursor / Grok accou
 GrokBot Meter reads local data saved by **Grok Bot** on your Mac. To show the
 weekly usage percentage, it uses Grok Bot's sign-in to ask Cursor's servers for
 your usage. It only reads files that Grok Bot already created, never changes them,
-and sends nothing anywhere else. The full list is in "What it accesses" in `README.md`.
+and sends nothing anywhere else. The full list is in [What it accesses](../README.md#what-it-accesses).
 
 ## Common questions
 

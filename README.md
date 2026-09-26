@@ -78,8 +78,7 @@ xattr -dr com.apple.quarantine "/Applications/GrokBot Meter.app"
 
 Everything runs on your Mac. GrokBot Meter only reads Grok Bot's local data (read-only) and calls the same Cursor servers Grok Bot already uses. It never writes to Grok Bot's files or touches your sign-in.
 
-<details>
-<summary>What it accesses</summary>
+### What it accesses
 
 | What | Why |
 | ---- | --- |
@@ -90,8 +89,6 @@ Everything runs on your Mac. GrokBot Meter only reads Grok Bot's local data (rea
 | `api2.cursor.sh`: `GetSandUsageStatus`, `GetCurrentPeriodUsage`, `GetMe` | Weekly %, on-demand spend, account email |
 
 All file access is read-only. It never reads your refresh token or refreshes your sign-in. When the access token expires, the meter shows **Open Grok Bot to refresh sign-in**. These endpoints are undocumented and may change without notice.
-
-</details>
 
 <details>
 <summary>About the Keychain prompt</summary>
