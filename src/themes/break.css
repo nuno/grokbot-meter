@@ -226,6 +226,20 @@
   background: #3a3a43;
 }
 
+/* Usage level only — that rail runs light-to-heavy, so the hairline carries the
+   same green/amber/red ramp as the rest of the panel. Days-to-reset stays grey;
+   a late day in the week is not itself a warning. Kept low-alpha: it is a
+   tinted rule, not a signal on its own, and the lit node still marks the value. */
+.step-track:first-child .step-track-rail::before {
+  background: linear-gradient(
+    90deg,
+    rgba(62, 214, 76, 0.5) 0%,
+    rgba(62, 214, 76, 0.5) 42%,
+    rgba(255, 165, 31, 0.55) 74%,
+    rgba(232, 50, 60, 0.6) 100%
+  );
+}
+
 .step-node {
   position: relative;
   z-index: 1;
