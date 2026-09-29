@@ -88,6 +88,66 @@
   align-items: flex-start;
 }
 
+/* The kiosk stacks the price under its caption on the left and the card
+   balance on the right, so the weekly head becomes a two-column grid. Today
+   keeps the plain flex row. */
+[data-theme="break"] .card-weekly .card-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "label  credit"
+    "pct    credit";
+  row-gap: 3px;
+}
+
+[data-theme="break"] .card-weekly .card-label {
+  grid-area: label;
+}
+
+[data-theme="break"] .card-weekly .card-pct {
+  grid-area: pct;
+}
+
+.kiosk-credit {
+  grid-area: credit;
+  justify-self: end;
+  align-self: start;
+  text-align: right;
+  line-height: 1.15;
+}
+
+.kiosk-credit-value {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--label);
+  font-variant-numeric: tabular-nums;
+}
+
+.kiosk-credit-value.is-warn {
+  color: var(--system-orange);
+}
+
+.kiosk-credit-value.is-critical {
+  color: var(--system-red);
+}
+
+.kiosk-credit-limit {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--tertiary-label);
+}
+
+.kiosk-credit-caption {
+  display: block;
+  margin-top: 2px;
+  font-size: 7.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tertiary-label);
+}
+
 [data-theme="break"] .card-label {
   font-size: 9px;
   letter-spacing: 0.14em;
@@ -107,8 +167,12 @@
 
 /* --- cup gauge ---------------------------------------------------------- */
 
+/* The cup art starts ~15% down its own viewBox, so the gauge is pulled up into
+   that dead space. The head keeps its value in the corners, kiosk-style, and
+   the cup floats between them without touching either. */
 [data-theme="break"] .cup-gauge {
-  margin-top: 0;
+  position: relative;
+  margin-top: -18px;
 }
 
 /* Fixed hero. Letting the cup compress under a long Today list only bought
@@ -320,9 +384,47 @@
 
 /* --- on-demand: the kiosk's crossed-out cup ----------------------------- */
 
-[data-theme="break"] .ondemand-label {
-  font-size: 9px;
-  letter-spacing: 0.14em;
+/* Spend moved up to the credit corner and the no-cap case became the mark by
+   the cup, so the row under the meter has nothing left to say. */
+[data-theme="break"] .ondemand {
+  display: none;
+}
+
+/* Sits where the kiosk puts its "sem copo" toggle: left of the drink, at the
+   height of the cup's shoulder. */
+.cup-aside {
+  position: absolute;
+  left: 2px;
+  /* Offset past the gauge's negative margin so the mark clears the percentage. */
+  top: 34px;
+  z-index: 1;
+  width: 74px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-align: center;
+}
+
+.cup-aside-mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.2px solid var(--glass-ring);
+  background: var(--glass-fill);
+  color: var(--secondary-label);
+}
+
+.cup-aside-slash {
+  stroke: var(--system-red);
+}
+
+.cup-aside-label {
+  font-size: 10px;
+  line-height: 1.3;
   color: var(--tertiary-label);
 }
 

@@ -5,6 +5,7 @@ import { weeklyLines } from "../lib/weekly";
 import { useShowOnDemand } from "../hooks/useLocalPref";
 import { WeeklyIcon } from "./icons";
 import { WeeklyGauge } from "./WeeklyGauge";
+import { OnDemandReadout } from "./break/OnDemand";
 
 type Props = {
   weekly: WeeklyStatus | null;
@@ -47,7 +48,7 @@ export const WeeklyCard = memo(function WeeklyCard({
 
   if (isLoading) {
     return (
-      <section className="card">
+      <section className="card card-weekly">
         <div className="card-head">
           <span className="card-label">
             <WeeklyIcon /> Weekly
@@ -64,18 +65,20 @@ export const WeeklyCard = memo(function WeeklyCard({
   }
 
   return (
-    <section className="card">
+    <section className="card card-weekly">
       <div className="card-head">
         <span className="card-label">
           <WeeklyIcon /> Weekly
         </span>
         <span className={`card-pct${toneClass}`}>{pctLabel}</span>
+        <OnDemandReadout onDemand={onDemand} tone={onDemandTone} />
       </div>
       <WeeklyGauge
         pct={meterPct}
         hasPercent={hasPercent}
         tone={tone}
         resetAt={weekly?.nextResetAt ?? null}
+        noSpendLimit={showOnDemandPref && !onDemand}
       />
       {lines.map((line) => (
         <p key={line} className="muted">

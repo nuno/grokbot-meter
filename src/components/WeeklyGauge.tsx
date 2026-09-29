@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { useThemePref } from "../hooks/useLocalPref";
 import { CupGauge } from "./break/CupGauge";
+import { NoSpendLimitMark } from "./break/OnDemand";
 import { CupGlyph, StepTrack } from "./break/StepTrack";
 
 const DAY_MS = 86_400_000;
@@ -18,6 +19,8 @@ type Props = {
   hasPercent: boolean;
   tone: "default" | "warn" | "critical";
   resetAt: number | null;
+  /** On-demand is enabled but the account has no cap — Break marks it by the cup. */
+  noSpendLimit?: boolean;
 };
 
 function usageLevelIndex(pct: number): number {
@@ -38,7 +41,13 @@ function elapsedDayIndex(resetAt: number | null): number | null {
  * The weekly meter, in whichever form the active theme wants: a bar for the
  * flat themes, the filling cup for Break. Both carry the same meter semantics.
  */
-export const WeeklyGauge = memo(function WeeklyGauge({ pct, hasPercent, tone, resetAt }: Props) {
+export const WeeklyGauge = memo(function WeeklyGauge({
+  pct,
+  hasPercent,
+  tone,
+  resetAt,
+  noSpendLimit = false,
+}: Props) {
   const { theme } = useThemePref();
   const toneClass = tone === "default" ? "" : ` is-${tone}`;
   const meterProps = {
@@ -53,6 +62,7 @@ export const WeeklyGauge = memo(function WeeklyGauge({ pct, hasPercent, tone, re
     const dayIndex = elapsedDayIndex(resetAt);
     return (
       <div className={`cup-gauge${hasPercent ? "" : " is-empty"}${toneClass}`}>
+        {noSpendLimit ? <NoSpendLimitMark /> : null}
         <div className="cup-stage" {...meterProps}>
           <span className="cup-glow" aria-hidden="true" />
           <CupGauge pct={hasPercent ? pct : 0} />
