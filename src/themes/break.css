@@ -327,7 +327,12 @@
   background: linear-gradient(180deg, #62e070 0%, #2fbe3e 100%);
 }
 
-/* --- footer: cancelar / confirmar --------------------------------------- */
+/* --- footer ------------------------------------------------------------- */
+
+/* The kiosk's BACK control is the one piece of chrome the screen repeats, so
+   the footer borrows it wholesale: same glass fill, ring and radius as
+   [data-theme="break"] .back below. Intent is carried by the label colour on
+   hover, not by a filled pill. */
 
 [data-theme="break"] .footer-row {
   gap: 8px;
@@ -335,53 +340,37 @@
 
 [data-theme="break"] .footer-btn {
   position: relative;
-  height: 34px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  overflow: hidden;
+  height: 32px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 500;
   background: var(--glass-fill);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   color: var(--secondary-label);
-}
-
-/* Top-half sheen — the kiosk pills are glossy, not flat. */
-[data-theme="break"] .footer-btn::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 48%;
-  border-radius: 999px 999px 40% 40%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0) 100%);
-  pointer-events: none;
-}
-
-[data-theme="break"] .footer-btn--primary {
-  flex: 1.5;
-  background: var(--pill-confirm);
-  border-color: rgba(255, 255, 255, 0.28);
-  color: #04240a;
-  box-shadow: 0 3px 12px rgba(47, 190, 62, 0.35);
-}
-
-[data-theme="break"] .footer-btn--danger {
-  flex: 1.5;
-  background: var(--pill-cancel);
-  border-color: rgba(255, 255, 255, 0.22);
-  color: #ffffff;
-  box-shadow: 0 3px 12px rgba(220, 47, 57, 0.3);
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
 }
 
 [data-theme="break"] .footer-btn:hover {
-  filter: brightness(1.08);
+  background: var(--control-bg-hover);
+  border-color: rgba(255, 255, 255, 0.26);
+  color: var(--label);
 }
 
 [data-theme="break"] .footer-btn:active {
-  filter: brightness(0.94);
+  background: var(--control-bg-active);
+}
+
+[data-theme="break"] .footer-btn--primary:hover {
+  color: var(--system-blue);
+  border-color: rgba(62, 214, 76, 0.5);
+}
+
+[data-theme="break"] .footer-btn--danger:hover {
+  color: var(--system-red);
+  border-color: rgba(232, 50, 60, 0.5);
 }
 
 /* --- settings ----------------------------------------------------------- */
