@@ -39,6 +39,10 @@ Requires macOS on Apple Silicon and [Grok Bot](https://cursor.com) installed and
 
 ## Screenshots
 
+### System
+
+Follows the macOS appearance.
+
 <table>
   <tr>
     <td><img src="docs/screenshots/popup.png" alt="GrokBot Meter popup in light appearance"></td>
@@ -47,6 +51,22 @@ Requires macOS on Apple Silicon and [Grok Bot](https://cursor.com) installed and
   <tr>
     <td align="center">Light</td>
     <td align="center">Dark</td>
+  </tr>
+</table>
+
+### Break
+
+The cup is the meter — it fills to your weekly percentage, and the spotlight
+warms from white through amber to red as the week runs out.
+
+<table>
+  <tr>
+    <td><img src="docs/screenshots/popup-break.png" alt="Break theme with the cup filled to 68% of the weekly allowance"></td>
+    <td><img src="docs/screenshots/popup-break-full.png" alt="Break theme at 96%, with the spotlight, rails and percentage turned red"></td>
+  </tr>
+  <tr>
+    <td align="center">68% used</td>
+    <td align="center">96% used</td>
   </tr>
 </table>
 
