@@ -10,7 +10,8 @@ const LEVEL_NODES = [
   <CupGlyph key="normal" scale={1} />,
   <CupGlyph key="heavy" scale={1.4} />,
 ];
-const LEVEL_LABELS = ["light", "normal", "heavy"] as const;
+/* Drink sizes, as on the kiosk's "nível de café" rail. */
+const LEVEL_LABELS = ["small", "regular", "large"] as const;
 
 type Props = {
   pct: number;

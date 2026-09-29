@@ -41,7 +41,7 @@ export const StepTrack = memo(function StepTrack({ title, nodes, activeIndex, la
   );
 });
 
-/** Cup outline used as a node glyph — scale 0.6 / 1 / 1.4 reads as short / normal / long. */
+/** Cup outline used as a node glyph — scale 0.6 / 1 / 1.4 reads as small / regular / large. */
 export const CupGlyph = memo(function CupGlyph({ scale }: { scale: number }) {
   const w = 5 + scale * 2;
   const h = 5 + scale * 2.5;
