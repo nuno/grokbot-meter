@@ -1,5 +1,14 @@
+/*
+  Tokens only — every rule below this block reads these, so a theme is a token
+  override plus (for Break) the extra geometry in themes/break.css.
+  :root holds the light defaults; the media query adds dark for System only.
+*/
 :root {
   color-scheme: light dark;
+  --panel-bg: transparent;
+  --panel-max-height: 520px;
+  --card-backdrop: blur(22px) saturate(180%);
+  --switch-knob: #fff;
   --label: rgba(0, 0, 0, 0.88);
   --secondary-label: rgba(60, 60, 67, 0.88);
   --tertiary-label: rgba(60, 60, 67, 0.42);
@@ -14,6 +23,7 @@
   --system-orange-2: #C93400;
   --meter-track: rgba(120, 120, 128, 0.14);
   --meter-empty: rgba(120, 120, 128, 0.09);
+  --meter-critical-2: color-mix(in srgb, var(--system-red) 72%, #000);
   --badge-bg: rgba(0, 122, 255, 0.12);
   --control-bg: rgba(120, 120, 128, 0.12);
   --control-bg-hover: rgba(120, 120, 128, 0.18);
@@ -30,7 +40,8 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]),
+  [data-theme="system"] {
     --label: rgba(255, 255, 255, 0.96);
     --secondary-label: rgba(235, 235, 245, 0.80);
     --tertiary-label: rgba(235, 235, 245, 0.62);
@@ -45,6 +56,7 @@
     --system-orange-2: #FFB340;
     --meter-track: rgba(120, 120, 128, 0.30);
     --meter-empty: rgba(120, 120, 128, 0.20);
+    --meter-critical-2: color-mix(in srgb, var(--system-red) 78%, #fff);
     --badge-bg: rgba(10, 132, 255, 0.26);
     --control-bg: rgba(120, 120, 128, 0.28);
     --control-bg-hover: rgba(120, 120, 128, 0.36);
@@ -66,9 +78,12 @@ button {
 
 html,
 body,
-#root,
-.panel {
+#root {
   background: transparent;
+}
+
+.panel {
+  background: var(--panel-bg);
 }
 
 html,
@@ -82,10 +97,10 @@ body,
   display: flex;
   flex-direction: column;
   height: auto;
-  /* Match electron/main.ts PANEL_MAX_HEIGHT — when on-demand + long Today
-     grow the stack past the window cap, Today shrinks/scrolls instead of
-     clipping the footer pills. */
-  max-height: 520px;
+  /* Match the active theme's ceiling (see THEMES in lib/themes.ts) — when
+     on-demand + long Today grow the stack past the window cap, Today
+     shrinks/scrolls instead of clipping the footer pills. */
+  max-height: var(--panel-max-height);
   padding: 10px 12px 12px;
   gap: 10px;
 }
@@ -113,8 +128,8 @@ body,
   border: 0.5px solid var(--card-stroke);
   border-radius: 12px;
   padding: 11px 12px;
-  backdrop-filter: blur(22px) saturate(180%);
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  backdrop-filter: var(--card-backdrop);
+  -webkit-backdrop-filter: var(--card-backdrop);
 }
 
 .panel > .card:not(.card-today) {
@@ -216,13 +231,7 @@ body,
 }
 
 .meter.is-critical .meter-fill {
-  background: linear-gradient(180deg, var(--system-red) 0%, color-mix(in srgb, var(--system-red) 72%, #000) 100%);
-}
-
-@media (prefers-color-scheme: dark) {
-  .meter.is-critical .meter-fill {
-    background: linear-gradient(180deg, var(--system-red) 0%, color-mix(in srgb, var(--system-red) 78%, #fff) 100%);
-  }
+  background: linear-gradient(180deg, var(--system-red) 0%, var(--meter-critical-2) 100%);
 }
 
 
@@ -999,6 +1008,66 @@ body,
   font-weight: 400;
 }
 
+.settings-row--stacked {
+  display: block;
+}
+
+.theme-picker {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.theme-option {
+  appearance: none;
+  border: 1px solid transparent;
+  font: inherit;
+  cursor: default;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 999px;
+  padding: 4px 10px 4px 5px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--secondary-label);
+  background: var(--control-bg);
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.theme-option:hover {
+  background: var(--control-bg-hover);
+  color: var(--label);
+}
+
+.theme-option.is-selected {
+  background: var(--badge-bg);
+  border-color: var(--system-blue);
+  color: var(--system-blue);
+  font-weight: 600;
+}
+
+.theme-option:focus-visible {
+  outline: 2px solid var(--system-blue);
+  outline-offset: 2px;
+}
+
+.theme-swatch {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.theme-swatch span {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 0.5px solid var(--card-stroke);
+}
+
+.theme-swatch span + span {
+  margin-left: -4px;
+}
+
 .settings-divider {
   height: 0.5px;
   background: var(--separator);
@@ -1047,7 +1116,7 @@ body,
   width: 20px;
   height: 20px;
   border-radius: 999px;
-  background: #fff;
+  background: var(--switch-knob);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
   transition: transform 140ms ease;
 }

@@ -24,6 +24,7 @@
 - **Reset countdown**: see exactly when your weekly meter resets.
 - **Today at a glance**: messages, recent agents, and on-demand spend.
 - **Native feel**: light and dark mode, tiny tray app, no Dock icon.
+- **Themes**: stay native, or switch to **Break** and watch a coffee cup fill to your weekly usage.
 - **Honest and private**: official Grok Bot meters only, no estimates, no telemetry, no server of its own.
 
 ## Quick start

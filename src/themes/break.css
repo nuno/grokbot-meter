@@ -1,0 +1,397 @@
+/*
+  Break — a skeuomorphic reskin modeled on the "my break by Delta Cafés"
+  vending kiosk: opaque black screen, brushed-metal cup gauge under a
+  spotlight, hairline selector rails, glossy confirm/cancel pills.
+
+  Everything is scoped to [data-theme="break"] so the flat themes are
+  untouched. The token block comes first; the geometry that plain tokens
+  cannot express follows.
+*/
+
+[data-theme="break"] {
+  color-scheme: dark;
+
+  --panel-bg: radial-gradient(120% 70% at 50% 8%, #17171c 0%, #0a0a0c 62%);
+  /* Taller than the flat themes — matches THEMES.break.maxPanelHeight. */
+  --panel-max-height: 640px;
+  /* Opaque panel, so the macOS material underneath is never sampled. */
+  --card-backdrop: none;
+
+  --label: #ffffff;
+  --secondary-label: #b5b5bd;
+  --tertiary-label: #7b7b85;
+  --card-fill: #101013;
+  --card-stroke: #23232a;
+  --separator: #1e1e24;
+
+  /* Green is the kiosk's "selected / confirm"; it replaces system blue. */
+  --system-blue: #3ed64c;
+  --system-blue-2: #1f9a2c;
+  --system-red: #e8323c;
+  --system-orange: #ffa51f;
+  --system-orange-2: #ff8a00;
+  --meter-critical-2: #b01c25;
+
+  --meter-track: rgba(255, 255, 255, 0.1);
+  --meter-empty: rgba(255, 255, 255, 0.06);
+  --badge-bg: rgba(62, 214, 76, 0.16);
+  --control-bg: rgba(255, 255, 255, 0.07);
+  --control-bg-hover: rgba(255, 255, 255, 0.12);
+  --control-bg-active: rgba(255, 255, 255, 0.18);
+  --switch-knob: #ffffff;
+
+  /* Break-only. */
+  --brand: #e6197a;
+  --glass-ring: rgba(150, 165, 200, 0.45);
+  --glass-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 100%);
+  --pill-confirm: linear-gradient(180deg, #55e063 0%, #2fbe3e 52%, #1b8f27 100%);
+  --pill-cancel: linear-gradient(180deg, #f4565f 0%, #dc2f39 52%, #b01c25 100%);
+}
+
+/* --- panel + cards ------------------------------------------------------ */
+
+[data-theme="break"] .panel {
+  font-family: "SF Pro Rounded", -apple-system, BlinkMacSystemFont, sans-serif;
+  gap: 8px;
+}
+
+[data-theme="break"] .card {
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  padding: 10px 12px 11px;
+}
+
+/* Top bevel — a single hairline of light along the upper edge. */
+[data-theme="break"] .card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12px;
+  right: 12px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
+  pointer-events: none;
+}
+
+[data-theme="break"] .icon-btn,
+[data-theme="break"] .close-btn,
+[data-theme="break"] .settings-email-toggle {
+  border-radius: 9px;
+  background: var(--glass-fill);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+/* --- weekly head: kiosk price/credit corners ---------------------------- */
+
+[data-theme="break"] .card .card-head {
+  align-items: flex-start;
+}
+
+[data-theme="break"] .card-label {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--tertiary-label);
+}
+
+[data-theme="break"] .card-pct {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+[data-theme="break"] .card-pct--count {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* --- cup gauge ---------------------------------------------------------- */
+
+[data-theme="break"] .cup-gauge {
+  margin-top: 0;
+}
+
+/* Fixed hero. Letting the cup compress under a long Today list only bought
+   ~24px and made the card clip its own on-demand row, so the weekly card keeps
+   its natural height (as in the flat themes) and Today stays the shrink
+   target — it scrolls, which is what it is built to do. */
+.cup-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 112px;
+}
+
+.cup-glow {
+  position: absolute;
+  width: 250px;
+  height: 170px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.26) 0%,
+    rgba(255, 255, 255, 0.06) 42%,
+    rgba(255, 255, 255, 0) 68%
+  );
+  pointer-events: none;
+}
+
+/* Spotlight warms up as the week runs out. */
+.cup-gauge.is-warn .cup-glow {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 165, 31, 0.26) 0%,
+    rgba(255, 165, 31, 0.07) 42%,
+    rgba(255, 165, 31, 0) 68%
+  );
+}
+
+.cup-gauge.is-critical .cup-glow {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(232, 50, 60, 0.3) 0%,
+    rgba(232, 50, 60, 0.08) 42%,
+    rgba(232, 50, 60, 0) 68%
+  );
+}
+
+.cup-gauge.is-empty .cup-glow {
+  opacity: 0.35;
+}
+
+.cup {
+  position: relative;
+  width: 124px;
+  height: 110px;
+}
+
+/* The pour: level and surface ease to the new percentage together. */
+.cup-coffee,
+.cup-crema {
+  transition:
+    y 420ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    height 420ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    cy 420ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    rx 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cup-coffee,
+  .cup-crema {
+    transition: none;
+  }
+}
+
+/* --- selector rails ----------------------------------------------------- */
+
+.cup-tracks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.step-track:first-child {
+  padding: 0 34px;
+}
+
+.step-track:last-child {
+  padding: 0 12px;
+}
+
+.step-track-title {
+  text-align: center;
+  font-size: 8px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tertiary-label);
+  margin-bottom: 4px;
+}
+
+.step-track-rail {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.step-track-rail::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  right: 9px;
+  top: 50%;
+  height: 1px;
+  background: #3a3a43;
+}
+
+.step-node {
+  position: relative;
+  z-index: 1;
+  width: 19px;
+  height: 19px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  background: #131317;
+  border: 1.4px solid #43434c;
+  color: var(--tertiary-label);
+}
+
+.step-node.is-active {
+  background: var(--badge-bg);
+  border-color: var(--system-blue);
+  color: var(--system-blue);
+  box-shadow: 0 0 10px rgba(62, 214, 76, 0.45);
+}
+
+.cup-gauge.is-warn .step-node.is-active {
+  background: rgba(255, 165, 31, 0.16);
+  border-color: var(--system-orange);
+  color: var(--system-orange);
+  box-shadow: 0 0 10px rgba(255, 165, 31, 0.45);
+}
+
+.cup-gauge.is-critical .step-node.is-active {
+  background: rgba(232, 50, 60, 0.16);
+  border-color: var(--system-red);
+  color: var(--system-red);
+  box-shadow: 0 0 10px rgba(232, 50, 60, 0.45);
+}
+
+.step-track-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 3px;
+}
+
+.step-label {
+  font-size: 8.5px;
+  line-height: 1.2;
+  color: var(--tertiary-label);
+  width: 64px;
+  text-align: center;
+}
+
+.step-track-labels .step-label:first-child {
+  text-align: left;
+}
+
+.step-track-labels .step-label:last-child {
+  text-align: right;
+}
+
+.step-track-labels.is-edges .step-label {
+  width: auto;
+}
+
+.step-label.is-active {
+  font-weight: 600;
+  color: var(--system-blue);
+}
+
+.cup-gauge.is-warn .step-label.is-active {
+  color: var(--system-orange);
+}
+
+.cup-gauge.is-critical .step-label.is-active {
+  color: var(--system-red);
+}
+
+/* --- on-demand: the kiosk's crossed-out cup ----------------------------- */
+
+[data-theme="break"] .ondemand-label {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--tertiary-label);
+}
+
+/* --- today list --------------------------------------------------------- */
+
+[data-theme="break"] .agent + .agent {
+  border-top-color: var(--separator);
+}
+
+[data-theme="break"] .agent.has-activity .agent-dot {
+  box-shadow: 0 0 7px var(--system-blue);
+}
+
+[data-theme="break"] .agent-count {
+  color: #0b2a10;
+  background: linear-gradient(180deg, #62e070 0%, #2fbe3e 100%);
+}
+
+/* --- footer: cancelar / confirmar --------------------------------------- */
+
+[data-theme="break"] .footer-row {
+  gap: 8px;
+}
+
+[data-theme="break"] .footer-btn {
+  position: relative;
+  height: 34px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  overflow: hidden;
+  background: var(--glass-fill);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--secondary-label);
+}
+
+/* Top-half sheen — the kiosk pills are glossy, not flat. */
+[data-theme="break"] .footer-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 48%;
+  border-radius: 999px 999px 40% 40%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+}
+
+[data-theme="break"] .footer-btn--primary {
+  flex: 1.5;
+  background: var(--pill-confirm);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #04240a;
+  box-shadow: 0 3px 12px rgba(47, 190, 62, 0.35);
+}
+
+[data-theme="break"] .footer-btn--danger {
+  flex: 1.5;
+  background: var(--pill-cancel);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  box-shadow: 0 3px 12px rgba(220, 47, 57, 0.3);
+}
+
+[data-theme="break"] .footer-btn:hover {
+  filter: brightness(1.08);
+}
+
+[data-theme="break"] .footer-btn:active {
+  filter: brightness(0.94);
+}
+
+/* --- settings ----------------------------------------------------------- */
+
+[data-theme="break"] .back {
+  border-radius: 10px;
+  background: var(--glass-fill);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+[data-theme="break"] .settings-switch.is-on {
+  background: var(--pill-confirm);
+}

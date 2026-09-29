@@ -3,6 +3,7 @@ import { fetchLoginItem, setLoginItem } from "../lib/api";
 import { redactEmail } from "../lib/format";
 import { useRedactEmail, useShowOnDemand } from "../hooks/useLocalPref";
 import { EyeIcon, EyeOffIcon } from "./icons";
+import { ThemePicker } from "./ThemePicker";
 
 type Props = {
   onBack: () => void;
@@ -98,6 +99,8 @@ export const SettingsPanel = memo(function SettingsPanel({ onBack, accountEmail 
         <h1 className="title settings-title">Settings</h1>
       </header>
       <section className="card settings">
+        <ThemePicker />
+        <div className="settings-divider" role="separator" />
         <div className="settings-row settings-account">
           <div className="settings-copy">
             <span className="settings-label">Account email</span>

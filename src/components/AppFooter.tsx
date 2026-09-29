@@ -20,7 +20,7 @@ export const AppFooter = memo(function AppFooter({
       </button>
       <button
         type="button"
-        className={`footer-btn${refreshing ? " is-busy" : ""}`}
+        className={`footer-btn footer-btn--primary${refreshing ? " is-busy" : ""}`}
         onClick={onRefresh}
         disabled={refreshing}
         aria-busy={refreshing}
@@ -31,7 +31,7 @@ export const AppFooter = memo(function AppFooter({
       </button>
       <button
         type="button"
-        className="footer-btn footer-btn--quiet"
+        className="footer-btn footer-btn--quiet footer-btn--danger"
         onClick={onQuit}
         aria-label="Quit GrokBot Meter"
         title="Quit GrokBot Meter (⌘Q)"

@@ -1,14 +1,18 @@
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
 import {
   PREFS_CHANGED_EVENT,
   type PrefKey,
   getRedactEmail,
   getShowOnDemand,
+  getTheme,
   setRedactEmail,
   setShowOnDemand,
+  setTheme,
   REDACT_EMAIL_KEY,
   SHOW_ON_DEMAND_KEY,
+  THEME_KEY,
 } from "../lib/prefs";
+import { applyTheme, type ThemeId } from "../lib/themes";
 
 /**
  * localStorage-backed boolean pref.
@@ -32,11 +36,7 @@ function subscribePref(key: PrefKey, onStoreChange: () => void): () => void {
   };
 }
 
-function useBoolPref(
-  key: PrefKey,
-  read: () => boolean,
-  write: (v: boolean) => void,
-): [boolean, (next: boolean) => void, () => void] {
+function usePref<T>(key: PrefKey, read: () => T, write: (v: T) => void): [T, (next: T) => void] {
   const value = useSyncExternalStore(
     (onStoreChange) => subscribePref(key, onStoreChange),
     read,
@@ -44,14 +44,22 @@ function useBoolPref(
   );
 
   const set = useCallback(
-    (next: boolean) => {
+    (next: T) => {
       write(next);
     },
     [write],
   );
 
-  const toggle = useCallback(() => set(!value), [set, value]);
+  return [value, set];
+}
 
+function useBoolPref(
+  key: PrefKey,
+  read: () => boolean,
+  write: (v: boolean) => void,
+): [boolean, (next: boolean) => void, () => void] {
+  const [value, set] = usePref(key, read, write);
+  const toggle = useCallback(() => set(!value), [set, value]);
   return [value, set, toggle];
 }
 
@@ -65,4 +73,17 @@ export function useRedactEmail() {
 export function useShowOnDemand() {
   const [show, setShow, toggle] = useBoolPref(SHOW_ON_DEMAND_KEY, getShowOnDemand, setShowOnDemand);
   return { show, setShow, toggle };
+}
+
+/**
+ * Active theme. main.tsx paints the initial value before render; this keeps
+ * <html data-theme> in step afterwards, including for a Settings change made
+ * while the main panel is hidden behind <Activity>.
+ */
+export function useThemePref() {
+  const [theme, setThemePref] = usePref<ThemeId>(THEME_KEY, getTheme, setTheme);
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
+  return { theme, setTheme: setThemePref };
 }
