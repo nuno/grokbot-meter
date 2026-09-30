@@ -14,7 +14,7 @@
 
 ### [Download for macOS (Apple Silicon)](https://github.com/nuno/grokbot-meter/releases/latest)
 
-![GrokBot Meter on the desktop, with the weekly popup open from the menu bar](docs/screenshots/grokbot-meter-desktop-demo.png)
+![GrokBot Meter Break theme: the cup fills as a week of usage runs 0% to 96%, then drains and resets](docs/screenshots/week-loop.gif)
 
 </div>
 
@@ -57,7 +57,8 @@ Follows the macOS appearance.
 ### Break
 
 The cup is the meter — it fills to your weekly percentage, and the spotlight
-warms from white through amber to red as the week runs out.
+warms from white through amber to red as the week runs out. Switch themes in
+**Settings → Theme**.
 
 <table>
   <tr>
