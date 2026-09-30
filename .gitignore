@@ -46,3 +46,8 @@ releases/*/*.blockmap
 *.mobileprovision
 electron/tsconfig.tsbuildinfo
 tsconfig.tsbuildinfo
+
+# Remotion showreel cache (the rendered MP4 is tracked)
+showreel/.remotion
+showreel/out
+showreel/build

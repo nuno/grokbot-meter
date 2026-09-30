@@ -1,0 +1,14 @@
+Voltaic
+by Kevin MacLeod (incompetech.com)
+Licensed under Creative Commons: By Attribution 4.0
+http://creativecommons.org/licenses/by/4.0/
+
+Source file: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Voltaic.mp3
+Catalog: https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1600056
+
+This project uses the first 30.0 seconds of the piece, with a 30ms fade in
+and a fade out from 28.35s to 30.0s. The edit is voltaic-30.mp3.
+
+Attribution line:
+Music: Voltaic by Kevin MacLeod (incompetech.com)
+Licensed under Creative Commons: By Attribution 4.0 License
