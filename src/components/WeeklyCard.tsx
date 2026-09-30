@@ -4,6 +4,8 @@ import { clampPercent, formatCentsUsd, formatUpdatedAt } from "../lib/format";
 import { weeklyLines } from "../lib/weekly";
 import { useShowOnDemand } from "../hooks/useLocalPref";
 import { WeeklyIcon } from "./icons";
+import { WeeklyGauge } from "./WeeklyGauge";
+import { OnDemandReadout } from "./coffee/OnDemand";
 
 type Props = {
   weekly: WeeklyStatus | null;
@@ -27,10 +29,11 @@ export const WeeklyCard = memo(function WeeklyCard({
   const pctLabel = hasPercent ? `${Math.round(meterPct)}%` : "—";
   const tone = hasPercent ? meterTone(meterPct) : "default";
   const lines = useMemo(() => weeklyLines(weekly), [weekly]);
-  const meterFillStyle = useMemo(() => ({ width: `${meterPct}%` }), [meterPct]);
   const updatedLabel = weekly ? formatUpdatedAt(updatedAt) : "Updated —";
   const { show: showOnDemandPref } = useShowOnDemand();
-  const onDemand = showOnDemandPref ? (weekly?.onDemand ?? null) : null;
+  // Unknown (request failed, or not loaded) hides the row. A known null is "no spend limit".
+  const onDemandKnown = showOnDemandPref && weekly?.onDemandKnown === true;
+  const onDemand = onDemandKnown ? (weekly?.onDemand ?? null) : null;
   const onDemandPct = useMemo(() => {
     if (!onDemand || !(onDemand.limitCents > 0)) return 0;
     return clampPercent((onDemand.usedCents / onDemand.limitCents) * 100);
@@ -47,7 +50,7 @@ export const WeeklyCard = memo(function WeeklyCard({
 
   if (isLoading) {
     return (
-      <section className="card">
+      <section className="card card-weekly">
         <div className="card-head">
           <span className="card-label">
             <WeeklyIcon /> Weekly
@@ -64,29 +67,27 @@ export const WeeklyCard = memo(function WeeklyCard({
   }
 
   return (
-    <section className="card">
+    <section className="card card-weekly">
       <div className="card-head">
         <span className="card-label">
           <WeeklyIcon /> Weekly
         </span>
         <span className={`card-pct${toneClass}`}>{pctLabel}</span>
+        <OnDemandReadout onDemand={onDemand} tone={onDemandTone} />
       </div>
-      <div
-        className={`meter${hasPercent ? "" : " is-empty"}${toneClass}`}
-        role="meter"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={hasPercent ? meterPct : 0}
-        aria-label="Weekly included usage"
-      >
-        <div className="meter-fill" style={meterFillStyle} />
-      </div>
+      <WeeklyGauge
+        pct={meterPct}
+        hasPercent={hasPercent}
+        tone={tone}
+        resetAt={weekly?.nextResetAt ?? null}
+        noSpendLimit={onDemandKnown && !onDemand}
+      />
       {lines.map((line) => (
         <p key={line} className="muted">
           {line}
         </p>
       ))}
-      {showOnDemandPref ? (
+      {onDemandKnown ? (
         onDemand && onDemandLabel ? (
           <div className="ondemand">
             <div className="ondemand-head">

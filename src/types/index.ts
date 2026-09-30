@@ -16,7 +16,7 @@ declare global {
       onWeeklyUpdated: (cb: (weekly: WeeklyStatus) => void) => () => void;
       quit: () => Promise<void>;
       hideWindow: () => Promise<void>;
-      setContentHeight: (height: number, mode?: PanelHeightMode) => void;
+      setContentHeight: (height: number, mode?: PanelHeightMode, maxHeight?: number) => void;
       grokBotVersion: () => Promise<string | null>;
       getVersion: () => Promise<string>;
       getLoginItem: () => Promise<LoginItemSettings>;

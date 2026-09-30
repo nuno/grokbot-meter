@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { hideWindow, quit as apiQuit, setContentHeight, subscribeEscapePressed, subscribeShowAbout, subscribeShowSettings } from "../lib/api";
-import { cachedMainHeight } from "../lib/panelHeights";
+import { mainHeightFor } from "../lib/panelHeights";
+import { themeDef } from "../lib/themes";
+import { useThemePref } from "./useLocalPref";
 
 export type PanelMode = "main" | "about" | "settings";
 
@@ -18,6 +20,8 @@ function isEditableTarget(el: HTMLElement | null): boolean {
 /** Single panel mode for main ↔ About ↔ Settings (one visible at a time). */
 export function usePanelController() {
   const [mode, setMode] = useState<PanelMode>("main");
+  const { theme } = useThemePref();
+  const maxPanelHeight = themeDef(theme).maxPanelHeight;
 
   useEffect(() => {
     const unlisten = subscribeShowAbout(() => setMode("about"));
@@ -35,9 +39,13 @@ export function usePanelController() {
   }, [mode]);
 
   const goMain = useCallback(() => {
-    setContentHeight(cachedMainHeight, "main");
+    // Restore before the mode flips, and carry the theme ceiling — without it
+    // main clamps to the flat-theme 520px and Coffee's panel snaps down, then
+    // back up once usePanelHeight re-measures.
+    const restore = mainHeightFor(theme);
+    if (restore != null) setContentHeight(restore, "main", maxPanelHeight);
     setMode("main");
-  }, []);
+  }, [theme, maxPanelHeight]);
 
   useEffect(() => {
     const unlisten = subscribeEscapePressed(() => {

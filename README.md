@@ -14,7 +14,7 @@
 
 ### [Download for macOS (Apple Silicon)](https://github.com/nuno/grokbot-meter/releases/latest)
 
-![GrokBot Meter on the desktop, with the weekly popup open from the menu bar](docs/screenshots/grokbot-meter-desktop-demo.png)
+![GrokBot Meter Coffee theme: the cup fills as a week of usage runs 0% to 96%, then drains and resets](docs/screenshots/week-loop.gif)
 
 </div>
 
@@ -24,6 +24,7 @@
 - **Reset countdown**: see exactly when your weekly meter resets.
 - **Today at a glance**: messages, recent agents, and on-demand spend.
 - **Native feel**: light and dark mode, tiny tray app, no Dock icon.
+- **Themes**: stay native, or switch to **Coffee** and watch a cup fill to your weekly usage.
 - **Honest and private**: official Grok Bot meters only, no estimates, no telemetry, no server of its own.
 
 ## Quick start
@@ -38,6 +39,10 @@ Requires macOS on Apple Silicon and [Grok Bot](https://cursor.com) installed and
 
 ## Screenshots
 
+### System
+
+Follows the macOS appearance.
+
 <table>
   <tr>
     <td><img src="docs/screenshots/popup.png" alt="GrokBot Meter popup in light appearance"></td>
@@ -46,6 +51,23 @@ Requires macOS on Apple Silicon and [Grok Bot](https://cursor.com) installed and
   <tr>
     <td align="center">Light</td>
     <td align="center">Dark</td>
+  </tr>
+</table>
+
+### Coffee
+
+The cup is the meter — it fills to your weekly percentage, and the spotlight
+warms from white through amber to red as the week runs out. Switch themes in
+**Settings → Theme**.
+
+<table>
+  <tr>
+    <td><img src="docs/screenshots/popup-coffee.png" alt="Coffee theme with the cup filled to 68% of the weekly allowance"></td>
+    <td><img src="docs/screenshots/popup-coffee-full.png" alt="Coffee theme at 96%, with the spotlight, rails and percentage turned red"></td>
+  </tr>
+  <tr>
+    <td align="center">68% used</td>
+    <td align="center">96% used</td>
   </tr>
 </table>
 

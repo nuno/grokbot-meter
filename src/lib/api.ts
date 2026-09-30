@@ -82,8 +82,9 @@ export function hideWindow(): void {
 }
 
 
-export function setContentHeight(height: number, mode: PanelHeightMode = "main"): void {
-  void getApi()?.setContentHeight?.(height, mode);
+/** `maxHeight` is the active theme's ceiling — main clamps it to its own hard maximum. */
+export function setContentHeight(height: number, mode: PanelHeightMode = "main", maxHeight?: number): void {
+  void getApi()?.setContentHeight?.(height, mode, maxHeight);
 }
 
 export function quit(): void {

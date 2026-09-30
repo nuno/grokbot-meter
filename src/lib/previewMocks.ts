@@ -32,10 +32,11 @@ export function previewWeeklyWithOnDemand(weekly: WeeklyStatus | null): WeeklySt
       hasAvailableUsage: true,
       accountEmail: null,
       error: null,
+      onDemandKnown: true,
       onDemand: PREVIEW_ONDEMAND_SAMPLE,
     };
   }
-  return { ...weekly, onDemand: PREVIEW_ONDEMAND_SAMPLE };
+  return { ...weekly, onDemandKnown: true, onDemand: PREVIEW_ONDEMAND_SAMPLE };
 }
 
 

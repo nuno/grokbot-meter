@@ -1,6 +1,8 @@
 import { useLayoutEffect } from "react";
 import { setContentHeight, type PanelHeightMode } from "../lib/api";
 import { rememberAboutHeight, rememberMainHeight } from "../lib/panelHeights";
+import { themeDef } from "../lib/themes";
+import { useThemePref } from "./useLocalPref";
 import type { PanelMode } from "./useAbout";
 
 function visiblePanel(): HTMLElement | null {
@@ -25,6 +27,8 @@ function toHeightMode(mode: PanelMode): PanelHeightMode {
  * Tray→About: wait for settled about height (double rAF) before main reveals.
  */
 export function usePanelHeight(mode: PanelMode, deps: readonly unknown[] = []) {
+  const { theme } = useThemePref();
+  const maxHeight = themeDef(theme).maxPanelHeight;
   useLayoutEffect(() => {
     let raf = 0;
     let last = 0;
@@ -37,10 +41,10 @@ export function usePanelHeight(mode: PanelMode, deps: readonly unknown[] = []) {
       const next = Math.ceil(el.getBoundingClientRect().height);
       if (!Number.isFinite(next) || next <= 0) return;
       if (overlay) rememberAboutHeight(next);
-      else rememberMainHeight(next);
+      else rememberMainHeight(next, theme);
       if (next === last) return;
       last = next;
-      setContentHeight(next, heightMode);
+      setContentHeight(next, heightMode, maxHeight);
     };
 
     // Overlay: skip immediate measure — first paint layout can be short, then grow
@@ -63,5 +67,5 @@ export function usePanelHeight(mode: PanelMode, deps: readonly unknown[] = []) {
       window.removeEventListener("resize", measure);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, ...deps]);
+  }, [mode, theme, maxHeight, ...deps]);
 }

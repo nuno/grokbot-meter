@@ -29,6 +29,8 @@ const WEEKLY_HIGH_USAGE_MS = 10 * 60_000;
 const PANEL_WIDTH = 380;
 const PANEL_MIN_HEIGHT = 260;
 const PANEL_MAX_HEIGHT = 520;
+/** Themes may raise their own ceiling (Coffee's cup gauge is taller); this caps them all. */
+const PANEL_HARD_MAX_HEIGHT = 680;
 
 function isOverlayMode(mode: PanelHeightMode): boolean {
   return mode === "about" || mode === "settings";
@@ -39,9 +41,19 @@ function normalizeHeightMode(mode?: PanelHeightMode): PanelHeightMode {
   return "main";
 }
 
-function setPanelContentHeight(contentHeight: number, mode: PanelHeightMode = "main") {
+/** Last ceiling the renderer reported, so a call that omits one does not
+    silently clamp a tall theme back down to the flat-theme default. */
+let lastPanelCeiling = PANEL_MAX_HEIGHT;
+
+function panelCeiling(maxHeight?: number): number {
+  if (maxHeight == null || !Number.isFinite(maxHeight)) return lastPanelCeiling;
+  lastPanelCeiling = Math.min(PANEL_HARD_MAX_HEIGHT, Math.max(PANEL_MIN_HEIGHT, maxHeight));
+  return lastPanelCeiling;
+}
+
+function setPanelContentHeight(contentHeight: number, mode: PanelHeightMode = "main", maxHeight?: number) {
   if (!win || !Number.isFinite(contentHeight)) return;
-  const nextH = Math.round(Math.min(PANEL_MAX_HEIGHT, Math.max(PANEL_MIN_HEIGHT, contentHeight)));
+  const nextH = Math.round(Math.min(panelCeiling(maxHeight), Math.max(PANEL_MIN_HEIGHT, contentHeight)));
   if (isOverlayMode(mode)) lastAboutHeight = nextH;
   else lastMainHeight = nextH;
   const { width: curW, height: curH } = win.getContentBounds();
@@ -368,10 +380,13 @@ app.whenReady().then(() => {
   ipcMain.handle("app:quit", () => app.quit());
   ipcMain.handle("window:isVisible", () => win?.isVisible() ?? false);
   ipcMain.handle("window:hide", () => { win?.hide(); });
-  ipcMain.on("window:setContentHeight-sync", (event, height: number, mode?: PanelHeightMode) => {
-    setPanelContentHeight(Number(height), normalizeHeightMode(mode));
-    event.returnValue = true;
-  });
+  ipcMain.on(
+    "window:setContentHeight-sync",
+    (event, height: number, mode?: PanelHeightMode, maxHeight?: number) => {
+      setPanelContentHeight(Number(height), normalizeHeightMode(mode), Number(maxHeight));
+      event.returnValue = true;
+    },
+  );
   ipcMain.handle("settings:getLoginItem", () => {
     if (process.platform !== "darwin") return { openAtLogin: false, supported: false };
     const s = app.getLoginItemSettings();
