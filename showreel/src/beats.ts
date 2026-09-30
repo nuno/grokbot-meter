@@ -6,16 +6,16 @@ export const BEAT = 15;
 export const BAR = 60;
 export const DURATION = 900;
 
-/** Absolute frames of the downbeats the edit is cut on. */
+/** Absolute frames of the downbeats the demo is cut on. */
 export const DB = {
-  logo: 2,
-  title: 62,
-  menu: 122,
-  coffee: 242,
-  drop: 482,
-  themeDark: 542,
-  themeCoffee: 602,
-  today: 662,
+  tray: 2,
+  pill: 62,
+  open: 122,
+  fill: 190,
+  today: 422,
+  settings: 542,
+  themeDark: 602,
+  themeCoffee: 662,
   end: 782,
 } as const;
 
