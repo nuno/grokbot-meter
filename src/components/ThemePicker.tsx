@@ -73,13 +73,15 @@ export const ThemePicker = memo(function ThemePicker() {
   const { theme, setTheme } = useThemePref();
 
   const onKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
       const delta = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
       if (delta === 0) return;
       e.preventDefault();
       const i = THEMES.findIndex((t) => t.id === theme);
       const next = THEMES[(i + delta + THEMES.length) % THEMES.length];
-      if (next) setTheme(next.id);
+      if (!next) return;
+      setTheme(next.id);
+      e.currentTarget.querySelector<HTMLButtonElement>(`[data-theme-option="${next.id}"]`)?.focus();
     },
     [theme, setTheme],
   );
@@ -102,6 +104,7 @@ export const ThemePicker = memo(function ThemePicker() {
                 aria-checked={selected}
                 tabIndex={selected ? 0 : -1}
                 className={`theme-option${selected ? " is-selected" : ""}`}
+                data-theme-option={t.id}
                 onClick={() => setTheme(t.id)}
                 title={t.hint}
               >

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useSyncExternalStore } from "react";
+import { useCallback, useLayoutEffect, useSyncExternalStore } from "react";
 import {
   PREFS_CHANGED_EVENT,
   type PrefKey,
@@ -82,7 +82,8 @@ export function useShowOnDemand() {
  */
 export function useThemePref() {
   const [theme, setThemePref] = usePref<ThemeId>(THEME_KEY, getTheme, setTheme);
-  useEffect(() => {
+  // Before paint, so the gauge and the token attribute land in the same frame.
+  useLayoutEffect(() => {
     applyTheme(theme);
   }, [theme]);
   return { theme, setTheme: setThemePref };

@@ -31,7 +31,9 @@ export const WeeklyCard = memo(function WeeklyCard({
   const lines = useMemo(() => weeklyLines(weekly), [weekly]);
   const updatedLabel = weekly ? formatUpdatedAt(updatedAt) : "Updated —";
   const { show: showOnDemandPref } = useShowOnDemand();
-  const onDemand = showOnDemandPref ? (weekly?.onDemand ?? null) : null;
+  // Unknown (request failed, or not loaded) hides the row. A known null is "no spend limit".
+  const onDemandKnown = showOnDemandPref && weekly?.onDemandKnown === true;
+  const onDemand = onDemandKnown ? (weekly?.onDemand ?? null) : null;
   const onDemandPct = useMemo(() => {
     if (!onDemand || !(onDemand.limitCents > 0)) return 0;
     return clampPercent((onDemand.usedCents / onDemand.limitCents) * 100);
@@ -78,14 +80,14 @@ export const WeeklyCard = memo(function WeeklyCard({
         hasPercent={hasPercent}
         tone={tone}
         resetAt={weekly?.nextResetAt ?? null}
-        noSpendLimit={showOnDemandPref && !onDemand}
+        noSpendLimit={onDemandKnown && !onDemand}
       />
       {lines.map((line) => (
         <p key={line} className="muted">
           {line}
         </p>
       ))}
-      {showOnDemandPref ? (
+      {onDemandKnown ? (
         onDemand && onDemandLabel ? (
           <div className="ondemand">
             <div className="ondemand-head">

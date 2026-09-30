@@ -17,10 +17,6 @@ function clearLegacyPrefs(): void {
     if (window.localStorage.getItem(LEGACY_SHOW_WEEKLY_TREND_KEY) != null) {
       window.localStorage.removeItem(LEGACY_SHOW_WEEKLY_TREND_KEY);
     }
-    // v0.2.x stored the Coffee theme as "break".
-    if (window.localStorage.getItem(THEME_KEY) === "break") {
-      window.localStorage.setItem(THEME_KEY, "coffee");
-    }
   } catch {
     /* ignore */
   }
@@ -92,7 +88,7 @@ export function setShowOnDemand(show: boolean): void {
   writeFlag(SHOW_ON_DEMAND_KEY, show);
 }
 
-/** Unknown / removed theme ids fall back to System rather than leaving the app unstyled. */
+/** Unknown theme ids fall back to System rather than leaving the app unstyled. */
 export function getTheme(): ThemeId {
   const raw = readRaw(THEME_KEY);
   return isThemeId(raw) ? raw : DEFAULT_THEME;

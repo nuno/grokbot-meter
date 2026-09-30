@@ -69,6 +69,7 @@ function emptyStatus(): WeeklyStatus {
     hasNonZeroIncludedLimit: null,
     hasAvailableUsage: null,
     accountEmail: null,
+    onDemandKnown: false,
     onDemand: null,
     error: null,
   };
@@ -101,7 +102,8 @@ async function fetchStatusAsync(): Promise<WeeklyStatus> {
 async function withAccountEmail(status: WeeklyStatus, access: string): Promise<WeeklyStatus> {
   const [email, onDemand] = await Promise.all([fetchAccountEmail(access), fetchOnDemandSpend(access)]);
   status.accountEmail = email;
-  status.onDemand = onDemand;
+  status.onDemandKnown = onDemand.known;
+  status.onDemand = onDemand.known ? onDemand.spend : null;
   return status;
 }
 
@@ -139,11 +141,13 @@ async function callDashboardJson(
   }
 }
 
-/** Fetch + parse on-demand; failures return null (weekly fields still valid). */
-async function fetchOnDemandSpend(access: string): Promise<OnDemandSpend | null> {
+/** Fetch + parse on-demand. A failed request is unknown, not "no cap". */
+async function fetchOnDemandSpend(
+  access: string,
+): Promise<{ known: true; spend: OnDemandSpend | null } | { known: false }> {
   const period = await callDashboardJson(PERIOD_USAGE_URL, access, "period usage");
-  if (period.kind !== "ok") return null;
-  return parseOnDemandSpend(period.value);
+  if (period.kind !== "ok") return { known: false };
+  return { known: true, spend: parseOnDemandSpend(period.value) };
 }
 
 /** Match Grok Bot Hde(limit): null if undefined, non-finite, <=0, or >= unlimited sentinel. */
@@ -155,7 +159,8 @@ function normalizeSpendLimitCents(limit: unknown): number | null {
 
 /**
  * Copy GetCurrentPeriodUsage.spendLimitUsage → OnDemandSpend.
- * Only when spendLimitUsage exists AND limitCents non-null; else null (hide UI).
+ * Null after a successful response means there is no cap (the UI may say so).
+ * A failed request never reaches here — the caller marks on-demand unknown.
  */
 function parseOnDemandSpend(v: unknown): OnDemandSpend | null {
   if (!v || typeof v !== "object") return null;
@@ -239,6 +244,7 @@ function parseUsage(v: unknown): WeeklyStatus {
     hasNonZeroIncludedLimit: hasNonZeroIncludedLimit as boolean | null,
     hasAvailableUsage: hasAvailableUsage as boolean | null,
     accountEmail: null,
+    onDemandKnown: false,
     onDemand: null,
     error: null,
   };

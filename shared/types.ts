@@ -33,6 +33,12 @@ export type WeeklyStatus = {
   hasNonZeroIncludedLimit: boolean | null;
   hasAvailableUsage: boolean | null;
   accountEmail: string | null;
+  /**
+   * True only after a successful period-usage response. `onDemand === null`
+   * then means the account has no cap. False means the spend request failed
+   * or was never made — the UI must hide on-demand, not claim "no spend limit".
+   */
+  onDemandKnown: boolean;
   onDemand: OnDemandSpend | null;
   error: string | null;
 };

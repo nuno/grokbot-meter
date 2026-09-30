@@ -23,6 +23,7 @@ function weeklyFetchFailed(reason: unknown): WeeklyStatus {
     hasNonZeroIncludedLimit: null,
     hasAvailableUsage: null,
     accountEmail: null,
+    onDemandKnown: false,
     onDemand: null,
     error,
   };

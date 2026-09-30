@@ -38,19 +38,56 @@ export function clampPercent(n: number): number {
   return Math.min(100, Math.max(0, n));
 }
 
-export function formatResetsIn(nextResetAt: number | null | undefined): string {
-  if (nextResetAt == null || !Number.isFinite(nextResetAt)) return "Resets in —";
-  const ms = nextResetAt - Date.now();
-  if (ms <= 0) return "Resets soon";
+type ResetClock = {
+  /** Whole days still ahead. 0 once under 24h remain, and when the reset is already due. */
+  days: number;
+  /** Hours left after those whole days. */
+  hours: number;
+  /** Minutes left after whole hours. Used only when under an hour remains. */
+  minutes: number;
+  due: boolean;
+};
+
+/**
+ * One breakdown for the "Resets in" line and the Coffee days rail, so the two
+ * cannot drift. `now` is injectable for tests; callers omit it.
+ */
+export function resetClock(nextResetAt: number, now: number): ResetClock | null {
+  if (!Number.isFinite(nextResetAt) || !Number.isFinite(now)) return null;
+  const ms = nextResetAt - now;
+  if (ms <= 0) return { days: 0, hours: 0, minutes: 0, due: true };
   const totalMinutes = Math.max(1, Math.round(ms / 60_000));
-  const hours = Math.floor(totalMinutes / 60);
-  if (hours >= 24) {
-    const days = Math.floor(hours / 24);
-    const remH = hours % 24;
-    return remH > 0 ? `Resets in ${days}d ${remH}h` : `Resets in ${days}d`;
+  const totalHours = Math.floor(totalMinutes / 60);
+  return {
+    days: Math.floor(totalHours / 24),
+    hours: totalHours % 24,
+    minutes: totalMinutes % 60,
+    due: false,
+  };
+}
+
+export function formatResetsIn(nextResetAt: number | null | undefined, now = Date.now()): string {
+  if (nextResetAt == null || !Number.isFinite(nextResetAt)) return "Resets in —";
+  const clock = resetClock(nextResetAt, now);
+  if (!clock) return "Resets in —";
+  if (clock.due) return "Resets soon";
+  if (clock.days >= 1) {
+    return clock.hours > 0 ? `Resets in ${clock.days}d ${clock.hours}h` : `Resets in ${clock.days}d`;
   }
-  if (hours >= 1) return `Resets in ${hours}h`;
-  return `Resets in ${totalMinutes}m`;
+  if (clock.hours >= 1) return `Resets in ${clock.hours}h`;
+  return `Resets in ${clock.minutes}m`;
+}
+
+/**
+ * 0-based position on the 7-day rail. A full week remaining lights day 1;
+ * under 24h left, or a reset already due, lights day 7. Whole days come from
+ * resetClock, so the node stays put while "Resets in" still shows that day.
+ */
+export function elapsedDayIndex(resetAt: number | null, now = Date.now()): number | null {
+  if (resetAt == null || !Number.isFinite(resetAt)) return null;
+  const clock = resetClock(resetAt, now);
+  if (!clock) return null;
+  return Math.min(6, Math.max(0, 7 - clock.days));
 }
 
 export function redactEmail(email: string): string {
