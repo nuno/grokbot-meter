@@ -6,8 +6,8 @@
 | [`menubar2.png`](menubar2.png) | Menu bar status item — bot face + weekly % |
 | [`popup.png`](popup.png) | Main popover (light) — Weekly, on-demand, Today, footer |
 | [`popup-dark.png`](popup-dark.png) | Main popover (dark) — same layout |
-| [`popup-break.png`](popup-break.png) | Main popover in the Break theme — cup at 68%, on-demand in the credit corner |
-| [`popup-break-full.png`](popup-break-full.png) | Break theme near the weekly cap — red spotlight, rails and percentage |
+| [`popup-coffee.png`](popup-coffee.png) | Main popover in the Coffee theme — cup at 68%, on-demand in the credit corner |
+| [`popup-coffee-full.png`](popup-coffee-full.png) | Coffee theme near the weekly cap — red spotlight, rails and percentage |
 | [`week-loop.gif`](week-loop.gif) | README hero — 8s loop, cup 0% → 96% then drain/reset. GIF fallback of the MP4 |
 | [`week-loop.mp4`](week-loop.mp4) | Same loop as 60fps retina H.264 |
 | [`desktop-focus.png`](desktop-focus.png) | Same desktop demo with other status items grayed out and ours highlighted |
@@ -21,7 +21,7 @@
 - Do **not** click **Refresh** / force `GetSandUsageStatus` just for docs. Opening the panel once for a shot is OK.
 - Skip Settings if it needs extra navigations that risk spend; email lives in Settings and should stay out of public shots.
 - Capture light and dark when showing the popup; crop tidy retina PNGs; redact account email if it ever appears.
-- Break has no light variant — it paints its own opaque panel in both appearances, so one shot covers it.
+- Coffee has no light variant — it paints its own opaque panel in both appearances, so one shot covers it.
 - `week-loop.*` are not screen captures. The real `App` runs in an iframe with
   `window.api` stubbed, on a dark graded field (no OS chrome). Each frame's
   exact state is computed (`pct`, days left, spill colour), set, then captured

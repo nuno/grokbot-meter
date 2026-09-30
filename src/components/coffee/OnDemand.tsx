@@ -10,12 +10,12 @@ type Props = {
 
 /**
  * The kiosk prints the card balance in the top-right corner ("0,00 € CRÉDITO"),
- * so Break puts on-demand spend there instead of in a row below the meter.
+ * so Coffee puts on-demand spend there instead of in a row below the meter.
  * Renders nothing in the flat themes — they keep the row.
  */
 export const OnDemandReadout = memo(function OnDemandReadout({ onDemand, tone }: Props) {
   const { theme } = useThemePref();
-  if (theme !== "break" || !onDemand) return null;
+  if (theme !== "coffee" || !onDemand) return null;
 
   return (
     <span className="kiosk-credit">

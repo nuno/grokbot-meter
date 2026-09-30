@@ -40,7 +40,7 @@ export function usePanelController() {
 
   const goMain = useCallback(() => {
     // Restore before the mode flips, and carry the theme ceiling — without it
-    // main clamps to the flat-theme 520px and Break's panel snaps down, then
+    // main clamps to the flat-theme 520px and Coffee's panel snaps down, then
     // back up once usePanelHeight re-measures.
     const restore = mainHeightFor(theme);
     if (restore != null) setContentHeight(restore, "main", maxPanelHeight);

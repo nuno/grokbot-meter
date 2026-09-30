@@ -15,7 +15,7 @@ export function rememberAboutHeight(h: number) {
 
 /**
  * Main height as measured under `theme`, or null when the last measurement
- * came from a different one. Break's panel runs ~170px taller than System's,
+ * came from a different one. Coffee's panel runs ~170px taller than System's,
  * so restoring a height from the wrong theme resizes the window twice.
  */
 export function mainHeightFor(theme: string): number | null {

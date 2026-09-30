@@ -29,7 +29,7 @@ const WEEKLY_HIGH_USAGE_MS = 10 * 60_000;
 const PANEL_WIDTH = 380;
 const PANEL_MIN_HEIGHT = 260;
 const PANEL_MAX_HEIGHT = 520;
-/** Themes may raise their own ceiling (Break's cup gauge is taller); this caps them all. */
+/** Themes may raise their own ceiling (Coffee's cup gauge is taller); this caps them all. */
 const PANEL_HARD_MAX_HEIGHT = 680;
 
 function isOverlayMode(mode: PanelHeightMode): boolean {

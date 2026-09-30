@@ -1,17 +1,15 @@
 /**
  * Theme registry. A theme is a `data-theme` value on <html> plus a token block
- * in App.css — everything else (break.css, CupGauge) hangs off that attribute.
+ * in App.css — everything else (coffee.css, CupGauge) hangs off that attribute.
  */
 
-export type ThemeId = "system" | "break";
+export type ThemeId = "system" | "coffee";
 
 export type ThemeDef = {
   id: ThemeId;
   label: string;
   hint: string;
-  /** Settings swatch — panel, accent, brand. */
-  swatch: readonly [string, string, string];
-  /** Panel ceiling in px. Break's cup gauge needs more room than the flat layout. */
+  /** Panel ceiling in px. Coffee's cup gauge needs more room than the flat layout. */
   maxPanelHeight: number;
 };
 
@@ -22,14 +20,12 @@ export const THEMES: readonly ThemeDef[] = [
     id: "system",
     label: "System",
     hint: "Follows the macOS light and dark appearance.",
-    swatch: ["#F2F2F7", "#1C1C1E", "#007AFF"],
     maxPanelHeight: 520,
   },
   {
-    id: "break",
-    label: "Break",
-    hint: "Coffee kiosk — the cup fills to your weekly usage.",
-    swatch: ["#0A0A0C", "#3ED64C", "#E6197A"],
+    id: "coffee",
+    label: "Coffee",
+    hint: "The cup fills to your weekly usage.",
     maxPanelHeight: 640,
   },
 ];

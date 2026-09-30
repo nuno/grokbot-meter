@@ -55,7 +55,7 @@ A small menu appears:
 
 Settings let you control local UI preferences only (not your Cursor / Grok account):
 
-- **Theme** — **System** follows the macOS light and dark appearance. **Break** is a coffee-kiosk look on black, where a metal cup fills with coffee to your weekly usage.
+- **Theme** — **System** follows the macOS light and dark appearance. **Coffee** is a kiosk look on black, where a metal cup fills with coffee to your weekly usage.
 - **Launch at login** — start GrokBot Meter when you log in to macOS.
 - **Redact email** — hide your account email in the UI.
 - **Show on-demand** — show or hide the on-demand spend row when Grok Bot reports one.

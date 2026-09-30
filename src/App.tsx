@@ -1,6 +1,6 @@
 import { Activity } from "react";
 import "./App.css";
-import "./themes/break.css";
+import "./themes/coffee.css";
 import { AppHeader } from "./components/AppHeader";
 import { AppFooter } from "./components/AppFooter";
 import { WeeklyCard } from "./components/WeeklyCard";

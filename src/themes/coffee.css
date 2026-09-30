@@ -1,18 +1,18 @@
 /*
-  Break — a skeuomorphic reskin modeled on the "my break by Delta Cafés"
-  vending kiosk: opaque black screen, brushed-metal cup gauge under a
-  spotlight, hairline selector rails, glossy confirm/cancel pills.
+  Coffee — a skeuomorphic reskin modeled on a café vending kiosk: opaque
+  black screen, brushed-metal cup gauge under a spotlight, hairline
+  selector rails.
 
-  Everything is scoped to [data-theme="break"] so the flat themes are
+  Everything is scoped to [data-theme="coffee"] so the flat themes are
   untouched. The token block comes first; the geometry that plain tokens
   cannot express follows.
 */
 
-[data-theme="break"] {
+[data-theme="coffee"] {
   color-scheme: dark;
 
   --panel-bg: radial-gradient(120% 70% at 50% 8%, #17171c 0%, #0a0a0c 62%);
-  /* Taller than the flat themes — matches THEMES.break.maxPanelHeight. */
+  /* Taller than the flat themes — matches THEMES.coffee.maxPanelHeight. */
   --panel-max-height: 640px;
   /* Opaque panel, so the macOS material underneath is never sampled. */
   --card-backdrop: none;
@@ -40,22 +40,19 @@
   --control-bg-active: rgba(255, 255, 255, 0.18);
   --switch-knob: #ffffff;
 
-  /* Break-only. */
-  --brand: #e6197a;
+  /* Coffee-only. */
   --glass-ring: rgba(150, 165, 200, 0.45);
   --glass-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 100%);
-  --pill-confirm: linear-gradient(180deg, #55e063 0%, #2fbe3e 52%, #1b8f27 100%);
-  --pill-cancel: linear-gradient(180deg, #f4565f 0%, #dc2f39 52%, #b01c25 100%);
 }
 
 /* --- panel + cards ------------------------------------------------------ */
 
-[data-theme="break"] .panel {
+[data-theme="coffee"] .panel {
   font-family: "SF Pro Rounded", -apple-system, BlinkMacSystemFont, sans-serif;
   gap: 8px;
 }
 
-[data-theme="break"] .card {
+[data-theme="coffee"] .card {
   border-radius: 16px;
   position: relative;
   overflow: hidden;
@@ -63,7 +60,7 @@
 }
 
 /* Top bevel — a single hairline of light along the upper edge. */
-[data-theme="break"] .card::before {
+[data-theme="coffee"] .card::before {
   content: "";
   position: absolute;
   top: 0;
@@ -74,9 +71,9 @@
   pointer-events: none;
 }
 
-[data-theme="break"] .icon-btn,
-[data-theme="break"] .close-btn,
-[data-theme="break"] .settings-email-toggle {
+[data-theme="coffee"] .icon-btn,
+[data-theme="coffee"] .close-btn,
+[data-theme="coffee"] .settings-email-toggle {
   border-radius: 9px;
   background: var(--glass-fill);
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -84,14 +81,14 @@
 
 /* --- weekly head: kiosk price/credit corners ---------------------------- */
 
-[data-theme="break"] .card .card-head {
+[data-theme="coffee"] .card .card-head {
   align-items: flex-start;
 }
 
 /* The kiosk stacks the price under its caption on the left and the card
    balance on the right, so the weekly head becomes a two-column grid. Today
    keeps the plain flex row. */
-[data-theme="break"] .card-weekly .card-head {
+[data-theme="coffee"] .card-weekly .card-head {
   display: grid;
   grid-template-columns: 1fr auto;
   grid-template-areas:
@@ -100,11 +97,11 @@
   row-gap: 3px;
 }
 
-[data-theme="break"] .card-weekly .card-label {
+[data-theme="coffee"] .card-weekly .card-label {
   grid-area: label;
 }
 
-[data-theme="break"] .card-weekly .card-pct {
+[data-theme="coffee"] .card-weekly .card-pct {
   grid-area: pct;
 }
 
@@ -148,19 +145,19 @@
   color: var(--tertiary-label);
 }
 
-[data-theme="break"] .card-label {
+[data-theme="coffee"] .card-label {
   font-size: 9px;
   letter-spacing: 0.14em;
   color: var(--tertiary-label);
 }
 
-[data-theme="break"] .card-pct {
+[data-theme="coffee"] .card-pct {
   font-size: 24px;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
 
-[data-theme="break"] .card-pct--count {
+[data-theme="coffee"] .card-pct--count {
   font-size: 15px;
   font-weight: 700;
 }
@@ -170,7 +167,7 @@
 /* The cup art starts ~15% down its own viewBox, so the gauge is pulled up into
    that dead space. The head keeps its value in the corners, kiosk-style, and
    the cup floats between them without touching either. */
-[data-theme="break"] .cup-gauge {
+[data-theme="coffee"] .cup-gauge {
   position: relative;
   margin-top: -18px;
 }
@@ -386,7 +383,7 @@
 
 /* Spend moved up to the credit corner and the no-cap case became the mark by
    the cup, so the row under the meter has nothing left to say. */
-[data-theme="break"] .ondemand {
+[data-theme="coffee"] .ondemand {
   display: none;
 }
 
@@ -430,15 +427,15 @@
 
 /* --- today list --------------------------------------------------------- */
 
-[data-theme="break"] .agent + .agent {
+[data-theme="coffee"] .agent + .agent {
   border-top-color: var(--separator);
 }
 
-[data-theme="break"] .agent.has-activity .agent-dot {
+[data-theme="coffee"] .agent.has-activity .agent-dot {
   box-shadow: 0 0 7px var(--system-blue);
 }
 
-[data-theme="break"] .agent-count {
+[data-theme="coffee"] .agent-count {
   color: #0b2a10;
   background: linear-gradient(180deg, #62e070 0%, #2fbe3e 100%);
 }
@@ -447,14 +444,14 @@
 
 /* The kiosk's BACK control is the one piece of chrome the screen repeats, so
    the footer borrows it wholesale: same glass fill, ring and radius as
-   [data-theme="break"] .back below. Intent is carried by the label colour on
+   [data-theme="coffee"] .back below. Intent is carried by the label colour on
    hover, not by a filled pill. */
 
-[data-theme="break"] .footer-row {
+[data-theme="coffee"] .footer-row {
   gap: 8px;
 }
 
-[data-theme="break"] .footer-btn {
+[data-theme="coffee"] .footer-btn {
   position: relative;
   height: 32px;
   border-radius: 10px;
@@ -469,34 +466,50 @@
     color 120ms ease;
 }
 
-[data-theme="break"] .footer-btn:hover {
+[data-theme="coffee"] .footer-btn:hover {
   background: var(--control-bg-hover);
   border-color: rgba(255, 255, 255, 0.26);
   color: var(--label);
 }
 
-[data-theme="break"] .footer-btn:active {
+[data-theme="coffee"] .footer-btn:active {
   background: var(--control-bg-active);
 }
 
-[data-theme="break"] .footer-btn--primary:hover {
+[data-theme="coffee"] .footer-btn--primary:hover {
   color: var(--system-blue);
   border-color: rgba(62, 214, 76, 0.5);
 }
 
-[data-theme="break"] .footer-btn--danger:hover {
+[data-theme="coffee"] .footer-btn--danger:hover {
   color: var(--system-red);
   border-color: rgba(232, 50, 60, 0.5);
 }
 
 /* --- settings ----------------------------------------------------------- */
 
-[data-theme="break"] .back {
+[data-theme="coffee"] .back {
   border-radius: 10px;
   background: var(--glass-fill);
   border: 1px solid rgba(255, 255, 255, 0.16);
 }
 
-[data-theme="break"] .settings-switch.is-on {
-  background: var(--pill-confirm);
+/* Theme cards use the same glass as Back, not the iOS selected-pill fill.
+   The thumb already carries the identity; the ring marks the choice. */
+[data-theme="coffee"] .theme-option {
+  background: var(--glass-fill);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: var(--secondary-label);
+}
+
+[data-theme="coffee"] .theme-option:hover {
+  background: var(--control-bg-hover);
+  border-color: rgba(255, 255, 255, 0.26);
+  color: var(--label);
+}
+
+[data-theme="coffee"] .theme-option.is-selected {
+  background: var(--glass-fill);
+  border-color: rgba(62, 214, 76, 0.55);
+  color: var(--label);
 }

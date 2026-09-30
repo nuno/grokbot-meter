@@ -1,8 +1,50 @@
 import { memo, useCallback } from "react";
 import { useThemePref } from "../hooks/useLocalPref";
-import { THEMES, themeDef } from "../lib/themes";
+import { THEMES, themeDef, type ThemeId } from "../lib/themes";
 
-/** Settings control for the active theme — swatch pills in a radiogroup. */
+const SystemThumb = memo(function SystemThumb() {
+  return (
+    <span className="theme-thumb theme-thumb--system" aria-hidden="true">
+      <span className="theme-thumb-pane theme-thumb-pane--light">
+        <span className="theme-thumb-bar" />
+      </span>
+      <span className="theme-thumb-pane theme-thumb-pane--dark">
+        <span className="theme-thumb-bar" />
+      </span>
+    </span>
+  );
+});
+
+const CoffeeThumb = memo(function CoffeeThumb() {
+  return (
+    <span className="theme-thumb theme-thumb--coffee" aria-hidden="true">
+      <span className="theme-thumb-glow" />
+      <svg className="theme-thumb-cup" viewBox="0 0 32 30" fill="none">
+        <ellipse cx="16" cy="7.2" rx="10.2" ry="3.1" fill="#C8C8D0" />
+        <path d="M6.6 7.4 9.4 25.2c.4 1.6 6.6 2.4 13.2 0L25.4 7.4" fill="url(#thumb-metal)" />
+        <path d="M9.2 11.2 11 23.4c.3 1.1 5 1.7 10 0L22.8 11.2" fill="url(#thumb-coffee)" />
+        <ellipse cx="16" cy="11.2" rx="6.8" ry="2" fill="#8A5524" />
+        <defs>
+          <linearGradient id="thumb-metal" x1="16" y1="7" x2="16" y2="27">
+            <stop stopColor="#8A8A92" />
+            <stop offset="0.45" stopColor="#E8E8EC" />
+            <stop offset="1" stopColor="#5C5C64" />
+          </linearGradient>
+          <linearGradient id="thumb-coffee" x1="16" y1="11" x2="16" y2="24">
+            <stop stopColor="#7A4420" />
+            <stop offset="1" stopColor="#251006" />
+          </linearGradient>
+        </defs>
+      </svg>
+    </span>
+  );
+});
+
+function ThemeThumb({ id }: { id: ThemeId }) {
+  return id === "coffee" ? <CoffeeThumb /> : <SystemThumb />;
+}
+
+/** Settings control for the active theme — preview cards in a radiogroup. */
 export const ThemePicker = memo(function ThemePicker() {
   const { theme, setTheme } = useThemePref();
 
@@ -39,11 +81,7 @@ export const ThemePicker = memo(function ThemePicker() {
                 onClick={() => setTheme(t.id)}
                 title={t.hint}
               >
-                <span className="theme-swatch" aria-hidden="true">
-                  {t.swatch.map((color) => (
-                    <span key={color} style={{ background: color }} />
-                  ))}
-                </span>
+                <ThemeThumb id={t.id} />
                 {t.label}
               </button>
             );

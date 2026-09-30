@@ -5,7 +5,7 @@ import { weeklyLines } from "../lib/weekly";
 import { useShowOnDemand } from "../hooks/useLocalPref";
 import { WeeklyIcon } from "./icons";
 import { WeeklyGauge } from "./WeeklyGauge";
-import { OnDemandReadout } from "./break/OnDemand";
+import { OnDemandReadout } from "./coffee/OnDemand";
 
 type Props = {
   weekly: WeeklyStatus | null;

@@ -1,6 +1,6 @@
 /*
   Tokens only — every rule below this block reads these, so a theme is a token
-  override plus (for Break) the extra geometry in themes/break.css.
+  override plus (for Coffee) the extra geometry in themes/coffee.css.
   :root holds the light defaults; the media query adds dark for System only.
 */
 :root {
@@ -1013,7 +1013,8 @@ body,
 }
 
 .theme-picker {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
   margin-top: 8px;
 }
@@ -1023,16 +1024,18 @@ body,
   border: 1px solid transparent;
   font: inherit;
   cursor: default;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  border-radius: 999px;
-  padding: 4px 10px 4px 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  border-radius: 12px;
+  padding: 5px 5px 8px;
   font-size: 12px;
   font-weight: 500;
+  text-align: center;
   color: var(--secondary-label);
   background: var(--control-bg);
-  transition: background 120ms ease, color 120ms ease;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
 }
 
 .theme-option:hover {
@@ -1052,20 +1055,72 @@ body,
   outline-offset: 2px;
 }
 
-.theme-swatch {
-  display: inline-flex;
-  flex-shrink: 0;
+.theme-thumb {
+  position: relative;
+  display: block;
+  height: 52px;
+  border-radius: 8px;
+  overflow: hidden;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 0.5px var(--card-stroke);
 }
 
-.theme-swatch span {
-  width: 12px;
-  height: 12px;
+.theme-thumb--system {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.theme-thumb-pane {
+  display: flex;
+  align-items: flex-end;
+  padding: 10px 7px 8px;
+}
+
+.theme-thumb-pane--light {
+  background: #f2f2f7;
+}
+
+.theme-thumb-pane--dark {
+  background: #1c1c1e;
+}
+
+.theme-thumb-bar {
+  display: block;
+  width: 100%;
+  height: 5px;
   border-radius: 999px;
-  border: 0.5px solid var(--card-stroke);
 }
 
-.theme-swatch span + span {
-  margin-left: -4px;
+.theme-thumb-pane--light .theme-thumb-bar {
+  background: linear-gradient(90deg, #007aff 68%, rgba(0, 122, 255, 0.18) 68%);
+}
+
+.theme-thumb-pane--dark .theme-thumb-bar {
+  background: linear-gradient(90deg, #0a84ff 68%, rgba(10, 132, 255, 0.28) 68%);
+}
+
+.theme-thumb--coffee {
+  background: radial-gradient(120% 70% at 50% 8%, #17171c 0%, #0a0a0c 62%);
+}
+
+.theme-thumb-glow {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: 36px;
+  height: 28px;
+  margin: -14px 0 0 -18px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(176, 190, 214, 0.45), transparent 72%);
+}
+
+.theme-thumb-cup {
+  position: absolute;
+  left: 50%;
+  top: 54%;
+  width: 22px;
+  height: 21px;
+  margin: -11px 0 0 -11px;
 }
 
 .settings-divider {

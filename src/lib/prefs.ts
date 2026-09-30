@@ -17,6 +17,10 @@ function clearLegacyPrefs(): void {
     if (window.localStorage.getItem(LEGACY_SHOW_WEEKLY_TREND_KEY) != null) {
       window.localStorage.removeItem(LEGACY_SHOW_WEEKLY_TREND_KEY);
     }
+    // v0.2.x stored the Coffee theme as "break".
+    if (window.localStorage.getItem(THEME_KEY) === "break") {
+      window.localStorage.setItem(THEME_KEY, "coffee");
+    }
   } catch {
     /* ignore */
   }

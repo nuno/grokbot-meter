@@ -14,7 +14,7 @@ type Props = {
 /**
  * Brushed-metal capsule cup whose coffee level is the weekly percentage.
  * Level/surface animate through CSS transitions on the SVG geometry
- * properties (see .cup-coffee / .cup-crema in themes/break.css).
+ * properties (see .cup-coffee / .cup-crema in themes/coffee.css).
  */
 export const CupGauge = memo(function CupGauge({ pct }: Props) {
   const level = TOP + (1 - pct / 100) * (BOTTOM - TOP);
