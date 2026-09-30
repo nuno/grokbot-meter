@@ -15,26 +15,50 @@ const SystemThumb = memo(function SystemThumb() {
   );
 });
 
+/** Miniature of CupGauge — same silhouette, metal, and half-full pour. */
 const CoffeeThumb = memo(function CoffeeThumb() {
   return (
     <span className="theme-thumb theme-thumb--coffee" aria-hidden="true">
       <span className="theme-thumb-glow" />
-      <svg className="theme-thumb-cup" viewBox="0 0 32 30" fill="none">
-        <ellipse cx="16" cy="7.2" rx="10.2" ry="3.1" fill="#C8C8D0" />
-        <path d="M6.6 7.4 9.4 25.2c.4 1.6 6.6 2.4 13.2 0L25.4 7.4" fill="url(#thumb-metal)" />
-        <path d="M9.2 11.2 11 23.4c.3 1.1 5 1.7 10 0L22.8 11.2" fill="url(#thumb-coffee)" />
-        <ellipse cx="16" cy="11.2" rx="6.8" ry="2" fill="#8A5524" />
+      <svg className="theme-thumb-cup" viewBox="0 0 120 116" fill="none">
         <defs>
-          <linearGradient id="thumb-metal" x1="16" y1="7" x2="16" y2="27">
-            <stop stopColor="#8A8A92" />
-            <stop offset="0.45" stopColor="#E8E8EC" />
-            <stop offset="1" stopColor="#5C5C64" />
+          <linearGradient id="coffee-thumb-metal" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="#5C5C64" />
+            <stop offset="0.18" stopColor="#D4D4DA" />
+            <stop offset="0.34" stopColor="#F7F7FA" />
+            <stop offset="0.52" stopColor="#9A9AA3" />
+            <stop offset="0.7" stopColor="#E8E8ED" />
+            <stop offset="1" stopColor="#4E4E56" />
           </linearGradient>
-          <linearGradient id="thumb-coffee" x1="16" y1="11" x2="16" y2="24">
-            <stop stopColor="#7A4420" />
+          <linearGradient id="coffee-thumb-brew" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#7A4420" />
             <stop offset="1" stopColor="#251006" />
           </linearGradient>
+          <linearGradient id="coffee-thumb-rim" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="#8E8E97" />
+            <stop offset="0.4" stopColor="#FFFFFF" />
+            <stop offset="1" stopColor="#6E6E77" />
+          </linearGradient>
+          <radialGradient id="coffee-thumb-crema" cx="0.5" cy="0.45" r="0.55">
+            <stop offset="0" stopColor="#E2B06A" />
+            <stop offset="1" stopColor="#8A5524" />
+          </radialGradient>
+          <clipPath id="coffee-thumb-body">
+            <path d="M20 26 L100 26 L88 92 Q86 102 76 102 L44 102 Q34 102 32 92 Z" />
+          </clipPath>
         </defs>
+
+        <ellipse cx="60" cy="108" rx="34" ry="5" fill="rgba(0,0,0,0.45)" />
+        <g clipPath="url(#coffee-thumb-body)">
+          <rect x="16" y="20" width="88" height="90" fill="url(#coffee-thumb-metal)" />
+          <rect x="16" y="58" width="88" height="48" fill="url(#coffee-thumb-brew)" />
+          <rect x="28" y="20" width="8" height="90" fill="rgba(255,255,255,0.28)" />
+          <rect x="78" y="20" width="5" height="90" fill="rgba(255,255,255,0.16)" />
+        </g>
+        <ellipse cx="60" cy="58" rx="30" ry="5" fill="url(#coffee-thumb-crema)" />
+        <ellipse cx="60" cy="26" rx="40" ry="8.5" fill="url(#coffee-thumb-rim)" />
+        <ellipse cx="60" cy="26" rx="32" ry="6" fill="#120D09" />
+        <ellipse cx="60" cy="26" rx="40" ry="8.5" stroke="rgba(255,255,255,0.7)" strokeWidth="1.2" fill="none" />
       </svg>
     </span>
   );

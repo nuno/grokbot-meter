@@ -1058,7 +1058,7 @@ body,
 .theme-thumb {
   position: relative;
   display: block;
-  height: 52px;
+  height: 64px;
   border-radius: 8px;
   overflow: hidden;
   pointer-events: none;
@@ -1106,21 +1106,21 @@ body,
 .theme-thumb-glow {
   position: absolute;
   left: 50%;
-  top: 42%;
-  width: 36px;
-  height: 28px;
-  margin: -14px 0 0 -18px;
+  top: 46%;
+  width: 72px;
+  height: 56px;
+  margin: -28px 0 0 -36px;
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(176, 190, 214, 0.45), transparent 72%);
+  background: radial-gradient(closest-side, rgba(210, 196, 170, 0.42), transparent 72%);
 }
 
 .theme-thumb-cup {
   position: absolute;
   left: 50%;
-  top: 54%;
-  width: 22px;
-  height: 21px;
-  margin: -11px 0 0 -11px;
+  bottom: 3px;
+  width: 46px;
+  height: 44px;
+  transform: translateX(-50%);
 }
 
 .settings-divider {
