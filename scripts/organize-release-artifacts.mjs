@@ -1,6 +1,7 @@
 import { mkdir, readdir, rename, rm, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { isReleaseArtifact } from "./release-artifact-names.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const packageJson = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
@@ -10,14 +11,12 @@ const releaseDir = path.join(root, "releases", version);
 
 await mkdir(releaseDir, { recursive: true });
 
-const prefix = `GrokBot-Meter-${version}-`;
-const artifacts = (await readdir(distDir)).filter((name) =>
-  name.startsWith(prefix) &&
-  (name.endsWith(".dmg") || name.endsWith(".zip") || name.endsWith(".blockmap")),
-);
+const artifacts = (await readdir(distDir)).filter((name) => isReleaseArtifact(name, version));
 
 if (artifacts.length === 0) {
-  throw new Error(`No ${version} DMG, zip, or blockmap artifacts found in ${distDir}`);
+  throw new Error(
+    `No ${version} release artifacts (DMG, zip, EXE, or blockmap) found in ${distDir}`,
+  );
 }
 
 for (const artifact of artifacts) {
