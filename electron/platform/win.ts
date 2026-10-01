@@ -3,6 +3,7 @@ import { release } from "node:os";
 import { moveWindowNearTray } from "./anchor";
 import { winTrayPlacement } from "./position";
 import type { PlatformSeam, TrayClickHandlers } from "./types";
+import { winLoginItemTarget } from "./winLoginItem";
 import {
   composeWindowsTrayBitmap,
   cropToOpaque,
@@ -25,7 +26,8 @@ let listenersOn = false;
  * menu bar shows) is drawn into the icon. The tooltip stays the shared
  * `GrokBot Meter · N% weekly` string set by the main process. Left click
  * toggles the popup; anchoring is `winTrayPlacement`. Right click is a native
- * menu: Open, About, Settings, Quit. Open at login stays unsupported.
+ * menu: Open, About, Settings, Quit. Open at login is the per-user
+ * win32 login item (HKCU Run); other platforms stay unsupported.
  *
  * Windows 11 22H2+ uses acrylic for the flyout. Older Windows gets a solid
  * light/dark fill. Icon ink follows the system light/dark theme.
@@ -109,6 +111,22 @@ function ensureListeners(): void {
   screen.on("display-metrics-changed", repaint);
 }
 
+function currentLoginTarget() {
+  return winLoginItemTarget({
+    platform: process.platform,
+    packaged: app.isPackaged,
+    execPath: process.execPath,
+    appPath: app.getAppPath(),
+  });
+}
+
+function readLoginItem() {
+  const target = currentLoginTarget();
+  if (!target.supported) return { openAtLogin: false, supported: false };
+  const s = app.getLoginItemSettings({ path: target.path, args: target.args });
+  return { openAtLogin: Boolean(s.openAtLogin), supported: true };
+}
+
 function trayMenu(handlers: TrayClickHandlers) {
   return Menu.buildFromTemplate([
     { label: "&Open GrokBot Meter", click: () => handlers.onOpen() },
@@ -165,9 +183,18 @@ export const winPlatform: PlatformSeam = {
     return !quitting;
   },
   getLoginItem() {
-    return { openAtLogin: false, supported: false };
+    return readLoginItem();
   },
-  setLoginItem() {
-    return { openAtLogin: false, supported: false };
+  setLoginItem(openAtLogin) {
+    const target = currentLoginTarget();
+    if (!target.supported) return { openAtLogin: false, supported: false };
+    app.setLoginItemSettings({
+      openAtLogin: Boolean(openAtLogin),
+      path: target.path,
+      args: target.args,
+      // Drop a StartupApproved disable so the per-user Run entry stays on.
+      enabled: true,
+    });
+    return readLoginItem();
   },
 };
