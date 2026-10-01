@@ -34,7 +34,15 @@ The installer is one-click, per-user, and does not ask for an admin password. It
 
 **Windows loaner (preferred).** Use a separate Windows user so Node and Electron stay off the daily profile. Install Git and Node LTS only. Clone this branch, run the commands above, and copy `releases/0.3.1/` back. Do not copy a Mac signing identity or `.env`.
 
-**Linux or macOS.** The same `npm run dist:win` cross-compiles the Windows targets. electron-builder 26 edits the exe resources and runs NSIS without Wine. If NSIS fails on a given machine, build on the loaner with the same script. There is no Windows self-hosted runner for this repo; a Linux cloud agent can produce the `.exe` and `.zip`, but the tray itself still needs the loaner to click through.
+**Linux or macOS.** The same `npm run dist:win` cross-compiles the Windows targets. electron-builder edits exe resources in-process and compiles NSIS with a native `makensis`. It then launches the installer once to embed the uninstaller. That stub is a 32-bit PE, so `wine` must be on `PATH` and able to run it. On Ubuntu:
+
+```bash
+sudo dpkg --add-architecture i386
+sudo apt-get update
+sudo apt-get install -y wine wine64 wine32:i386
+```
+
+Do not pin `build.toolsets.wine` to electron-builder's Wine 11 bundle (`1.0.1`). That archive has no runnable prefix (`kernel32.dll` is missing), so the uninstaller step fails. On the loaner the installer runs natively and Wine is not used. There is no Windows self-hosted runner for this repo. A Linux machine with Wine can produce the `.exe` and `.zip`, but the tray itself still needs the loaner to click through.
 
 ## What this package does not include
 
