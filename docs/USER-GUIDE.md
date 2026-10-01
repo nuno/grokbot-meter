@@ -13,7 +13,7 @@ You do not need to open a browser. Just look at the menu bar.
 
 ## How to install
 
-You need to build the app once (it is not on an app store yet).
+You need macOS 13 (Ventura) or later on Apple Silicon. Build the app once (it is not on an app store yet).
 
 1. Open the Terminal.
 2. Go to the project folder.
@@ -26,7 +26,7 @@ npm run electron:build
 
 This creates an unpacked app in `dist/mac-arm64` and versioned DMG/zip under `releases/<version>/`. Open the DMG (or `dist/mac-arm64`) and drag **GrokBot Meter** to Applications.
 
-> Note: the app is not notarized, so macOS asks you to approve it on first launch. On macOS 15 or later, open it once, then go to System Settings → Privacy & Security → **Open Anyway**. On older macOS, right-click → **Open**. Full steps: "First launch (Gatekeeper)" in `README.md`.
+> Note: the app is not notarized, so macOS asks you to approve it on first launch. On macOS 15 or later, open it once, then go to System Settings → Privacy & Security → **Open Anyway**. On macOS 13 and 14, right-click → **Open**. Full steps: "First launch (Gatekeeper)" in `README.md`.
 >
 > `dist/mac-arm64` is large (~480 MB) because it bundles the Electron runtime.
 

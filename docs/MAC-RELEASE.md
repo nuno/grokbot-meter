@@ -10,6 +10,8 @@ npm run electron:build
 
 This produces an **ad-hoc signed** (not notarized) arm64 `.app` under `dist/mac-arm64` and versioned `.dmg` / `.zip` artifacts under `releases/<version>/`.
 
+Electron 44 requires macOS 13 (Ventura) or later. Packaging sets `mac.minimumSystemVersion` to `13.0`. The DMG and zip targets, `scripts/after-pack-adhoc-sign.cjs` (`codesign --sign -` before the disk images are built), `scripts/organize-release-artifacts.mjs`, and `build/entitlements.mac.plist` are unchanged.
+
 The `afterPack` hook (`scripts/after-pack-adhoc-sign.cjs`) re-signs the whole bundle with `codesign --force --deep --sign -` and runs a strict verify, so the build fails if the signature is broken. Without it, the bundle keeps Electron's linker-only signature and quarantined downloads are reported as "damaged".
 
 Before publishing, check the artifact users will download (not just `dist/mac-arm64`):

@@ -27,6 +27,12 @@ Use the **`electron:*`** scripts only. There is no standalone Vite `dev` / `buil
 
 GitHub only keeps clone and view counts for 14 days. Run the snapshot at least once a week if you want that history, then commit `docs/traffic-log.jsonl`. It needs `gh` authenticated with access to this repo.
 
+## Dependencies
+
+Stay on TypeScript 5.8 (`~5.8.3`). Do not bump to TypeScript 6 or 7.
+
+Vite 8 and `@vitejs/plugin-react` 6 are not compatible with stable `electron-vite` 5, which peers `vite@^5 || ^6 || ^7`. Vite 8 support exists only in `electron-vite@6.0.0-beta.5`. Keep Vite 7 and plugin-react 4 until electron-vite 6 is a stable release.
+
 ## Product rules
 
 - Show **official Grok Bot meters only** — no invented weekly caps or fake usage.

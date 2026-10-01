@@ -35,7 +35,7 @@
 
 Click the menu bar icon for the full popup. Right-click for About and Quit.
 
-Requires macOS on Apple Silicon and [Grok Bot](https://cursor.com) installed and signed in.
+Requires macOS 13 (Ventura) or later on Apple Silicon and [Grok Bot](https://cursor.com) installed and signed in.
 
 ## Screenshots
 
@@ -86,7 +86,7 @@ Builds are ad-hoc signed but not notarized yet, so macOS asks you to approve the
 2. Go to **System Settings → Privacy & Security → Security** and click **Open Anyway**.
 3. Confirm with **Open Anyway** and your password. Later launches open normally.
 
-**macOS 14 Sonoma and earlier:** right-click the app → **Open** → **Open**.
+**macOS 13 Ventura and macOS 14 Sonoma:** right-click the app → **Open** → **Open**.
 
 If macOS says the app "is damaged and can't be opened", clear the quarantine flag:
 
