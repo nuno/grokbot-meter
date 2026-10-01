@@ -48,7 +48,7 @@
 /* --- panel + cards ------------------------------------------------------ */
 
 [data-theme="coffee"] .panel {
-  font-family: "SF Pro Rounded", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   gap: 8px;
 }
 

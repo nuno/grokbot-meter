@@ -28,7 +28,7 @@
   --control-bg: rgba(120, 120, 128, 0.12);
   --control-bg-hover: rgba(120, 120, 128, 0.18);
   --control-bg-active: rgba(120, 120, 128, 0.26);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI Variable Text", "Segoe UI", sans-serif;
   font-size: 13px;
   line-height: 1.35;
   font-weight: 400;
@@ -61,6 +61,26 @@
     --control-bg: rgba(120, 120, 128, 0.28);
     --control-bg-hover: rgba(120, 120, 128, 0.36);
     --control-bg-active: rgba(120, 120, 128, 0.44);
+  }
+}
+
+/*
+  Windows notification flyout. System theme only — Coffee keeps its own tokens.
+  No vibrancy blur; solid cards sit on acrylic (Windows 11) or the window fill.
+*/
+html[data-platform="win32"]:not([data-theme="coffee"]) {
+  font-family: "Segoe UI Variable Text", "Segoe UI", sans-serif;
+  --card-backdrop: none;
+  --card-fill: #ffffff;
+  --card-stroke: rgba(0, 0, 0, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-platform="win32"]:not([data-theme]),
+  html[data-platform="win32"][data-theme="system"] {
+    --card-backdrop: none;
+    --card-fill: #2c2c2c;
+    --card-stroke: rgba(255, 255, 255, 0.08);
   }
 }
 

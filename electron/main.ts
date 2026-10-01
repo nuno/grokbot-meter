@@ -162,6 +162,18 @@ function togglePanel(bounds: Electron.Rectangle) {
   win.focus();
 }
 
+/** Right-click Open. Shows the popup; a second Open does not dismiss it. */
+function openPanel(bounds: Electron.Rectangle) {
+  if (!win) return;
+  lastTrayBounds = bounds;
+  if (!win.isVisible()) {
+    win.setContentSize(PANEL_WIDTH, lastMainHeight);
+  }
+  platform.positionWindow(win, bounds);
+  if (!win.isVisible()) win.show();
+  win.focus();
+}
+
 function showAbout() {
   if (!win) return;
   if (lastTrayBounds) platform.positionWindow(win, lastTrayBounds);
@@ -228,7 +240,7 @@ function createWindow() {
       sandbox: false, // true breaks electron-vite preload/IPC in practice; keep other A hardenings
     },
   });
-  platform.afterWindowCreated();
+  platform.afterWindowCreated(win);
 
   if (!app.isPackaged && process.env["ELECTRON_RENDERER_URL"]) win.loadURL(process.env["ELECTRON_RENDERER_URL"]);
   else if (!app.isPackaged && process.env.ELECTRON_START_URL) win.loadURL(process.env.ELECTRON_START_URL);
@@ -295,8 +307,9 @@ function createTray() {
   if (img.isEmpty()) {
     img = nativeImage.createFromPath(trayIconPath("icon.png"));
   }
-  platform.prepareTrayImage(img);
-  if (img.isEmpty()) {
+  const sourceMissing = img.isEmpty();
+  img = platform.prepareTrayImage(img);
+  if (sourceMissing || img.isEmpty()) {
     console.error("[GrokBot Meter] tray icon missing — checked", trayIconPath("tray.png"));
   }
   const t = new Tray(img);
@@ -308,6 +321,11 @@ function createTray() {
       if (bounds) lastTrayBounds = bounds;
       const b = bounds ?? t.getBounds() ?? lastTrayBounds;
       if (b) togglePanel(b);
+    },
+    onOpen: () => {
+      const b = t.getBounds();
+      const bounds = b && b.width > 0 && b.height > 0 ? b : lastTrayBounds;
+      if (bounds) openPanel(bounds);
     },
     showAbout,
     showSettings,
