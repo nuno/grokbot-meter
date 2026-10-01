@@ -1,6 +1,6 @@
 # GrokBot Meter Windows packaging
 
-Unsigned x64 proof-of-concept. `package.json` `version` stays at the current Mac release (**0.3.1**). This does not change `npm run electron:build` or `npm run electron:build:release`.
+Unsigned x64 build. `package.json` `version` is **0.4.0**, the same version as the Mac release. This does not change `npm run electron:build` or `npm run electron:build:release`.
 
 ## Build
 
@@ -18,13 +18,13 @@ npm run dist:win
 
 Code-signing auto-discovery is off (`scripts/electron-builder-unsigned.mjs` sets `CSC_IDENTITY_AUTO_DISCOVERY=false`), so a cert in the Windows store is not picked up. The script uses a Node spawn so the same command works in Windows cmd and in a Unix shell.
 
-Artifacts are moved from `dist/` into `releases/<version>/` by `scripts/organize-release-artifacts.mjs` (same folder rule as the Mac DMG and zip). For 0.3.1:
+Artifacts are moved from `dist/` into `releases/<version>/` by `scripts/organize-release-artifacts.mjs` (same folder rule as the Mac DMG and zip). For 0.4.0:
 
 | File | What it is |
 | ---- | ---------- |
-| `releases/0.3.1/GrokBot-Meter-0.3.1-x64.exe` | NSIS installer |
-| `releases/0.3.1/GrokBot-Meter-0.3.1-x64.zip` | Portable zip. Unzip and run `GrokBot Meter.exe` |
-| `releases/0.3.1/GrokBot-Meter-0.3.1-x64.exe.blockmap` | NSIS differential-update blockmap |
+| `releases/0.4.0/GrokBot-Meter-0.4.0-x64.exe` | NSIS installer |
+| `releases/0.4.0/GrokBot-Meter-0.4.0-x64.zip` | Portable zip. Unzip and run `GrokBot Meter.exe` |
+| `releases/0.4.0/GrokBot-Meter-0.4.0-x64.exe.blockmap` | NSIS differential-update blockmap |
 
 Unpacked staging stays in `dist/win-unpacked`. Those binaries are gitignored.
 
@@ -32,7 +32,7 @@ The installer is one-click, per-user, and does not ask for an admin password. It
 
 ## Where to run it
 
-**Windows loaner (preferred).** Use a separate Windows user so Node and Electron stay off the daily profile. Install Git and Node LTS only. Clone this branch, run the commands above, and copy `releases/0.3.1/` back. Do not copy a Mac signing identity or `.env`.
+**Windows loaner (preferred).** Use a separate Windows user so Node and Electron stay off the daily profile. Install Git and Node LTS only. Clone this branch, run the commands above, and copy `releases/0.4.0/` back. Do not copy a Mac signing identity or `.env`.
 
 **Linux or macOS.** The same `npm run dist:win` cross-compiles the Windows targets. electron-builder edits exe resources in-process and compiles NSIS with a native `makensis`. It then launches the installer once to embed the uninstaller. That stub is a 32-bit PE, so `wine` must be on `PATH` and able to run it. On Ubuntu:
 
