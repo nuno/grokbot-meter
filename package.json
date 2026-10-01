@@ -9,9 +9,10 @@
     "electron:build": "tsc && electron-vite build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac dir dmg zip --arm64 && node scripts/organize-release-artifacts.mjs",
     "electron:preview": "electron-vite preview",
     "electron:build:release": "tsc && electron-vite build && electron-builder --mac dmg zip --arm64 && node scripts/organize-release-artifacts.mjs",
+    "dist:win": "tsc && electron-vite build && node scripts/electron-builder-unsigned.mjs --win --x64 && node scripts/organize-release-artifacts.mjs",
     "icons:gen": "python3 scripts/gen-packaging-icons.py",
     "typecheck": "tsc --noEmit && tsc -p electron/tsconfig.json --noEmit",
-    "test": "node --experimental-strip-types --test src/lib/meterReadout.test.ts electron/platform/position.test.ts electron/platform/winTrayBitmap.test.ts"
+    "test": "node --experimental-strip-types --test src/lib/meterReadout.test.ts electron/platform/position.test.ts electron/platform/winTrayBitmap.test.ts electron/grokBotPaths.test.ts electron/safeStorageCrypt.test.ts scripts/release-artifact-names.test.mjs"
   },
   "dependencies": {
     "react": "^19.3.0",
@@ -66,7 +67,18 @@
     },
     "win": {
       "target": [
-        "nsis"
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
       "icon": "build/icons/icon.ico"
     },

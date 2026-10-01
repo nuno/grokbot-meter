@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync, statSync } from "fs";
 import { join, basename } from "path";
-import { homedir } from "os";
+import { todayCandidateDirs } from "./grokBotPaths";
 
 const MAX_BLOB_BYTES = 8 * 1024 * 1024;
 const SECOND_MS_THRESHOLD = 100_000_000_000;
@@ -16,12 +16,7 @@ export type GrokStatus = {
 };
 
 export function candidateDirs(): string[] {
-  const home = homedir();
-  return [
-    join(home, "Library/Application Support/Grok Bot/sand-client-persistence"),
-    join(home, ".config/Grok Bot/sand-client-persistence"),
-    join(home, ".grokbot"),
-  ];
+  return todayCandidateDirs();
 }
 function isPersistenceDir(p: string): boolean {
   return p.endsWith("sand-client-persistence");

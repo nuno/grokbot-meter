@@ -1,10 +1,11 @@
 import { readFileSync, existsSync } from "fs";
-import { join } from "path";
-import { homedir } from "os";
 import { execFile } from "child_process";
 import { promisify } from "util";
-import { createDecipheriv, pbkdf2Sync } from "crypto";
+import { pbkdf2Sync } from "crypto";
 import { WEEKLY_NOTICE, type WeeklyStatus, type OnDemandSpend } from "../shared/types";
+import { sandSecretsPaths, windowsLocalStatePath } from "./grokBotPaths";
+import { decryptSafeStorage } from "./macSafeStorage";
+import { decryptWindowsV10, readWindowsOsCryptKeyFromFile } from "./winSafeStorage";
 
 export type { WeeklyStatus, OnDemandSpend };
 
@@ -25,7 +26,6 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const UNLIMITED_SPEND_LIMIT = 2_147_483_647;
 const PBKDF2_SALT = Buffer.from("saltysalt");
 const PBKDF2_ITERS = 1003;
-const V10_PREFIX = Buffer.from("v10");
 
 const JWT_CHAR_RE = /^[A-Za-z0-9._\-+/=]+$/;
 const LONG_TOKEN_RE = /^[A-Za-z0-9\-_\.+/=]+$/;
@@ -334,9 +334,6 @@ function sanitizeError(msg: string): string {
   return s || "usage request failed";
 }
 
-function homeDir(): string {
-  return homedir();
-}
 /**
  * Only the access token is decrypted; the refresh token is never read, just noted as present
  * so an expired session shows "Open Grok Bot" instead of "Sign in".
@@ -347,7 +344,9 @@ async function loadTokens(): Promise<LoadedTokens> {
   const decrypt = async (b64: string): Promise<string | null> => {
     const state = await cryptKey();
     if (state.kind === "denied") keychainDenied = true;
-    return state.kind === "ok" ? decryptSafeStorage(b64, state.key) : null;
+    if (state.kind !== "ok") return null;
+    // Windows v10 is AES-256-GCM under Grok Bot's Local State key. Mac stays AES-128-CBC.
+    return process.platform === "win32" ? decryptWindowsV10(b64, state.key) : decryptSafeStorage(b64, state.key);
   };
   for (const p of sandSecretsPaths()) {
     if (!existsSync(p)) continue;
@@ -427,38 +426,6 @@ function normalizeSecret(raw: string): string {
   if (t.startsWith('"') && t.endsWith('"') && t.length >= 2) return t.slice(1, -1).replace(/\\"/g, '"').trim();
   return t;
 }
-function sandSecretsPaths(): string[] {
-  const home = homeDir();
-  return [
-    join(home, "Library/Application Support/Grok Bot/sand-secrets.json"),
-    join(home, ".config/Grok Bot/sand-secrets.json"),
-    join(home, ".grokbot/sand-secrets.json"),
-    join(home, "Library/Application Support/Grok Bot/sand-client-persistence/sand-secrets.json"),
-    join(home, ".config/Grok Bot/sand-client-persistence/sand-secrets.json"),
-  ];
-}
-function decryptSafeStorage(b64: string, key: Buffer): string | null {
-  let data: Buffer;
-  try {
-    data = Buffer.from(b64.trim(), "base64");
-    if (data.length === 0) data = Buffer.from(b64.trim(), "base64url");
-  } catch {
-    return null;
-  }
-  if (!data.subarray(0, 3).equals(V10_PREFIX)) return null;
-  data = data.subarray(3);
-  if (data.length === 0 || data.length % 16 !== 0) return null;
-  try {
-    const iv = Buffer.alloc(16, 32); // 16 spaces
-    const dec = createDecipheriv("aes-128-cbc", key, iv);
-    dec.setAutoPadding(true);
-    const out = Buffer.concat([dec.update(data), dec.final()]);
-    const s = out.toString("utf8").trim();
-    return s || null;
-  } catch {
-    return null;
-  }
-}
 async function cryptKey(): Promise<KeyState> {
   if (keyState) return keyState;
   const state = await readSafeStorageKey();
@@ -467,6 +434,12 @@ async function cryptKey(): Promise<KeyState> {
 }
 /** Any failure other than "item not found" (Deny, Cancel, timeout) counts as denied. */
 async function readSafeStorageKey(): Promise<KeyState> {
+  if (process.platform === "win32") {
+    const localState = windowsLocalStatePath();
+    if (!localState) return { kind: "missing" };
+    const key = await readWindowsOsCryptKeyFromFile(localState);
+    return key ? { kind: "ok", key } : { kind: "missing" };
+  }
   if (process.platform !== "darwin") return { kind: "missing" };
   try {
     const { stdout } = await execFileAsync(
