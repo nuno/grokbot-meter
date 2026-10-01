@@ -37,6 +37,8 @@ Click the menu bar icon for the full popup. Right-click for About and Quit.
 
 Requires macOS 13 (Ventura) or later on Apple Silicon and [Grok Bot](https://cursor.com) installed and signed in.
 
+Windows is an unsigned proof of concept: [install notes](#windows).
+
 ## Screenshots
 
 ### System
@@ -95,6 +97,18 @@ xattr -dr com.apple.quarantine "/Applications/GrokBot Meter.app"
 ```
 
 </details>
+
+## Windows
+
+Unsigned x64 proof of concept. Use a loaner Windows PC or other test machine. The macOS install above stays primary.
+
+1. [Download the latest release](https://github.com/nuno/grokbot-meter/releases/latest).
+2. **NSIS installer** (`.exe`): one-click install for the current Windows user, no admin password. **Portable zip**: unzip and run `GrokBot Meter.exe` from that folder.
+3. SmartScreen warns because the build is unsigned. Choose **More info → Run anyway**.
+
+[Grok Bot](https://cursor.com) must be signed in on the **same Windows user** as GrokBot Meter. Weekly usage and Today both read that user's session.
+
+The weekly % shows in the notification area. Click the icon for the popup. Right-click for Open, About, Settings, and Quit.
 
 ## Privacy
 
