@@ -44,6 +44,8 @@ sudo apt-get install -y wine wine64 wine32:i386
 
 Do not pin `build.toolsets.wine` to electron-builder's Wine 11 bundle (`1.0.1`). That archive has no runnable prefix (`kernel32.dll` is missing), so the uninstaller step fails. On the loaner the installer runs natively and Wine is not used. There is no Windows self-hosted runner for this repo. A Linux machine with Wine can produce the `.exe` and `.zip`, but the tray itself still needs the loaner to click through.
 
+Open at login is not written by the installer. After the app is running, Settings → **Open at login** stores a per-user startup entry for that Windows user.
+
 ## What this package does not include
 
 - Authenticode signing or the Microsoft Store

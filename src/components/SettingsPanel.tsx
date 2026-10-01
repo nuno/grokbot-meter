@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useState } from "react";
 import { fetchLoginItem, setLoginItem } from "../lib/api";
+import { openAtLoginHint } from "../lib/openAtLoginHint";
 import { redactEmail } from "../lib/format";
 import { useRedactEmail, useShowOnDemand } from "../hooks/useLocalPref";
 import { EyeIcon, EyeOffIcon } from "./icons";
@@ -123,13 +124,11 @@ export const SettingsPanel = memo(function SettingsPanel({ onBack, accountEmail 
         <PrefToggle
           id="pref-open-at-login"
           label="Open at login"
-          hint={
-            typeof navigator !== "undefined" && /Windows NT/.test(navigator.userAgent)
-              ? "Not available on Windows yet."
-              : loginSupported || !loginReady
-                ? "Launch GrokBot Meter when you sign in to this Mac."
-                : "macOS only."
-          }
+          hint={openAtLoginHint(
+            loginSupported,
+            loginReady,
+            typeof navigator === "undefined" ? "" : navigator.userAgent,
+          )}
           checked={openAtLogin}
           disabled={!loginReady || !loginSupported}
           onChange={(next) => void onLoginToggle(next)}

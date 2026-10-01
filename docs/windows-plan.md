@@ -13,7 +13,7 @@ Mac stays the primary platform. Windows is additive. The Windows build should fe
 Locked 2026-10-01.
 
 - **Tray label.** Show the weekly **% in the tray text**, the same idea as the Mac menu-bar title.
-- **Autostart / Open at login.** Later. Not v1. (On Mac this is a real setting; the current main process already reports login-item support as off on non-darwin.)
+- **Autostart / Open at login.** Settings → **Open at login**, the same control as Mac. On Windows, Electron `app.setLoginItemSettings` writes a per-user startup entry (no admin). Linux still reports the setting as unsupported.
 - **Dev/test machine.** A dedicated Windows loaner (secondary Windows PC) for build and tray QA. A separate Windows user is recommended.
 - **Native Windows UX.** Notification-area tray, Windows 11 Mica/Acrylic where Electron allows it, Segoe UI, system light/dark, a right-click tray menu (Quit / Open), and DPI-aware popup anchoring. This is a Windows app, not a Mac skin running on Windows.
 
@@ -29,7 +29,7 @@ Locked 2026-10-01.
 Intended shape for later PRs. Not implemented here.
 
 - **UI.** Share the React popup where it can be shared. Theme tokens must work without macOS vibrancy.
-- **Main process.** Split platform code into `mac/` and `win/` for the tray, window position, and quit. Mac behavior stays as it is. Today the tray title (`tray.setTitle`) and the login-item helpers are darwin-only inside `electron/main.ts`.
+- **Main process.** Split platform code into `mac/` and `win/` for the tray, window position, and quit. Mac behavior stays as it is. Open at login on Windows is the win32 branch of `electron/platform/win.ts` (per-user Run key). The Mac login item is unchanged.
 - **Packaging.** `npm run dist:win` runs electron-builder `win` for an NSIS installer and a portable zip, both under `releases/<version>/`, same folder rule as the Mac DMG and zip. See [WINDOWS-RELEASE.md](WINDOWS-RELEASE.md). Unsigned. The version stays on the current Mac release until a Windows release is cut.
 - **Data.** Keep the same auth and weekly IPC path (`GetSandUsageStatus`, `GetCurrentPeriodUsage`, `GetMe`). Today meters stay local and read-only.
 
@@ -83,6 +83,7 @@ Use a dedicated Windows loaner for build and tray QA. Keep that work off the mac
 4. Build and run under that user. Copy `releases/` artifacts back to the Mac or attach them to a GitHub Release.
 5. Weekly and Today need Grok Bot signed in on that same Windows user when those meters are under test.
 6. Alternative: keep development on the Mac and add a CI Windows builder later. Use the loaner for manual tray QA of the installers.
+7. **Open at login.** Run the installed app or `GrokBot Meter.exe` from `dist/win-unpacked` (a dev server is not there after sign-in). In Settings, turn **Open at login** on. Windows should not ask for an administrator password. Sign out and back in. Locking the screen is not a new sign-in. The meter should start in the notification area. Turn the toggle off, sign out and back in, and it should not start. In Task Manager → Startup apps the entry should be Enabled. An unsigned build may need that switch turned on once.
 
 ## Open follow-ups
 
