@@ -20,7 +20,14 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run electron:build
+      # `--publish never` is required on Actions. electron-builder treats CI as
+      # an implicit publish and exits if GH_TOKEN is unset, after the DMG and
+      # zip are already written. Local `npm run electron:build` is unchanged.
+      - run: |
+          npx tsc
+          npx electron-vite build
+          CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac dir dmg zip --arm64 --publish never
+          node scripts/organize-release-artifacts.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: mac-0.4.0
