@@ -1,0 +1,43 @@
+name: Desktop release build
+
+# One-shot builder for the 0.4.1 Mac artifacts. electron-builder only
+# produces a DMG on macOS (hdiutil + ad-hoc codesign). Removed after the
+# release assets are downloaded; not part of the version bump.
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - cursor/release-v0.4.1-0e62
+
+jobs:
+  mac:
+    runs-on: macos-14
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # `--publish never` is required on Actions. electron-builder treats CI as
+      # an implicit publish and exits if GH_TOKEN is unset, after the DMG and
+      # zip are already written. Local `npm run electron:build` is unchanged.
+      - run: |
+          npx tsc
+          npx electron-vite build
+          CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac dir dmg zip --arm64 --publish never
+          node scripts/organize-release-artifacts.mjs
+      - name: Verify the zip users download
+        run: |
+          rm -rf /tmp/gbm-check
+          ditto -x -k releases/0.4.1/GrokBot-Meter-0.4.1-arm64.zip /tmp/gbm-check
+          codesign --verify --deep --strict --verbose=2 "/tmp/gbm-check/GrokBot Meter.app"
+          codesign -dv --verbose=4 "/tmp/gbm-check/GrokBot Meter.app"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mac-0.4.1
+          if-no-files-found: error
+          path: |
+            releases/0.4.1/*.dmg
+            releases/0.4.1/*.zip
