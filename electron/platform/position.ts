@@ -21,7 +21,7 @@ export const macTrayPlacement: TrayPlacement = {
   clampToTrayTop: true,
 };
 
-/** Windows/Linux: taskbar gap can be larger. Used by the Windows stub. */
+/** Windows/Linux: taskbar gap can be larger. Used by the notification-area popup. */
 export const winTrayPlacement: TrayPlacement = {
   gap: 6,
   sideMargin: 8,

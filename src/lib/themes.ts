@@ -15,11 +15,18 @@ export type ThemeDef = {
 
 export const DEFAULT_THEME: ThemeId = "system";
 
+function systemAppearanceHint(): string {
+  if (typeof navigator !== "undefined" && /Windows NT/.test(navigator.userAgent)) {
+    return "Follows the Windows light and dark appearance.";
+  }
+  return "Follows the macOS light and dark appearance.";
+}
+
 export const THEMES: readonly ThemeDef[] = [
   {
     id: "system",
     label: "System",
-    hint: "Follows the macOS light and dark appearance.",
+    hint: systemAppearanceHint(),
     maxPanelHeight: 520,
   },
   {

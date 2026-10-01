@@ -21,6 +21,7 @@ export const macPlatform: PlatformSeam = {
   },
   prepareTrayImage(image) {
     if (!image.isEmpty()) image.setTemplateImage(true);
+    return image;
   },
   positionWindow(win, bounds) {
     moveWindowNearTray(win, bounds, macTrayPlacement);

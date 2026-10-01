@@ -123,7 +123,13 @@ export const SettingsPanel = memo(function SettingsPanel({ onBack, accountEmail 
         <PrefToggle
           id="pref-open-at-login"
           label="Open at login"
-          hint={loginSupported || !loginReady ? "Launch GrokBot Meter when you sign in to this Mac." : "macOS only."}
+          hint={
+            typeof navigator !== "undefined" && /Windows NT/.test(navigator.userAgent)
+              ? "Not available on Windows yet."
+              : loginSupported || !loginReady
+                ? "Launch GrokBot Meter when you sign in to this Mac."
+                : "macOS only."
+          }
           checked={openAtLogin}
           disabled={!loginReady || !loginSupported}
           onChange={(next) => void onLoginToggle(next)}
