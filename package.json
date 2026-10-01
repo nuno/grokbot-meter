@@ -14,19 +14,19 @@
     "test": "node --experimental-strip-types --test src/lib/meterReadout.test.ts"
   },
   "dependencies": {
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
-    "@vitejs/plugin-react": "^4.6.0",
-    "electron": "^36.9.2",
-    "electron-builder": "^25.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "electron": "^44.5.1",
+    "electron-builder": "^26.17.0",
     "electron-vite": "^5.0.0",
     "typescript": "~5.8.3",
-    "vite": "^7.0.4"
+    "vite": "^7.3.6"
   },
   "build": {
     "appId": "app.grokbotmeter.desktop",
@@ -55,7 +55,7 @@
         }
       ],
       "icon": "build/icons/icon.icns",
-      "minimumSystemVersion": "10.15",
+      "minimumSystemVersion": "13.0",
       "category": "public.app-category.productivity",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
