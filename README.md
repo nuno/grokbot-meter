@@ -141,6 +141,8 @@ npm run electron:build
 
 Release signing and notarization notes: [docs/MAC-RELEASE.md](docs/MAC-RELEASE.md).
 
+Windows x64 packaging (`npm run dist:win`, NSIS installer and portable zip): [docs/WINDOWS-RELEASE.md](docs/WINDOWS-RELEASE.md).
+
 ### Development
 
 ```bash

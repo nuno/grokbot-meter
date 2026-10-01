@@ -30,7 +30,7 @@ Intended shape for later PRs. Not implemented here.
 
 - **UI.** Share the React popup where it can be shared. Theme tokens must work without macOS vibrancy.
 - **Main process.** Split platform code into `mac/` and `win/` for the tray, window position, and quit. Mac behavior stays as it is. Today the tray title (`tray.setTitle`) and the login-item helpers are darwin-only inside `electron/main.ts`.
-- **Packaging.** electron-builder `win`: NSIS installer plus a portable zip, both under `releases/<version>/`, same folder rule as the Mac DMG and zip. The current `build.win` block only lists an NSIS target and is not the v1 packaging setup.
+- **Packaging.** `npm run dist:win` runs electron-builder `win` for an NSIS installer and a portable zip, both under `releases/<version>/`, same folder rule as the Mac DMG and zip. See [WINDOWS-RELEASE.md](WINDOWS-RELEASE.md). Unsigned. The version stays on the current Mac release until a Windows release is cut.
 - **Data.** Keep the same auth and weekly IPC path (`GetSandUsageStatus`, `GetCurrentPeriodUsage`, `GetMe`). Today meters stay local and read-only.
 
 ### Today and secret paths (Mac, current)
@@ -52,7 +52,7 @@ Future work. Do not implement from this doc.
 1. This docs PR.
 2. Platform seams, with Mac behavior unchanged.
 3. Windows tray proof of concept.
-4. `dist:win` and artifacts under `releases/`.
+4. `dist:win` and artifacts under `releases/`. Script and loaner steps: [WINDOWS-RELEASE.md](WINDOWS-RELEASE.md).
 5. README Windows install notes.
 6. QA checklist: tray, themes, weekly failure UX, spend-safe behavior, reset countdown.
 

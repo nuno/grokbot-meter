@@ -19,6 +19,7 @@ Use the **`electron:*`** scripts only. There is no standalone Vite `dev` / `buil
 | ------ | ------- |
 | `npm run electron:dev` | Dev with hot reload |
 | `npm run electron:build` | Ad-hoc signed arm64 build + DMG/zip under `releases/<version>/` |
+| `npm run dist:win` | Unsigned Windows x64 NSIS installer + portable zip under `releases/<version>/` |
 | `npm run electron:preview` | Preview a production electron-vite build |
 | `npm run icons:gen` | Regenerate icns / png / tray templates from the canonical Bot mark |
 | `npm run electron:build:release` | Same packaging path intended for Developer ID + notarization (see `docs/MAC-RELEASE.md`) |
