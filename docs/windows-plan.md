@@ -1,6 +1,6 @@
 # Windows v1 plan
 
-Agreed 2026-10-01. Documentation only. This file does not change the app, `package.json`, Electron config, or release scripts.
+Agreed 2026-10-01. Do not bump `package.json` for this plan. Windows data paths were confirmed on a loaner the same day; see [Confirmed Windows paths](#confirmed-windows-paths).
 
 ## Goal
 
@@ -41,9 +41,22 @@ Today’s message and agent counts come from local blobs. `electron/grokSource.t
 - `~/.config/Grok Bot/sand-client-persistence`
 - `~/.grokbot`
 
-Weekly auth reads `sand-secrets.json` from the Grok Bot support dir, `~/.config/Grok Bot`, `~/.grokbot`, and the persistence dirs (`electron/weekly.ts`). The safe-storage key is the macOS Keychain item **Grok Bot Safe Storage**, via `/usr/bin/security`. Off darwin, that read returns missing.
+Weekly auth reads `sand-secrets.json` from the Grok Bot support dir, `~/.config/Grok Bot`, `~/.grokbot`, and the persistence dirs (`electron/weekly.ts`). On macOS the safe-storage key is the Keychain item **Grok Bot Safe Storage**, via `/usr/bin/security`. That Keychain read stays darwin-only.
 
-Windows paths for those blobs and secrets are not known yet. See [Open follow-ups](#open-follow-ups). Do not guess `%APPDATA%` (or any other) locations in code until they are confirmed on a signed-in Windows Grok Bot install.
+Windows uses the confirmed Roaming paths below. The Mac path list is unchanged.
+
+### Confirmed Windows paths
+
+Confirmed 2026-10-01 on a loaner Windows PC, Grok Bot signed in as the same Windows user (`%USERNAME%`):
+
+- Support dir: `%APPDATA%\Grok Bot` (Roaming), for example `C:\Users\<user>\AppData\Roaming\Grok Bot`
+- Secrets: `%APPDATA%\Grok Bot\sand-secrets.json`
+- Today blobs: `%APPDATA%\Grok Bot\sand-client-persistence`
+- Safe-storage key: `%APPDATA%\Grok Bot\Local State`, field `os_crypt.encrypted_key` (prefix `DPAPI` before the DPAPI blob)
+- Nested account fields `cursor-access-token` / `cursor-refresh-token` were base64 whose decoded prefix is `v10`. On Windows that is Chromium AES-256-GCM (12-byte nonce, 16-byte tag) under the 32-byte Local State key. macOS keeps AES-128-CBC via the Keychain.
+- `%USERPROFILE%\.grokbot` existed and did not hold `sand-secrets.json` (daemon/settings only). Meter still checks it, after the Roaming file.
+
+Meter reads these read-only. It unwraps the Local State key with DPAPI for the current user and does not refresh or rotate Grok Bot's session. Decryption uses Grok Bot's Local State key. Meter's own Electron `safeStorage` key is a different app and is left unused.
 
 ## PR sequence
 
@@ -68,7 +81,7 @@ Use a dedicated Windows loaner for build and tray QA. Keep that work off the mac
 2. Install only Git and Node LTS. Add Visual Studio Build Tools only if a native module actually needs them.
 3. Clone the public repo or pull the branch. No Apple secrets. Do not copy the daily user profile.
 4. Build and run under that user. Copy `releases/` artifacts back to the Mac or attach them to a GitHub Release.
-5. Today meters need Grok Bot signed in on that Windows machine when Today is under test.
+5. Weekly and Today need Grok Bot signed in on that same Windows user when those meters are under test.
 6. Alternative: keep development on the Mac and add a CI Windows builder later. Use the loaner for manual tray QA of the installers.
 
 ## Open follow-ups
@@ -76,4 +89,3 @@ Use a dedicated Windows loaner for build and tray QA. Keep that work off the mac
 Unresolved. Do not treat a guess as a decision.
 
 - CI Windows runner versus building only on a loaner Windows PC (local Windows machine).
-- Exact Grok Bot Windows data paths for Today (blobs and `sand-secrets.json`).
