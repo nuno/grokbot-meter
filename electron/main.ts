@@ -1,9 +1,10 @@
-import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, screen, session } from "electron";
+import { app, BrowserWindow, Tray, nativeImage, ipcMain, screen, session } from "electron";
 import { join } from "path";
 import { existsSync, unlinkSync } from "fs";
 import { getGrokStatus } from "./grokSource";
 import { getGrokBotVersion } from "./grokBotApp";
 import { getWeeklyStatusAsync, type WeeklyStatus } from "./weekly";
+import { platform } from "./platform";
 import type { PanelHeightMode } from "../shared/types";
 
 if (!app.requestSingleInstanceLock()) app.quit();
@@ -11,7 +12,6 @@ if (!app.requestSingleInstanceLock()) app.quit();
 let win: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let lastTrayBounds: Electron.Rectangle | null = null;
-let isQuitting = false;
 /** Swallow the tray click that caused a blur-hide, so the extra doesn't immediately reopen. */
 let ignoreTrayClickUntil = 0;
 /** When set, next setPanelContentHeight reveals the window (avoids About height flash). */
@@ -66,7 +66,7 @@ function setPanelContentHeight(contentHeight: number, mode: PanelHeightMode = "m
       win.setContentSize(PANEL_WIDTH, nextH);
     }
     pendingReveal = null;
-    if (lastTrayBounds) positionNearTray(lastTrayBounds);
+    if (lastTrayBounds) platform.positionWindow(win, lastTrayBounds);
     if (!win.isVisible()) {
       win.show();
       win.focus();
@@ -105,7 +105,7 @@ function paintTrayFromCache() {
   const grok = getGrokStatus();
   const { title, tooltip } = trayTitleAndTooltip(lastWeekly, grok);
   tray.setToolTip(tooltip);
-  if (process.platform === "darwin") tray.setTitle(title ?? "");
+  platform.applyTrayLabel(tray, title);
 }
 
 function applyWeeklyToTray(weekly: WeeklyStatus) {
@@ -114,7 +114,7 @@ function applyWeeklyToTray(weekly: WeeklyStatus) {
   const grok = getGrokStatus();
   const { title, tooltip } = trayTitleAndTooltip(weekly, grok);
   tray.setToolTip(tooltip);
-  if (process.platform === "darwin") tray.setTitle(title ?? "");
+  platform.applyTrayLabel(tray, title);
   // Keep an open popover on the same official snapshot as the tray.
   win?.webContents.send("weekly:updated", weekly);
 }
@@ -139,33 +139,6 @@ async function refreshTray(forceWeekly = false) {
   paintTrayFromCache();
 }
 
-function positionNearTray(bounds: Electron.Rectangle) {
-  if (!win) return;
-  const display = screen.getDisplayNearestPoint({ x: bounds.x, y: bounds.y });
-  const w = win.getBounds().width;
-  const h = win.getBounds().height;
-  const isMac = process.platform === "darwin";
-  // macOS: tray is in the menubar — keep gap minimal so window sits flush under the menubar
-  // Windows/Linux: taskbar gap can be larger
-  const GAP = isMac ? 0 : 6;
-  const SIDE_MARGIN = 8;
-  const TOP_MARGIN = isMac ? 0 : 8;
-  const BOTTOM_MARGIN = 8;
-  let x = bounds.x + bounds.width / 2 - w / 2;
-  let y = bounds.y + bounds.height + GAP;
-  if (bounds.y > display.workArea.y + display.workArea.height - 80) y = bounds.y - h - GAP;
-  const area = display.workArea;
-  const maxX = Math.max(area.x + SIDE_MARGIN, area.x + area.width - w - SIDE_MARGIN);
-  const maxY = Math.max(area.y + TOP_MARGIN, area.y + area.height - h - BOTTOM_MARGIN);
-  x = Math.max(area.x + SIDE_MARGIN, Math.min(maxX, x));
-  y = Math.max(area.y + TOP_MARGIN, Math.min(maxY, y));
-  // On macOS ensure we never push the popover down away from the menubar when the tray is at the top
-  if (isMac && bounds.y < area.y) {
-    y = Math.min(y, bounds.y + bounds.height + GAP);
-  }
-  win.setPosition(Math.round(x), Math.round(y));
-}
-
 function cursorOverTray(): boolean {
   if (!tray) return false;
   const p = screen.getCursorScreenPoint();
@@ -184,14 +157,14 @@ function togglePanel(bounds: Electron.Rectangle) {
   }
   // Reopen at last measured height so first paint doesn't jump from PANEL_MIN_HEIGHT.
   win.setContentSize(PANEL_WIDTH, lastMainHeight);
-  positionNearTray(bounds);
+  platform.positionWindow(win, bounds);
   win.show();
   win.focus();
 }
 
 function showAbout() {
   if (!win) return;
-  if (lastTrayBounds) positionNearTray(lastTrayBounds);
+  if (lastTrayBounds) platform.positionWindow(win, lastTrayBounds);
   // Already open (footer): just flip content — do NOT hide/fade/shrink (bad UX).
   if (win.isVisible()) {
     win.webContents.send("show-about");
@@ -206,7 +179,7 @@ function showAbout() {
     if (pendingReveal !== "about" || !win) return;
     pendingReveal = null;
     win.setContentSize(PANEL_WIDTH, lastAboutHeight);
-    if (lastTrayBounds) positionNearTray(lastTrayBounds);
+    if (lastTrayBounds) platform.positionWindow(win, lastTrayBounds);
     win.show();
     win.focus();
   }, 500);
@@ -214,7 +187,7 @@ function showAbout() {
 
 function showSettings() {
   if (!win) return;
-  if (lastTrayBounds) positionNearTray(lastTrayBounds);
+  if (lastTrayBounds) platform.positionWindow(win, lastTrayBounds);
   if (win.isVisible()) {
     win.webContents.send("show-settings");
     win.focus();
@@ -227,7 +200,7 @@ function showSettings() {
     if (pendingReveal !== "settings" || !win) return;
     pendingReveal = null;
     win.setContentSize(PANEL_WIDTH, lastMainHeight);
-    if (lastTrayBounds) positionNearTray(lastTrayBounds);
+    if (lastTrayBounds) platform.positionWindow(win, lastTrayBounds);
     win.show();
     win.focus();
   }, 500);
@@ -246,8 +219,7 @@ function createWindow() {
     resizable: false,
     hasShadow: true,
     backgroundColor: "#00000000",
-    vibrancy: "popover",
-    visualEffectState: "active",
+    ...platform.browserWindowOverrides(),
     roundedCorners: true,
     webPreferences: {
       preload: join(__dirname, "../preload/index.mjs"),
@@ -256,7 +228,7 @@ function createWindow() {
       sandbox: false, // true breaks electron-vite preload/IPC in practice; keep other A hardenings
     },
   });
-  if (process.platform === "darwin" && app.dock) app.dock.hide();
+  platform.afterWindowCreated();
 
   if (!app.isPackaged && process.env["ELECTRON_RENDERER_URL"]) win.loadURL(process.env["ELECTRON_RENDERER_URL"]);
   else if (!app.isPackaged && process.env.ELECTRON_START_URL) win.loadURL(process.env.ELECTRON_START_URL);
@@ -276,7 +248,7 @@ function createWindow() {
   });
 
   win.on("close", (e) => {
-    if (isQuitting) return;
+    if (!platform.shouldHideInsteadOfQuit()) return;
     e.preventDefault();
     win?.hide();
   });
@@ -323,7 +295,7 @@ function createTray() {
   if (img.isEmpty()) {
     img = nativeImage.createFromPath(trayIconPath("icon.png"));
   }
-  if (process.platform === "darwin" && !img.isEmpty()) img.setTemplateImage(true);
+  platform.prepareTrayImage(img);
   if (img.isEmpty()) {
     console.error("[GrokBot Meter] tray icon missing — checked", trayIconPath("tray.png"));
   }
@@ -331,18 +303,14 @@ function createTray() {
   tray = t;
   t.setToolTip("GrokBot Meter");
   lastTrayBounds = t.getBounds();
-  // No item icons — macOS status menus are text-only; role:"quit" added a bogus glyph.
-  const menu = Menu.buildFromTemplate([
-    { label: "About GrokBot Meter", click: () => showAbout() },
-    { label: "Settings…", click: () => showSettings() },
-    { type: "separator" },
-    { label: "Quit GrokBot Meter", accelerator: "Command+Q", click: () => app.quit() },
-  ]);
-  t.on("right-click", () => t.popUpContextMenu(menu));
-  t.on("click", (_e, bounds) => {
-    if (bounds) lastTrayBounds = bounds;
-    const b = bounds ?? t.getBounds() ?? lastTrayBounds;
-    if (b) togglePanel(b);
+  platform.bindTray(t, {
+    onClick: (bounds) => {
+      if (bounds) lastTrayBounds = bounds;
+      const b = bounds ?? t.getBounds() ?? lastTrayBounds;
+      if (b) togglePanel(b);
+    },
+    showAbout,
+    showSettings,
   });
 }
 
@@ -387,29 +355,20 @@ app.whenReady().then(() => {
       event.returnValue = true;
     },
   );
-  ipcMain.handle("settings:getLoginItem", () => {
-    if (process.platform !== "darwin") return { openAtLogin: false, supported: false };
-    const s = app.getLoginItemSettings();
-    return { openAtLogin: Boolean(s.openAtLogin), supported: true };
-  });
-  ipcMain.handle("settings:setLoginItem", (_e, openAtLogin: boolean) => {
-    if (process.platform !== "darwin") return { openAtLogin: false, supported: false };
-    app.setLoginItemSettings({ openAtLogin: Boolean(openAtLogin) });
-    const s = app.getLoginItemSettings();
-    return { openAtLogin: Boolean(s.openAtLogin), supported: true };
-  });
+  ipcMain.handle("settings:getLoginItem", () => platform.getLoginItem());
+  ipcMain.handle("settings:setLoginItem", (_e, openAtLogin: boolean) => platform.setLoginItem(openAtLogin));
   setInterval(() => void refreshTray(false), TRAY_PAINT_MS);
   void refreshTray(true);
 });
 
 app.on("before-quit", () => {
-  isQuitting = true;
+  platform.noteQuitting();
 });
 
 app.on("window-all-closed", () => {});
 app.on("activate", () => {
   if (win) {
-    if (lastTrayBounds) positionNearTray(lastTrayBounds);
+    if (lastTrayBounds) platform.positionWindow(win, lastTrayBounds);
     win.show();
   }
 });

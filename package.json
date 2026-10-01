@@ -11,7 +11,7 @@
     "electron:build:release": "tsc && electron-vite build && electron-builder --mac dmg zip --arm64 && node scripts/organize-release-artifacts.mjs",
     "icons:gen": "python3 scripts/gen-packaging-icons.py",
     "typecheck": "tsc --noEmit && tsc -p electron/tsconfig.json --noEmit",
-    "test": "node --experimental-strip-types --test src/lib/meterReadout.test.ts"
+    "test": "node --experimental-strip-types --test src/lib/meterReadout.test.ts electron/platform/position.test.ts"
   },
   "dependencies": {
     "react": "^19.3.0",
