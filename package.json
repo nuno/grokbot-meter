@@ -12,7 +12,7 @@
     "dist:win": "tsc && electron-vite build && node scripts/electron-builder-unsigned.mjs --win --x64 && node scripts/organize-release-artifacts.mjs",
     "icons:gen": "python3 scripts/gen-packaging-icons.py",
     "typecheck": "tsc --noEmit && tsc -p electron/tsconfig.json --noEmit",
-    "test": "node --experimental-strip-types --test src/lib/meterReadout.test.ts src/lib/openAtLoginHint.test.ts electron/platform/position.test.ts electron/platform/winTrayBitmap.test.ts electron/platform/winLoginItem.test.ts electron/grokBotPaths.test.ts electron/safeStorageCrypt.test.ts scripts/release-artifact-names.test.mjs"
+    "test": "node --experimental-strip-types --test src/lib/meterReadout.test.ts src/lib/openAtLoginHint.test.ts electron/platform/position.test.ts electron/platform/winTrayBitmap.test.ts electron/platform/winLoginItem.test.ts electron/grokBotPaths.test.ts electron/grokBotApp.test.ts electron/safeStorageCrypt.test.ts scripts/release-artifact-names.test.mjs"
   },
   "dependencies": {
     "react": "^19.3.0",
